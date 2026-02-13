@@ -39,10 +39,10 @@ export default function Login() {
   return (
     <Box
       display="flex"
-      height="100vh"
+      height="97vh"
       justifyContent="center"
       alignItems="center"
-      bgcolor="#f5f5f5"
+      bgcolor="#26266e"
     >
       <Paper sx={{ p: 4, width: 320 }}>
         <Typography variant="h5" mb={2}>

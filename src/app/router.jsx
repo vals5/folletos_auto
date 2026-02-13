@@ -4,8 +4,8 @@ import Dashboard from "../pages/Dashboard";
 import { supabase } from "../services/supabase";
 import DashboardLayout from "../components/layout/DashboardLayout";
 
-function ProtectedRoute({ children }) {
-  const session = supabase.auth.getSession();
+async function ProtectedRoute({ children }) {
+  const { data } = await supabase.auth.getSession();
 
   if (!session) return <Navigate to="/" />;
 
@@ -14,25 +14,20 @@ function ProtectedRoute({ children }) {
 
 export const router = createBrowserRouter([
   {
-    path: "/",
+    path: "/login",
     element: <Login />,
   },
   {
-    path: "/dashboard",
+    path: "/",
     element: (
       <ProtectedRoute>
-        <Dashboard />
+        <DashboardLayout />
       </ProtectedRoute>
     ),
+    children: [{ index: true, element: <Dashboard /> }],
   },
   {
-    path: "/brochures",
-    element: (
-      <ProtectedRoute>
-        <DashboardLayout>
-          <BrochuresPage />
-        </DashboardLayout>
-      </ProtectedRoute>
-    ),
+    path: "/editor/:id",
+    element: <FlyerEditor />,
   },
 ]);
