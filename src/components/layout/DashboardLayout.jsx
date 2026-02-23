@@ -1,8 +1,9 @@
 import { Box } from "@mui/material";
+import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
 
-export default function DashboardLayout({ children }) {
+export default function DashboardLayout() {
   return (
     <Box sx={{ display: "flex", height: "100vh" }}>
       <Sidebar />
@@ -18,7 +19,7 @@ export default function DashboardLayout({ children }) {
             overflow: "auto",
           }}
         >
-          {children}
+          <Outlet />
         </Box>
       </Box>
     </Box>

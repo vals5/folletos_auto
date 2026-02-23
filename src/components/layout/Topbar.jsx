@@ -6,8 +6,8 @@ export default function Topbar() {
   const navigate = useNavigate();
 
   const logout = async () => {
-    await supabase.auth.signout();
-    navigate("/");
+    await supabase.auth.signOut();
+    navigate("/login");
   };
 
   return (
@@ -22,7 +22,9 @@ export default function Topbar() {
         px: 3,
       }}
     >
-      <Typography fontWeight={600}>Panel de administración</Typography>
+      <Typography fontWeight={600} color="#1a1a2e">
+        Panel de administración
+      </Typography>
 
       <Button variant="outlined" size="small" onClick={logout}>
         Cerrar sesión

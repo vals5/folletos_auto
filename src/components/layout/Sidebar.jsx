@@ -18,7 +18,7 @@ import { useNavigate } from "react-router-dom";
 
 const menu = [
   { text: "Inicio", icon: <DashboardIcon />, path: "/dashboard" },
-  { text: "Folletos", icon: <DescriptionIcon />, path: "/brochures" },
+  { text: "Folletos", icon: <DescriptionIcon />, path: "/flyers" },
   { text: "Estilos", icon: <PaletteIcon />, path: "/styles" },
   { text: "Bases de datos", icon: <StorageIcon />, path: "/databases" },
   { text: "Usuarios", icon: <GroupIcon />, path: "/users" },
