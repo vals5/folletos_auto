@@ -2,7 +2,6 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 import Login from "../pages/Login";
 import Dashboard from "../pages/Dashboard";
 import FlyerEditor from "../pages/FlyerEditor";
-import Flyers from "../pages/Flyers";
 import Styles from "../pages/Styles";
 import Databases from "../pages/Databases";
 import Users from "../pages/Users";
@@ -22,12 +21,14 @@ export const router = createBrowserRouter([
   {
     element: <ProtectedRoute />,
     children: [
+      // Editor sin DashboardLayout (pantalla completa)
+      { path: "/editor/:id", element: <FlyerEditor /> },
+      // Resto con DashboardLayout
       {
         element: <DashboardLayout />,
         children: [
           { path: "/dashboard", element: <Dashboard /> },
-          { path: "/editor/:id", element: <FlyerEditor /> },
-          { path: "/flyers", element: <Flyers /> },
+          { path: "/flyers", element: <FlyerEditor /> },
           { path: "/styles", element: <Styles /> },
           { path: "/databases", element: <Databases /> },
           { path: "/users", element: <Users /> },

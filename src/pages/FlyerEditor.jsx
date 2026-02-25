@@ -1,6 +1,14 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { Box, CircularProgress } from "@mui/material";
+import { useParams, useNavigate } from "react-router-dom";
+import {
+  Box,
+  CircularProgress,
+  IconButton,
+  Typography,
+  Chip,
+  Tooltip,
+} from "@mui/material";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { supabase } from "../services/supabase";
 import ProductsSidebar from "../components/editor/ProductsSidebar";
 import CanvasPreview from "../components/editor/CanvasPreview";
@@ -8,6 +16,7 @@ import PropertiesPanel from "../components/editor/PropertiesPanel";
 
 export default function FlyerEditor() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [flyer, setFlyer] = useState(null);
   const [modulos, setModulos] = useState([]);
   const [selectedModulo, setSelectedModulo] = useState(null);
@@ -35,9 +44,7 @@ export default function FlyerEditor() {
     setLoading(false);
   };
 
-  const handleSelectModulo = (modulo) => {
-    setSelectedModulo(modulo);
-  };
+  const handleSelectModulo = (modulo) => setSelectedModulo(modulo);
 
   const handleUpdateModulo = async (moduloId, changes) => {
     setModulos((prev) =>
@@ -46,9 +53,9 @@ export default function FlyerEditor() {
     setSelectedModulo((prev) =>
       prev?.id === moduloId ? { ...prev, ...changes } : prev,
     );
-
     await supabase.from("modulos").update(changes).eq("id", moduloId);
   };
+
   const handleAddProducto = async (producto) => {
     const posicion = modulos.length;
     const { data, error } = await supabase
@@ -57,8 +64,8 @@ export default function FlyerEditor() {
         flyer_id: id,
         producto_id: producto.id,
         posicion,
-        tamaño: "S",
-        tipo_precio: "Regular",
+        tamano: "S",
+        tipo_precio: "regular",
         precio: null,
         precio_cencosud: false,
       })
@@ -81,7 +88,7 @@ export default function FlyerEditor() {
     return (
       <Box
         display="flex"
-        height="100vh"
+        height="100dvh"
         justifyContent="center"
         alignItems="center"
       >
@@ -90,21 +97,74 @@ export default function FlyerEditor() {
     );
 
   return (
-    <Box display="flex" height="100vh" overflow="hidden">
-      <ProductsSidebar
-        modulos={modulos}
-        selectedModulo={selectedModulo}
-        onSelectModulo={handleSelectModulo}
-        onAddProducto={handleAddProducto}
-        onDeleteModulo={handleDeleteModulo}
-      />
-      <CanvasPreview
-        flyer={flyer}
-        modulos={modulos}
-        selectedModulo={selectedModulo}
-        onSelectModulo={handleSelectModulo}
-      />
-      <PropertiesPanel modulo={selectedModulo} onUpdate={handleUpdateModulo} />
+    <Box
+      display="flex"
+      flexDirection="column"
+      height="100dvh"
+      overflow="hidden"
+    >
+      {/* Topbar del editor */}
+      <Box
+        sx={{
+          height: 52,
+          minHeight: 52,
+          bgcolor: "#111827",
+          display: "flex",
+          alignItems: "center",
+          px: 2,
+          gap: 2,
+          borderBottom: "1px solid #1f2937",
+          flexShrink: 0,
+        }}
+      >
+        <Tooltip title="Volver al dashboard">
+          <IconButton
+            size="small"
+            onClick={() => navigate("/dashboard")}
+            sx={{ color: "white" }}
+          >
+            <ArrowBackIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+
+        <Typography fontWeight={600} color="white" fontSize={14} noWrap>
+          {flyer?.nombre}
+        </Typography>
+
+        <Chip
+          label={flyer?.estado || "borrador"}
+          size="small"
+          sx={{
+            bgcolor: flyer?.estado === "publicado" ? "#10b981" : "#374151",
+            color: "white",
+            fontSize: 11,
+          }}
+        />
+      </Box>
+
+      {/* Cuerpo del editor */}
+      <Box display="flex" flex={1} overflow="hidden">
+        <ProductsSidebar
+          modulos={modulos}
+          selectedModulo={selectedModulo}
+          onSelectModulo={handleSelectModulo}
+          onAddProducto={handleAddProducto}
+          onDeleteModulo={handleDeleteModulo}
+        />
+        <CanvasPreview
+          flyer={flyer}
+          modulos={modulos}
+          selectedModulo={selectedModulo}
+          onSelectModulo={handleSelectModulo}
+          onFlyerUpdate={(field, value) =>
+            setFlyer((prev) => ({ ...prev, [field]: value }))
+          }
+        />
+        <PropertiesPanel
+          modulo={selectedModulo}
+          onUpdate={handleUpdateModulo}
+        />
+      </Box>
     </Box>
   );
 }
