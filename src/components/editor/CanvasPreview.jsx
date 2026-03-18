@@ -1,5 +1,27 @@
 import { useState, useRef, useEffect } from "react";
-import { Box, Typography, Chip } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Chip,
+  Tooltip,
+  CircularProgress,
+} from "@mui/material";
+import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
+import DeleteIcon from "@mui/icons-material/Delete";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  rectSortingStrategy,
+  useSortable,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { supabase } from "../../services/supabase";
 
 const TAMANO_SIZE = {
@@ -17,6 +39,7 @@ const TIPO_PRECIO_LABEL = {
   regular_cencosud: "CENCOSUD",
 };
 
+// --- Inline text editable ---
 function InlineText({
   value,
   onSave,
@@ -30,6 +53,9 @@ function InlineText({
   useEffect(() => {
     if (editing) inputRef.current?.focus();
   }, [editing]);
+  useEffect(() => {
+    setDraft(value || "");
+  }, [value]);
 
   const handleSave = () => {
     setEditing(false);
@@ -85,14 +111,15 @@ function InlineText({
   );
 }
 
+// --- Inline date range ---
 function InlineDateRange({ fechaInicio, fechaFin, onSave }) {
   const [editingInicio, setEditingInicio] = useState(false);
   const [editingFin, setEditingFin] = useState(false);
 
-  const formatDate = (dateStr) => {
-    if (!dateStr) return null;
-    const [year, month, day] = dateStr.split("-");
-    return `${parseInt(day)}/${parseInt(month)}`;
+  const fmt = (d) => {
+    if (!d) return "??/??";
+    const [, m, day] = d.split("-");
+    return `${parseInt(day)}/${parseInt(m)}`;
   };
 
   return (
@@ -123,10 +150,9 @@ function InlineDateRange({ fechaInicio, fechaFin, onSave }) {
             style={{
               cursor: "text",
               borderBottom: "1px dashed rgba(255,255,255,0.5)",
-              paddingBottom: 1,
             }}
           >
-            {formatDate(fechaInicio) || "??/??"}
+            {fmt(fechaInicio)}
           </span>
         )}
         {" AL "}
@@ -154,23 +180,37 @@ function InlineDateRange({ fechaInicio, fechaFin, onSave }) {
             style={{
               cursor: "text",
               borderBottom: "1px dashed rgba(255,255,255,0.5)",
-              paddingBottom: 1,
             }}
           >
-            {formatDate(fechaFin) || "??/??"}
+            {fmt(fechaFin)}
           </span>
         )}
+      </Typography>
+      <Typography fontSize={9} color="rgba(255,255,255,0.7)">
+        DE MARZO
       </Typography>
     </Box>
   );
 }
 
-function ModuloCard({ modulo, isSelected, onClick }) {
+// --- Módulo sortable ---
+function SortableModuloCard({ modulo, isSelected, onClick }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: modulo.id });
   const size = TAMANO_SIZE[modulo.tamano] || TAMANO_SIZE["S"];
   const priceLabel = TIPO_PRECIO_LABEL[modulo.tipo_precio];
 
   return (
     <Box
+      ref={setNodeRef}
+      {...attributes}
+      {...listeners}
       onClick={onClick}
       sx={{
         width: size.width,
@@ -182,13 +222,15 @@ function ModuloCard({ modulo, isSelected, onClick }) {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        cursor: "pointer",
+        cursor: isDragging ? "grabbing" : "grab",
         p: 1,
         position: "relative",
+        opacity: isDragging ? 0.5 : 1,
         boxShadow: isSelected
           ? "0 0 0 3px #f59e0b33"
           : "0 1px 4px rgba(0,0,0,0.15)",
-        transition: "all 0.15s ease",
+        transform: CSS.Transform.toString(transform),
+        transition,
         "&:hover": { boxShadow: "0 2px 8px rgba(0,0,0,0.2)" },
       }}
     >
@@ -283,19 +325,154 @@ function ModuloCard({ modulo, isSelected, onClick }) {
   );
 }
 
+// --- Footer uploader ---
+function FooterUploader({ flyerId, footerUrl, onUpdate }) {
+  const [uploading, setUploading] = useState(false);
+  const inputRef = useRef(null);
+
+  const handleUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+
+    const ext = file.name.split(".").pop();
+    const path = `footers/${flyerId}.${ext}`;
+
+    const { error } = await supabase.storage
+      .from("flyer-assets")
+      .upload(path, file, { upsert: true });
+
+    if (!error) {
+      const { data } = supabase.storage.from("flyer-assets").getPublicUrl(path);
+      const url = data.publicUrl;
+      await supabase
+        .from("flyers")
+        .update({ footer_url: url })
+        .eq("id", flyerId);
+      onUpdate(url);
+    }
+    setUploading(false);
+  };
+
+  const handleRemove = async () => {
+    await supabase
+      .from("flyers")
+      .update({ footer_url: null })
+      .eq("id", flyerId);
+    onUpdate(null);
+  };
+
+  if (footerUrl) {
+    return (
+      <Box position="relative" sx={{ "&:hover .remove-btn": { opacity: 1 } }}>
+        <Box
+          component="img"
+          src={footerUrl}
+          alt="Pie de página"
+          sx={{ width: "100%", borderRadius: 1, display: "block" }}
+        />
+        <Tooltip title="Quitar pie de página">
+          <Box
+            className="remove-btn"
+            onClick={handleRemove}
+            sx={{
+              position: "absolute",
+              top: 4,
+              right: 4,
+              bgcolor: "rgba(0,0,0,0.6)",
+              borderRadius: "50%",
+              width: 28,
+              height: 28,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              opacity: 0,
+              transition: "opacity 0.2s",
+            }}
+          >
+            <DeleteIcon sx={{ color: "white", fontSize: 16 }} />
+          </Box>
+        </Tooltip>
+      </Box>
+    );
+  }
+
+  return (
+    <>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        style={{ display: "none" }}
+        onChange={handleUpload}
+      />
+      <Box
+        onClick={() => inputRef.current?.click()}
+        sx={{
+          border: "2px dashed rgba(0,0,0,0.2)",
+          borderRadius: 1,
+          p: 2,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 0.5,
+          cursor: "pointer",
+          bgcolor: "rgba(0,0,0,0.05)",
+          "&:hover": { bgcolor: "rgba(0,0,0,0.1)" },
+        }}
+      >
+        {uploading ? (
+          <CircularProgress size={20} />
+        ) : (
+          <>
+            <AddPhotoAlternateIcon
+              sx={{ color: "rgba(0,0,0,0.4)", fontSize: 28 }}
+            />
+            <Typography fontSize={11} color="rgba(0,0,0,0.5)">
+              Subir pie de página
+            </Typography>
+          </>
+        )}
+      </Box>
+    </>
+  );
+}
+
+// --- Canvas principal ---
 export default function CanvasPreview({
   flyer,
   modulos,
   selectedModulo,
   onSelectModulo,
   onFlyerUpdate,
+  onReorderModulos,
 }) {
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+  );
+
   const saveFlyer = async (field, value) => {
     if (onFlyerUpdate) onFlyerUpdate(field, value);
     await supabase
       .from("flyers")
       .update({ [field]: value })
       .eq("id", flyer.id);
+  };
+
+  const handleDragEnd = async ({ active, over }) => {
+    if (!over || active.id === over.id) return;
+    const oldIndex = modulos.findIndex((m) => m.id === active.id);
+    const newIndex = modulos.findIndex((m) => m.id === over.id);
+    const reordered = arrayMove(modulos, oldIndex, newIndex);
+    onReorderModulos(reordered);
+
+    // Persistir posiciones
+    await Promise.all(
+      reordered.map((m, i) =>
+        supabase.from("modulos").update({ posicion: i }).eq("id", m.id),
+      ),
+    );
   };
 
   return (
@@ -308,7 +485,6 @@ export default function CanvasPreview({
       overflow="auto"
       py={4}
     >
-      {/* Info del flyer */}
       <Box mb={2} display="flex" alignItems="center" gap={2}>
         <Chip
           label={flyer?.estado}
@@ -316,16 +492,15 @@ export default function CanvasPreview({
           color={flyer?.estado === "publicado" ? "success" : "default"}
         />
         <Typography fontSize={12} color="#6b7280">
-          Click en el título o fechas para editar
+          Arrastrá los módulos para reordenarlos
         </Typography>
       </Box>
 
-      {/* Canvas */}
       <Box
         sx={{
-          width: 420,
-          minHeight: 600,
-          bgcolor: "#ffd700",
+          width: flyer?.ancho || 420,
+          minHeight: flyer?.alto || 600,
+          bgcolor: flyer?.color_fondo || "#ffd700",
           borderRadius: 2,
           boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
           p: 2,
@@ -336,7 +511,7 @@ export default function CanvasPreview({
       >
         {/* Header editable */}
         <Box
-          bgcolor="#cc0000"
+          bgcolor={flyer?.color_header || "#cc0000"}
           borderRadius={1}
           p={1.5}
           display="flex"
@@ -355,7 +530,6 @@ export default function CanvasPreview({
               color: "white",
             }}
           />
-
           <InlineDateRange
             fechaInicio={flyer?.fecha_inicio}
             fechaFin={flyer?.fecha_fin}
@@ -363,13 +537,13 @@ export default function CanvasPreview({
           />
         </Box>
 
-        {/* Módulos */}
+        {/* Módulos con drag & drop */}
         {modulos.length === 0 ? (
           <Box
             display="flex"
             alignItems="center"
             justifyContent="center"
-            minHeight={400}
+            minHeight={300}
             color="#92400e"
           >
             <Typography fontSize={14} textAlign="center">
@@ -377,21 +551,44 @@ export default function CanvasPreview({
             </Typography>
           </Box>
         ) : (
-          <Box display="flex" flexWrap="wrap" gap={1} justifyContent="center">
-            {modulos.map((modulo) => (
-              <ModuloCard
-                key={modulo.id}
-                modulo={modulo}
-                isSelected={selectedModulo?.id === modulo.id}
-                onClick={() => onSelectModulo(modulo)}
-              />
-            ))}
-          </Box>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={modulos.map((m) => m.id)}
+              strategy={rectSortingStrategy}
+            >
+              <Box
+                display="flex"
+                flexWrap="wrap"
+                gap={1}
+                justifyContent="center"
+              >
+                {modulos.map((modulo) => (
+                  <SortableModuloCard
+                    key={modulo.id}
+                    modulo={modulo}
+                    isSelected={selectedModulo?.id === modulo.id}
+                    onClick={() => onSelectModulo(modulo)}
+                  />
+                ))}
+              </Box>
+            </SortableContext>
+          </DndContext>
         )}
+
+        {/* Pie de página */}
+        <FooterUploader
+          flyerId={flyer?.id}
+          footerUrl={flyer?.footer_url}
+          onUpdate={(url) => onFlyerUpdate("footer_url", url)}
+        />
       </Box>
 
       <Typography fontSize={12} color="#9ca3af" mt={2}>
-        Hacé click en un módulo para editar sus propiedades
+        Click en un módulo para editar · Arrastrá para reordenar
       </Typography>
     </Box>
   );

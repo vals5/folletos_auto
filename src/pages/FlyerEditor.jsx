@@ -84,6 +84,14 @@ export default function FlyerEditor() {
     await supabase.from("modulos").delete().eq("id", moduloId);
   };
 
+  const handleReorderModulos = (reordered) => {
+    setModulos(reordered);
+  };
+
+  const handleFlyerUpdate = (field, value) => {
+    setFlyer((prev) => ({ ...prev, [field]: value }));
+  };
+
   if (loading)
     return (
       <Box
@@ -156,9 +164,8 @@ export default function FlyerEditor() {
           modulos={modulos}
           selectedModulo={selectedModulo}
           onSelectModulo={handleSelectModulo}
-          onFlyerUpdate={(field, value) =>
-            setFlyer((prev) => ({ ...prev, [field]: value }))
-          }
+          onFlyerUpdate={handleFlyerUpdate}
+          onReorderModulos={handleReorderModulos}
         />
         <PropertiesPanel
           modulo={selectedModulo}
