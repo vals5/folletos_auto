@@ -1,32 +1,16 @@
 import { useEffect, useState } from "react";
-import {
-  Box,
-  Typography,
-  TextField,
-  InputAdornment,
-  Divider,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemButton,
-  IconButton,
-  Chip,
-  Tooltip,
-  Tabs,
-  Tab,
-  CircularProgress,
-} from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
+import { Box, Typography, TextField, InputAdornment, Divider, List, ListItem, ListItemText, ListItemButton, IconButton, Chip, Tooltip, Tabs, Tab, CircularProgress, } from "@mui/material";
+import SearchIcon        from "@mui/icons-material/Search";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import InventoryIcon from "@mui/icons-material/Inventory";
-import { supabase } from "../../services/supabase";
+import InventoryIcon     from "@mui/icons-material/Inventory";
+import { supabase }      from "../../services/supabase";
 
 const tamanoColor = {
   XS: "#9e9e9e",
-  S: "#f59e0b",
-  M: "#3b82f6",
-  L: "#10b981",
+  S:  "#f59e0b",
+  M:  "#3b82f6",
+  L:  "#10b981",
   XL: "#8b5cf6",
 };
 
@@ -37,32 +21,36 @@ export default function ProductsSidebar({
   onAddProducto,
   onDeleteModulo,
 }) {
-  const [tab, setTab] = useState(0);
-  const [productos, setProductos] = useState([]);
-  const [search, setSearch] = useState("");
+  const [tab, setTab]                   = useState(0);
+  const [productos, setProductos]       = useState([]);
+  const [search, setSearch]             = useState("");
   const [loadingProductos, setLoadingProductos] = useState(true);
 
-  useEffect(() => {
-    fetchProductos();
-  }, []);
+  useEffect(() => { fetchProductos(); }, []);
 
   const fetchProductos = async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("productos")
       .select("*")
       .order("nombre");
+    if (error) console.error("Error cargando productos:", error);
     setProductos(data || []);
     setLoadingProductos(false);
   };
 
-  const productosFiltrados = productos.filter(
-    (p) =>
-      p.nombre.toLowerCase().includes(search.toLowerCase()) ||
-      p.sku.toLowerCase().includes(search.toLowerCase()),
-  );
+  const productosFiltrados = productos.filter((p) => {
+    const q = search.toLowerCase();
+    return (
+      p.nombre?.toLowerCase().includes(q) ||
+      p.sku?.toLowerCase().includes(q)
+    );
+  });
 
-  // Productos que ya están en el flyer
-  const productosEnFlyer = new Set(modulos.map((m) => m.producto_id));
+  // Cuántas veces aparece cada producto en el folleto (para el badge)
+  const conteoEnFlyer = modulos.reduce((acc, m) => {
+    if (m?.producto_id) acc[m.producto_id] = (acc[m.producto_id] || 0) + 1;
+    return acc;
+  }, {});
 
   return (
     <Box
@@ -70,7 +58,7 @@ export default function ProductsSidebar({
       bgcolor="#111827"
       display="flex"
       flexDirection="column"
-      sx={{ borderRight: "1px solid #1f2937" }}
+      sx={{ borderRight: "1px solid #1f2937", flexShrink: 0 }}
     >
       {/* Header */}
       <Box px={2} pt={2} pb={1}>
@@ -82,12 +70,7 @@ export default function ProductsSidebar({
           onChange={(_, v) => setTab(v)}
           sx={{
             mt: 1,
-            "& .MuiTab-root": {
-              color: "#9ca3af",
-              fontSize: 12,
-              minWidth: 0,
-              px: 1,
-            },
+            "& .MuiTab-root": { color: "#9ca3af", fontSize: 12, minWidth: 0, px: 1 },
             "& .Mui-selected": { color: "white" },
             "& .MuiTabs-indicator": { bgcolor: "#f59e0b" },
           }}
@@ -97,7 +80,7 @@ export default function ProductsSidebar({
         </Tabs>
       </Box>
 
-      {/* Búsqueda (solo en catálogo) */}
+      {/* Búsqueda — solo en Catálogo */}
       {tab === 1 && (
         <Box px={2} pb={1}>
           <TextField
@@ -113,9 +96,7 @@ export default function ProductsSidebar({
                 </InputAdornment>
               ),
               sx: {
-                bgcolor: "#1f2937",
-                color: "white",
-                fontSize: 13,
+                bgcolor: "#1f2937", color: "white", fontSize: 13,
                 "& fieldset": { borderColor: "#374151" },
                 "&:hover fieldset": { borderColor: "#4b5563" },
               },
@@ -129,19 +110,12 @@ export default function ProductsSidebar({
 
       {/* Lista */}
       <Box flex={1} overflow="auto">
-        {tab === 0 ? (
-          // Módulos en el flyer
+
+        {/* ── Tab 0: módulos ya en el folleto ── */}
+        {tab === 0 && (
           modulos.length === 0 ? (
-            <Box
-              display="flex"
-              flexDirection="column"
-              alignItems="center"
-              justifyContent="center"
-              height="100%"
-              color="#6b7280"
-              px={2}
-              textAlign="center"
-            >
+            <Box display="flex" flexDirection="column" alignItems="center"
+              justifyContent="center" height="100%" color="#6b7280" px={2} textAlign="center">
               <InventoryIcon sx={{ fontSize: 36, mb: 1 }} />
               <Typography fontSize={13}>
                 Agregá productos desde la pestaña "Catálogo"
@@ -154,46 +128,30 @@ export default function ProductsSidebar({
                   key={modulo.id}
                   disablePadding
                   secondaryAction={
-                    <IconButton
-                      size="small"
-                      onClick={() => onDeleteModulo(modulo.id)}
-                      sx={{ color: "#ef4444" }}
-                    >
+                    <IconButton size="small" onClick={() => onDeleteModulo(modulo.id)}
+                      sx={{ color: "#ef4444" }}>
                       <DeleteOutlineIcon fontSize="small" />
                     </IconButton>
                   }
                   sx={{
-                    bgcolor:
-                      selectedModulo?.id === modulo.id
-                        ? "#1f2937"
-                        : "transparent",
-                    borderLeft:
-                      selectedModulo?.id === modulo.id
-                        ? "3px solid #f59e0b"
-                        : "3px solid transparent",
+                    bgcolor: selectedModulo?.id === modulo.id ? "#1f2937" : "transparent",
+                    borderLeft: selectedModulo?.id === modulo.id
+                      ? "3px solid #f59e0b" : "3px solid transparent",
                   }}
                 >
-                  <ListItemButton
-                    onClick={() => onSelectModulo(modulo)}
-                    sx={{ pr: 5 }}
-                  >
+                  <ListItemButton onClick={() => onSelectModulo(modulo)} sx={{ pr: 5 }}>
                     <ListItemText
                       primary={
                         <Box display="flex" alignItems="center" gap={1}>
                           <Typography fontSize={13} color="white" noWrap>
                             {modulo.productos?.nombre || "Sin nombre"}
                           </Typography>
-                          <Chip
-                            label={modulo.tamano}
-                            size="small"
-                            sx={{
-                              height: 18,
-                              fontSize: 10,
-                              bgcolor: tamanoColor[modulo.tamano] + "33",
-                              color: tamanoColor[modulo.tamano],
-                              border: `1px solid ${tamanoColor[modulo.tamano]}55`,
-                            }}
-                          />
+                          <Chip label={modulo.tamano} size="small" sx={{
+                            height: 18, fontSize: 10,
+                            bgcolor: tamanoColor[modulo.tamano] + "33",
+                            color: tamanoColor[modulo.tamano],
+                            border: `1px solid ${tamanoColor[modulo.tamano]}55`,
+                          }} />
                         </Box>
                       }
                       secondary={
@@ -207,58 +165,74 @@ export default function ProductsSidebar({
               ))}
             </List>
           )
-        ) : // Catálogo de productos
-        loadingProductos ? (
-          <Box display="flex" justifyContent="center" pt={4}>
-            <CircularProgress size={24} sx={{ color: "#f59e0b" }} />
-          </Box>
-        ) : (
-          <List dense disablePadding>
-            {productosFiltrados.map((producto) => {
-              const yaAgregado = productosEnFlyer.has(producto.id);
-              return (
-                <ListItem
-                  key={producto.id}
-                  disablePadding
-                  secondaryAction={
-                    <Tooltip
-                      title={yaAgregado ? "Ya está en el folleto" : "Agregar"}
-                    >
-                      <span>
+        )}
+
+        {/* ── Tab 1: catálogo completo ── */}
+        {tab === 1 && (
+          loadingProductos ? (
+            <Box display="flex" justifyContent="center" pt={4}>
+              <CircularProgress size={24} sx={{ color: "#f59e0b" }} />
+            </Box>
+          ) : productosFiltrados.length === 0 ? (
+            <Box display="flex" justifyContent="center" pt={4} px={2}>
+              <Typography fontSize={13} color="#6b7280" textAlign="center">
+                No se encontraron productos
+              </Typography>
+            </Box>
+          ) : (
+            <List dense disablePadding>
+              {productosFiltrados.map((producto) => {
+                const cantidad = conteoEnFlyer[producto.id] || 0;
+                return (
+                  <ListItem
+                    key={producto.id}
+                    disablePadding
+                    secondaryAction={
+                      <Tooltip title="Agregar al folleto">
+                        {/* siempre habilitado — se puede agregar varias veces */}
                         <IconButton
                           size="small"
-                          disabled={yaAgregado}
                           onClick={() => onAddProducto(producto)}
-                          sx={{ color: yaAgregado ? "#374151" : "#10b981" }}
+                          sx={{ color: "#10b981", "&:hover": { color: "#34d399" } }}
                         >
                           <AddCircleOutlineIcon fontSize="small" />
                         </IconButton>
-                      </span>
-                    </Tooltip>
-                  }
-                >
-                  <ListItemButton sx={{ pr: 5 }}>
-                    <ListItemText
-                      primary={
-                        <Typography
-                          fontSize={13}
-                          color={yaAgregado ? "#6b7280" : "white"}
-                          noWrap
-                        >
-                          {producto.nombre}
-                        </Typography>
-                      }
-                      secondary={
-                        <Typography fontSize={11} color="#4b5563" noWrap>
-                          SKU: {producto.sku}
-                        </Typography>
-                      }
-                    />
-                  </ListItemButton>
-                </ListItem>
-              );
-            })}
-          </List>
+                      </Tooltip>
+                    }
+                  >
+                    <ListItemButton sx={{ pr: 5 }}>
+                      <ListItemText
+                        primary={
+                          <Box display="flex" alignItems="center" gap={1}>
+                            <Typography fontSize={13} color="white" noWrap flex={1}>
+                              {producto.nombre}
+                            </Typography>
+                            {/* Badge: cuántas veces está en el folleto */}
+                            {cantidad > 0 && (
+                              <Chip
+                                label={`×${cantidad}`}
+                                size="small"
+                                sx={{
+                                  height: 16, fontSize: 9,
+                                  bgcolor: "#f59e0b22", color: "#f59e0b",
+                                  border: "1px solid #f59e0b44",
+                                }}
+                              />
+                            )}
+                          </Box>
+                        }
+                        secondary={
+                          <Typography fontSize={11} color="#4b5563" noWrap>
+                            SKU: {producto.sku}
+                          </Typography>
+                        }
+                      />
+                    </ListItemButton>
+                  </ListItem>
+                );
+              })}
+            </List>
+          )
         )}
       </Box>
     </Box>

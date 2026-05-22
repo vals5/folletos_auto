@@ -38,7 +38,7 @@ function SidebarContent({ onClose }) {
     <Box
       sx={{
         width: 240,
-        bgcolor: "#111827",
+        bgcolor: "#025BA9",
         color: "white",
         display: "flex",
         flexDirection: "column",
@@ -46,14 +46,9 @@ function SidebarContent({ onClose }) {
         p: 2,
       }}
     >
-      <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        mb={3}
-      >
+      <Box display="flex" justifyContent="center" alignItems="center" mb={3}>
         <Typography variant="h6" fontWeight={700}>
-          Folletos Admin
+          Brokers Ads
         </Typography>
         {onClose && (
           <IconButton onClick={onClose} sx={{ color: "white" }} size="small">
@@ -75,15 +70,13 @@ function SidebarContent({ onClose }) {
               sx={{
                 borderRadius: 2,
                 mb: 0.5,
-                bgcolor: active ? "#1f2937" : "transparent",
-                borderLeft: active
-                  ? "3px solid #f59e0b"
-                  : "3px solid transparent",
-                "&:hover": { bgcolor: "#1f2937" },
+                bgcolor: active ? "#434343" : "transparent",
+                borderLeft: active ? "3px solid #fff" : "3px solid transparent",
+                "&:hover": { bgcolor: "#434343" },
               }}
             >
               <ListItemIcon
-                sx={{ color: active ? "#f59e0b" : "white", minWidth: 36 }}
+                sx={{ color: active ? "#ffff" : "white", minWidth: 36 }}
               >
                 {item.icon}
               </ListItemIcon>
@@ -118,9 +111,9 @@ export default function Sidebar() {
           <IconButton
             onClick={() => setOpen(true)}
             sx={{
-              bgcolor: "#111827",
+              bgcolor: "#025BA9",
               color: "white",
-              "&:hover": { bgcolor: "#1f2937" },
+              "&:hover": { bgcolor: "#434343" },
             }}
           >
             <MenuIcon />

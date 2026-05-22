@@ -34,12 +34,21 @@ export default function Topbar() {
     >
       <Typography
         fontWeight={600}
-        color="#1a1a2e"
+        color="#025BA9"
         fontSize={{ xs: 14, md: 16 }}
       >
         Panel de administración
       </Typography>
-      <Button variant="outlined" size="small" onClick={logout}>
+      <Button
+        variant="outlined"
+        size="small"
+        onClick={logout}
+        sx={{
+          borderRadius: 5,
+          color: "#000",
+          fontWeight: "bold",
+        }}
+      >
         {isMobile ? "Salir" : "Cerrar sesión"}
       </Button>
     </Box>
