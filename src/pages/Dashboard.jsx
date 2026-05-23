@@ -261,7 +261,7 @@ export default function Dashboard() {
                     <Button
                       fullWidth variant="contained" size="small"
                       onClick={() => navigate(`/editor/${flyer.id}`)}
-                      sx={{ borderRadius: 2, bgcolor: "#1a1a2e" }}
+                      sx={{ borderRadius: 2, bgcolor: "#025BA9" }}
                     >
                       Editar
                     </Button>

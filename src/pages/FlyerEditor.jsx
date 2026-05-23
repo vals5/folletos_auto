@@ -21,7 +21,7 @@ function DuplicarModal({ open, modulo, onClose, onDuplicate }) {
           {TAMANOS.map((t) => (
             <Button key={t} size="small" variant={modulo?.tamano === t ? "contained" : "outlined"}
               onClick={() => onDuplicate(t)}
-              sx={{ ...(modulo?.tamano === t && { bgcolor: "#1a1a2e", "&:hover": { bgcolor: "#2d2d5e" } }) }}>
+              sx={{ ...(modulo?.tamano === t && { bgcolor: "#10b981", "&:hover": { bgcolor: "#2d2d5e" } }) }}>
               {t}
             </Button>
           ))}
@@ -82,6 +82,7 @@ export default function FlyerEditor() {
       if (plantillaData) setPlantilla(plantillaData);
     }
 
+    // 3. Cargar páginas — crear la primera si no existe
     let { data: paginasData, error: pagError } = await supabase
       .from("paginas").select("*").eq("flyer_id", id).order("numero");
 
@@ -184,7 +185,7 @@ export default function FlyerEditor() {
         precio: null,
         precio_cencosud: false,
         estilo_borde: "none",
-        fondo_modulo: "white",
+        fondo_modulo: "empty",
       })
       .select("*, productos(*)")
       .single();
@@ -259,7 +260,6 @@ export default function FlyerEditor() {
 
   const todosLosModulos = Object.values(modulosPorPagina).flat();
 
-  // ── Pantallas de carga / error ──────────────────────────────────────────
   if (loading) return (
     <Box display="flex" height="100dvh" justifyContent="center" alignItems="center">
       <CircularProgress />
@@ -294,7 +294,7 @@ export default function FlyerEditor() {
             sx={{ bgcolor: plantilla.color_header, color: "white", fontSize: 10 }} />
         )}
         <Chip
-          label={flyer?.estado || "borrador"}
+          label={flyer?.estado || "BORRADOR"}
           size="small"
           sx={{
             bgcolor: flyer?.estado === "publicado" ? "#10b981" : "#374151",

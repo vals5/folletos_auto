@@ -46,7 +46,6 @@ export default function ProductsSidebar({
     );
   });
 
-  // Cuántas veces aparece cada producto en el folleto (para el badge)
   const conteoEnFlyer = modulos.reduce((acc, m) => {
     if (m?.producto_id) acc[m.producto_id] = (acc[m.producto_id] || 0) + 1;
     return acc;
@@ -55,10 +54,10 @@ export default function ProductsSidebar({
   return (
     <Box
       width={280}
-      bgcolor="#111827"
+      bgcolor="#025BA9"
       display="flex"
       flexDirection="column"
-      sx={{ borderRight: "1px solid #1f2937", flexShrink: 0 }}
+      sx={{ borderRight: "1px solid #ffffff", flexShrink: 0 }}
     >
       {/* Header */}
       <Box px={2} pt={2} pb={1}>
@@ -72,7 +71,7 @@ export default function ProductsSidebar({
             mt: 1,
             "& .MuiTab-root": { color: "#9ca3af", fontSize: 12, minWidth: 0, px: 1 },
             "& .Mui-selected": { color: "white" },
-            "& .MuiTabs-indicator": { bgcolor: "#f59e0b" },
+            "& .MuiTabs-indicator": { bgcolor: "#10b981" },
           }}
         >
           <Tab label={`En folleto (${modulos.length})`} />
@@ -96,7 +95,7 @@ export default function ProductsSidebar({
                 </InputAdornment>
               ),
               sx: {
-                bgcolor: "#1f2937", color: "white", fontSize: 13,
+                bgcolor: "#ffffff", color: "white", fontSize: 13,
                 "& fieldset": { borderColor: "#374151" },
                 "&:hover fieldset": { borderColor: "#4b5563" },
               },
@@ -118,7 +117,7 @@ export default function ProductsSidebar({
               justifyContent="center" height="100%" color="#6b7280" px={2} textAlign="center">
               <InventoryIcon sx={{ fontSize: 36, mb: 1 }} />
               <Typography fontSize={13}>
-                Agregá productos desde la pestaña "Catálogo"
+                Agregá productos desde "Catálogo"
               </Typography>
             </Box>
           ) : (
@@ -134,9 +133,9 @@ export default function ProductsSidebar({
                     </IconButton>
                   }
                   sx={{
-                    bgcolor: selectedModulo?.id === modulo.id ? "#1f2937" : "transparent",
+                    bgcolor: selectedModulo?.id === modulo.id ? "#434343" : "transparent",
                     borderLeft: selectedModulo?.id === modulo.id
-                      ? "3px solid #f59e0b" : "3px solid transparent",
+                      ? "3px solid #000000" : "3px solid transparent",
                   }}
                 >
                   <ListItemButton onClick={() => onSelectModulo(modulo)} sx={{ pr: 5 }}>
@@ -171,7 +170,7 @@ export default function ProductsSidebar({
         {tab === 1 && (
           loadingProductos ? (
             <Box display="flex" justifyContent="center" pt={4}>
-              <CircularProgress size={24} sx={{ color: "#f59e0b" }} />
+              <CircularProgress size={24} sx={{ color: "#000000" }} />
             </Box>
           ) : productosFiltrados.length === 0 ? (
             <Box display="flex" justifyContent="center" pt={4} px={2}>
@@ -214,7 +213,7 @@ export default function ProductsSidebar({
                                 size="small"
                                 sx={{
                                   height: 16, fontSize: 9,
-                                  bgcolor: "#f59e0b22", color: "#f59e0b",
+                                  bgcolor: "#f59e0b22", color: "#000000",
                                   border: "1px solid #f59e0b44",
                                 }}
                               />

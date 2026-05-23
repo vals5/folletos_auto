@@ -8,6 +8,7 @@ import CloseIcon              from "@mui/icons-material/Close";
 import DownloadIcon           from "@mui/icons-material/Download";
 import ImageIcon              from "@mui/icons-material/Image";
 import PictureAsPdfIcon       from "@mui/icons-material/PictureAsPdf";
+import DragIndicatorIcon      from "@mui/icons-material/DragIndicator";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, } from "@dnd-kit/core";
 import { SortableContext, rectSortingStrategy, useSortable, arrayMove, } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -37,8 +38,8 @@ const IMPREC = {
   colors: { red:"#ff0000", yellow:"#fff800", black:"#000000", white:"#ffffff" },
   vigency:     { fontFamily:"'Imprec-Vigency',sans-serif",   fontSize:"13pt", textTransform:"uppercase", color:"#ff0000", lineHeight:1.15 },
   legal:       { fontFamily:"'Imprec-Legal',sans-serif",     fontSize:"9pt",  textTransform:"uppercase", color:"#000000" },
-  price:       { fontFamily:"'Imprec-Price',sans-serif",     textTransform:"uppercase", color:"#ffffff", lineHeight:1 },
-  subtPrice:   { fontFamily:"'Imprec-SubtPrice',sans-serif", textTransform:"uppercase", color:"#ffffff", lineHeight:1 },
+  price:       { fontFamily:"'Imprec-Price',sans-serif",     textTransform:"uppercase", lineHeight:1 },
+  subtPrice:   { fontFamily:"'Imprec-SubtPrice',sans-serif", textTransform:"uppercase", lineHeight:1 },
   productName: { fontFamily:"'Imprec-Name',sans-serif",      fontSize:"9pt",  lineHeight:1.05, textTransform:"uppercase", color:"#000000" },
   productDesc: { fontFamily:"'Imprec-Desc',sans-serif",      fontSize:"7pt",  lineHeight:1.05, textTransform:"uppercase", color:"#555555" },
 };
@@ -48,9 +49,14 @@ const TAMANO_SIZE = {
   XS:{ width:90,  height:100 }, S:{ width:130, height:120 },
   M: { width:185, height:140 }, L:{ width:250, height:160 }, XL:{ width:350, height:185 },
 };
+
+// FIX #4: "llevando3" key pero label "LLEVANDO 2"
 const TIPO_PRECIO_LABEL = { regular:null, llevando3:"LLEVANDO 2", vea_ahorro:"VEA AHORRO", regular_cencosud:"CENCOSUD" };
-const FONDO_COLORS      = { white:"#ffffff", red:"#ff0000", yellow:"#fff800", empty:"transparent" };
-const BORDER_STYLES     = { none:"none", solid:"2px solid #000000", dashed:"2px dashed #000000", thick:"3px solid #ff0000" };
+
+const FONDO_COLORS  = { white:"#ffffff", red:"#ff0000", yellow:"#fff800", empty:"transparent" };
+
+// FIX #5: bordes punteado y sólido en rojo
+const BORDER_STYLES = { none:"none", solid:"2px solid #ff0000", dashed:"2px dashed #ff0000", thick:"3px solid #ff0000" };
 
 const STARBURST_CLIP = `polygon(
   50% 0%,56% 8%,65% 4%,67% 13%,77% 11%,75% 21%,
@@ -63,7 +69,7 @@ const STARBURST_CLIP = `polygon(
 
 const TARJETA_LOGO = { vea_ahorro: TarjetaVea, regular_cencosud: TarjetaCencosud };
 
-function InlineText({ value, onSave, style={}, placeholder="Editar…" }) {
+function InlineText({ value, onSave, style={}, placeholder="Editar" }) {
   const [editing, setEditing] = useState(false);
   const [draft,   setDraft]   = useState(value || "");
   const inputRef = useRef(null);
@@ -130,42 +136,67 @@ function HeaderImprecionante({ flyer, onFlyerUpdate }) {
   );
 }
 
-function PrecioStarburst({ precio, subtitulo, tipoPrecio, size }) {
+// FIX #6: si isBgRed → star blanco con números rojos
+// $ eliminado — el usuario lo escribe en el precio si lo necesita
+function PrecioStarburst({ precio, subtitulo, tipoPrecio, size, isBgRed = false }) {
   const starSize      = size.width > 200 ? 82 : size.width > 140 ? 66 : 54;
   const priceFontSize = size.width > 200 ? "16pt" : size.width > 140 ? "13pt" : "10pt";
   const subtFontSize  = size.width > 200 ? "6pt" : "5pt";
   const tarjetaLogo   = TARJETA_LOGO[tipoPrecio];
 
+  // FIX #6: invertir colores cuando fondo es rojo
+  const starBg     = isBgRed ? IMPREC.colors.white : IMPREC.colors.red;
+  const priceColor = isBgRed ? IMPREC.colors.red   : IMPREC.colors.white;
+  const subtColor  = isBgRed ? IMPREC.colors.red   : IMPREC.colors.white;
+
+  // Mostrar el número tal cual lo escribió el usuario, sin agregar $ automático
+  const precioDisplay = precio.toLocaleString("es-AR");
+
   return (
     <Box sx={{
       position:"absolute", bottom:4, right:4,
-      zIndex:50,                              
+      zIndex:50,
       width:starSize, height:starSize,
-      bgcolor:IMPREC.colors.red,
+      bgcolor:starBg,
       clipPath:STARBURST_CLIP,
       display:"flex", flexDirection:"column",
       alignItems:"center", justifyContent:"center",
       textAlign:"center", pointerEvents:"none",
+      gap:0,
     }}>
-      {/* Logo tarjeta Vea / Cencosud arriba del precio */}
-      {tarjetaLogo && (
-        <Box component="img" src={tarjetaLogo}
-          sx={{ width: starSize * 0.38, height: "auto", mb: 0.2, objectFit:"contain" }}
-          onError={(e) => { e.target.style.display="none"; }} />
-      )}
-      <Typography sx={{ ...IMPREC.price, fontSize:priceFontSize, fontWeight:900, px:0.5, wordBreak:"break-all" }}>
-        ${precio.toLocaleString("es-AR")}
-      </Typography>
-      {subtitulo && (
-        <Typography sx={{ ...IMPREC.subtPrice, fontSize:subtFontSize, letterSpacing:0.3 }}>
-          {subtitulo}
-        </Typography>
+      {tarjetaLogo ? (
+        <>
+          <Box component="img" src={tarjetaLogo}
+            sx={{ width: starSize * 0.45, height: starSize * 0.22, objectFit:"contain" }}
+            onError={(e) => { e.target.style.display="none"; }} />
+          <Typography sx={{ ...IMPREC.price, fontSize: priceFontSize, fontWeight:900,
+            px:0.3, wordBreak:"break-all", lineHeight:1, color: priceColor }}>
+            {precioDisplay}
+          </Typography>
+          {subtitulo && (
+            <Typography sx={{ ...IMPREC.subtPrice, fontSize: subtFontSize, letterSpacing:0.3, color: subtColor }}>
+              {subtitulo}
+            </Typography>
+          )}
+        </>
+      ) : (
+        <>
+          <Typography sx={{ ...IMPREC.price, fontSize: priceFontSize, fontWeight:900,
+            px:0.5, wordBreak:"break-all", lineHeight:1, color: priceColor }}>
+            {precioDisplay}
+          </Typography>
+          {subtitulo && (
+            <Typography sx={{ ...IMPREC.subtPrice, fontSize: subtFontSize, letterSpacing:0.3, color: subtColor }}>
+              {subtitulo}
+            </Typography>
+          )}
+        </>
       )}
     </Box>
   );
 }
 
-function MiniProducto({ producto, imgOverride, textColor, showPrice, precio, subtitulo, tipoPrecio, size }) {
+function MiniProducto({ producto, imgOverride, textColor, showPrice, precio, subtitulo, tipoPrecio, size, isBgRed }) {
   const imgSrc = imgOverride || producto?.imagen_url;
   return (
     <Box sx={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center",
@@ -192,15 +223,12 @@ function MiniProducto({ producto, imgOverride, textColor, showPrice, precio, sub
         </Typography>
       )}
       {showPrice && precio && (
-        <PrecioStarburst precio={precio} subtitulo={subtitulo} tipoPrecio={tipoPrecio} size={size} />
+        <PrecioStarburst precio={precio} subtitulo={subtitulo} tipoPrecio={tipoPrecio} size={size} isBgRed={isBgRed} />
       )}
     </Box>
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  MÓDULO SORTABLE — resize arrastrando esquina inferior derecha
-// ─────────────────────────────────────────────────────────────────────────────
 function SortableModuloCard({ modulo, isSelected, onClick, onMenuAction, onResize }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: modulo.id });
@@ -211,7 +239,7 @@ function SortableModuloCard({ modulo, isSelected, onClick, onMenuAction, onResiz
 
   const size        = TAMANO_SIZE[modulo.tamano] || TAMANO_SIZE["S"];
   const priceLabel  = TIPO_PRECIO_LABEL[modulo.tipo_precio];
-  const bgColor     = FONDO_COLORS[modulo.fondo_modulo] || FONDO_COLORS.white;
+  const bgColor     = FONDO_COLORS[modulo.fondo_modulo] ?? FONDO_COLORS.empty;
   const borderStyle = isSelected ? "2px solid #f59e0b" : (BORDER_STYLES[modulo.estilo_borde]||"none");
   const tamanoIdx   = TAMANOS.indexOf(modulo.tamano);
   const isBgRed     = modulo.fondo_modulo === "red";
@@ -257,20 +285,39 @@ function SortableModuloCard({ modulo, isSelected, onClick, onMenuAction, onResiz
           <MoreHorizIcon sx={{ color:"white", fontSize:14 }} />
         </Box>
       )}
+
+      {/* FIX #1: handle de drag separado — no interfiere con el click */}
+      {(hovered || isSelected) && (
+        <Box
+          {...listeners}
+          {...attributes}
+          sx={{
+            position:"absolute", top:2, left:2, zIndex:15,
+            bgcolor:"rgba(0,0,0,0.45)", borderRadius:1,
+            width:20, height:20, display:"flex", alignItems:"center", justifyContent:"center",
+            cursor:"grab", "&:active":{ cursor:"grabbing" },
+            "&:hover":{ bgcolor:"rgba(0,0,0,0.7)" },
+          }}
+          onMouseDown={(e) => e.stopPropagation()}
+        >
+          <DragIndicatorIcon sx={{ color:"white", fontSize:14 }} />
+        </Box>
+      )}
+
       <Menu anchorEl={menuAnchor} open={!!menuAnchor} onClose={closeMenu}
         PaperProps={{ sx:{ minWidth:160, borderRadius:2 } }}>
         <MenuItem onClick={()=>{ closeMenu(); onMenuAction("duplicar",modulo); }} sx={{ fontSize:13 }}>Duplicar módulo</MenuItem>
         <MenuItem onClick={()=>{ closeMenu(); onMenuAction("eliminar",modulo); }} sx={{ fontSize:13, color:"#ef4444" }}>Eliminar módulo</MenuItem>
       </Menu>
 
-      {/* Tarjeta */}
-      <Box ref={setNodeRef} {...attributes} {...listeners} onClick={onClick}
+      {/* Tarjeta — sin listeners de drag, el handle los tiene */}
+      <Box ref={setNodeRef} onClick={onClick}
         sx={{
           width:size.width, height:size.height,
           bgcolor:bgColor, border:borderStyle, borderRadius:"3px",
           display:"flex", flexDirection:"column",
           alignItems:"stretch", justifyContent:"flex-start",
-          cursor:isDragging?"grabbing":"grab",
+          cursor:"pointer",
           position:"relative", opacity:isDragging?0.5:1,
           boxShadow:isSelected?"0 0 0 3px #f59e0b55":bgColor==="transparent"?"none":"0 1px 4px rgba(0,0,0,0.18)",
           transform:CSS.Transform.toString(transform), transition,
@@ -318,8 +365,9 @@ function SortableModuloCard({ modulo, isSelected, onClick, onMenuAction, onResiz
                 </Typography>
               )}
               {modulo.precio && (
+                // FIX #6: pasar isBgRed al starburst
                 <PrecioStarburst precio={modulo.precio} subtitulo={subtituloPrecio}
-                  tipoPrecio={modulo.tipo_precio} size={size} />
+                  tipoPrecio={modulo.tipo_precio} size={size} isBgRed={isBgRed} />
               )}
             </>
           );
@@ -333,7 +381,7 @@ function SortableModuloCard({ modulo, isSelected, onClick, onMenuAction, onResiz
                 textColor={textColor}
                 showPrice={i===todosLosProductos.length-1}
                 precio={modulo.precio} subtitulo={subtituloPrecio}
-                tipoPrecio={modulo.tipo_precio} size={size} />
+                tipoPrecio={modulo.tipo_precio} size={size} isBgRed={isBgRed} />
             ))}
           </Box>
         )}
@@ -400,9 +448,6 @@ function FooterUploader({ flyerId, footerUrl, onUpdate }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  LEGAL EDITABLE
-// ─────────────────────────────────────────────────────────────────────────────
 function LegalEditable({ flyerId, legal, onUpdate }) {
   const [editing, setEditing] = useState(false);
   const [draft,   setDraft]   = useState(legal || "");
@@ -429,9 +474,6 @@ function LegalEditable({ flyerId, legal, onUpdate }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  EXPORT — JPG y PDF usando html2canvas + jsPDF
-// ─────────────────────────────────────────────────────────────────────────────
 function ExportButtons({ canvasRef, flyerName }) {
   const [exporting, setExporting] = useState(null);
 
@@ -490,14 +532,12 @@ function ExportButtons({ canvasRef, flyerName }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  CANVAS PRINCIPAL
-// ─────────────────────────────────────────────────────────────────────────────
 export default function CanvasPreview({
   flyer, plantilla, paginas, modulosPorPagina, paginaActual, setPaginaActual,
   selectedModulo, onSelectModulo, onFlyerUpdate, onReorderModulos,
   onAddPagina, onDeletePagina, onMenuAction, onResize,
 }) {
+  // FIX #1: el sensor solo activa al hacer drag desde el handle (distance:5 sigue igual)
   const sensors   = useSensors(useSensor(PointerSensor, { activationConstraint:{ distance:5 } }));
   const modulos   = modulosPorPagina[paginaActual] || [];
   const canvasRef = useRef(null);

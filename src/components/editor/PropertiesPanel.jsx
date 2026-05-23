@@ -11,23 +11,19 @@ const TAMANOS = ["XS", "S", "M", "L", "XL"];
 
 const TIPOS_PRECIO = [
   { value: "regular",           label: "Precio regular"    },
-  { value: "llevando3",         label: "Llevando 2"        },
+  { value: "llevando3",         label: "Llevando 2"        }, 
   { value: "vea_ahorro",        label: "Vea Ahorro"        },
   { value: "regular_cencosud",  label: "Regular Cencosud"  },
 ];
 
 const ESTILOS_BORDE = [
-  { value: "none",   label: "Sin borde"  },
-  { value: "solid",  label: "Sólido"     },
-  { value: "dashed", label: "Punteado"   },
-  { value: "thick",  label: "Grueso rojo"},
+  { value: "none",   label: "Sin borde"   },
+  { value: "thick",  label: "Grueso rojo" },
 ];
 
 const FONDOS_MODULO = [
-  { value: "white",  label: "Blanco"          },
-  { value: "red",    label: "Rojo oferta"      },
-  { value: "yellow", label: "Amarillo"         },
-  { value: "empty",  label: "Sin fondo"        },
+  { value: "red",    label: "Rojo"  },
+  { value: "empty",  label: "Sin fondo"   },
 ];
 
 function ProductosExtraSection({ modulo, onUpdate }) {
@@ -81,7 +77,6 @@ function ProductosExtraSection({ modulo, onUpdate }) {
         Agregá hasta 3 productos extra. Se muestran lado a lado (2) o en grilla 2×2 (3-4).
       </Typography>
 
-      {/* Lista de productos extra ya agregados */}
       {productosExtra.map((pe, idx) => (
         <Box key={idx} sx={{ bgcolor: "white", borderRadius: 1.5, p: 1.5, mb: 1,
           border: "1px solid #e5e7eb" }}>
@@ -97,7 +92,6 @@ function ProductosExtraSection({ modulo, onUpdate }) {
             </Tooltip>
           </Box>
 
-          {/* Precio del producto extra (opcional) */}
           <TextField
             label={`Precio producto ${idx + 2}`}
             type="number"
@@ -114,7 +108,6 @@ function ProductosExtraSection({ modulo, onUpdate }) {
             sx={{ mb: 1 }}
           />
 
-          {/* URL imagen override */}
           <TextField
             label="Imagen override (URL)"
             value={pe.imagen_url_override || ""}
@@ -131,7 +124,6 @@ function ProductosExtraSection({ modulo, onUpdate }) {
         </Box>
       ))}
 
-      {/* Agregar producto extra */}
       {productosExtra.length < 3 && (
         <Box onClick={loadCatalogo}>
           {loading ? (
@@ -196,11 +188,7 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
 
   const update = (field, value) => onUpdate(modulo.id, { [field]: value });
 
-  const aplicarPorcentaje = (pct) => {
-    const base  = modulo.precio || 0;
-    const nuevo = Math.round(base * (1 + pct / 100));
-    update("precio", nuevo);
-  };
+  // FIX #3: se elimina la sección "Aumentar precio en %" completa
 
   return (
     <Box width={300} bgcolor="#fafafa" display="flex" flexDirection="column"
@@ -267,22 +255,6 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
           onChange={(e) => update("precio", e.target.value ? Number(e.target.value) : null)}
           size="small" fullWidth
           InputProps={{ startAdornment: <InputAdornment position="start"><AttachMoneyIcon fontSize="small" /></InputAdornment> }} />
-
-        {/* Aumentar en % */}
-        <Box>
-          <Typography fontSize={12} fontWeight={600} mb={0.5} color="#374151">
-            Aumentar precio en %
-          </Typography>
-          <Box display="flex" gap={0.5}>
-            {[5, 10, 15, 20, 25].map((pct) => (
-              <Button key={pct} size="small" variant="outlined"
-                onClick={() => aplicarPorcentaje(pct)}
-                sx={{ fontSize: 11, minWidth: 0, px: 1, flex: 1 }}>
-                +{pct}%
-              </Button>
-            ))}
-          </Box>
-        </Box>
 
         {/* Precio Cencosud */}
         <Box display="flex" alignItems="center" justifyContent="space-between"
