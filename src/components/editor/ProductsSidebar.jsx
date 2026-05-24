@@ -60,18 +60,18 @@ export default function ProductsSidebar({
       sx={{ borderRight: "1px solid #ffffff", flexShrink: 0 }}
     >
       {/* Header */}
-      <Box px={2} pt={2} pb={1}>
+      <Box px={2} pt={2} pb={1} textAlign="center">
         <Typography variant="subtitle1" fontWeight={700} color="white">
-          Editor de folleto
+          Editor
         </Typography>
         <Tabs
           value={tab}
           onChange={(_, v) => setTab(v)}
           sx={{
             mt: 1,
-            "& .MuiTab-root": { color: "#9ca3af", fontSize: 12, minWidth: 0, px: 1 },
+            "& .MuiTab-root": { color: "#ffffff", fontSize: 12, minWidth: 0, px: 1 },
             "& .Mui-selected": { color: "white" },
-            "& .MuiTabs-indicator": { bgcolor: "#10b981" },
+            "& .MuiTabs-indicator": { bgcolor: "white" },
           }}
         >
           <Tab label={`En folleto (${modulos.length})`} />
@@ -84,19 +84,18 @@ export default function ProductsSidebar({
         <Box px={2} pb={1}>
           <TextField
             size="small"
-            placeholder="Buscar por nombre o SKU..."
+            placeholder="Buscar por nombre o SKU"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             fullWidth
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <SearchIcon sx={{ color: "#9ca3af", fontSize: 18 }} />
+                  <SearchIcon sx={{ color: "#000000", fontSize: 18 }} />
                 </InputAdornment>
               ),
               sx: {
                 bgcolor: "#ffffff", color: "white", fontSize: 13,
-                "& fieldset": { borderColor: "#374151" },
                 "&:hover fieldset": { borderColor: "#4b5563" },
               },
             }}
@@ -105,7 +104,6 @@ export default function ProductsSidebar({
         </Box>
       )}
 
-      <Divider sx={{ borderColor: "#1f2937" }} />
 
       {/* Lista */}
       <Box flex={1} overflow="auto">
@@ -114,7 +112,7 @@ export default function ProductsSidebar({
         {tab === 0 && (
           modulos.length === 0 ? (
             <Box display="flex" flexDirection="column" alignItems="center"
-              justifyContent="center" height="100%" color="#6b7280" px={2} textAlign="center">
+              justifyContent="center" height="100%" color="#ffffff" px={2} textAlign="center">
               <InventoryIcon sx={{ fontSize: 36, mb: 1 }} />
               <Typography fontSize={13}>
                 Agregá productos desde "Catálogo"
@@ -154,7 +152,7 @@ export default function ProductsSidebar({
                         </Box>
                       }
                       secondary={
-                        <Typography fontSize={11} color="#6b7280" noWrap>
+                        <Typography fontSize={11} color="#ffffff" noWrap>
                           {modulo.productos?.descripcion}
                         </Typography>
                       }
@@ -174,7 +172,7 @@ export default function ProductsSidebar({
             </Box>
           ) : productosFiltrados.length === 0 ? (
             <Box display="flex" justifyContent="center" pt={4} px={2}>
-              <Typography fontSize={13} color="#6b7280" textAlign="center">
+              <Typography fontSize={13} color="#ffffff" textAlign="center">
                 No se encontraron productos
               </Typography>
             </Box>
@@ -192,7 +190,7 @@ export default function ProductsSidebar({
                         <IconButton
                           size="small"
                           onClick={() => onAddProducto(producto)}
-                          sx={{ color: "#10b981", "&:hover": { color: "#34d399" } }}
+                          sx={{ color: "#07c138",}}
                         >
                           <AddCircleOutlineIcon fontSize="small" />
                         </IconButton>
@@ -212,16 +210,16 @@ export default function ProductsSidebar({
                                 label={`×${cantidad}`}
                                 size="small"
                                 sx={{
-                                  height: 16, fontSize: 9,
-                                  bgcolor: "#f59e0b22", color: "#000000",
-                                  border: "1px solid #f59e0b44",
+                                  height: 16, fontSize: 13,
+                                  bgcolor: "#000000", color: "#ffffff",
+                                  border: "1px solid #000000",
                                 }}
                               />
                             )}
                           </Box>
                         }
                         secondary={
-                          <Typography fontSize={11} color="#4b5563" noWrap>
+                          <Typography fontSize={11} color="#ffffff" noWrap>
                             SKU: {producto.sku}
                           </Typography>
                         }

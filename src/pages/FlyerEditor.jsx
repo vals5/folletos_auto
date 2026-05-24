@@ -82,13 +82,10 @@ export default function FlyerEditor() {
       if (plantillaData) setPlantilla(plantillaData);
     }
 
-    // 3. Cargar páginas — crear la primera si no existe
     let { data: paginasData, error: pagError } = await supabase
       .from("paginas").select("*").eq("flyer_id", id).order("numero");
 
-    if (pagError) {
-      console.error("Error cargando páginas:", pagError);
-    }
+    if (pagError) console.error("Error cargando páginas:", pagError);
 
     paginasData = (paginasData || []).filter(Boolean);
 
@@ -133,10 +130,7 @@ export default function FlyerEditor() {
       .select()
       .single();
 
-    if (error || !data) {
-      console.error("Error agregando página:", error);
-      return;
-    }
+    if (error || !data) { console.error("Error agregando página:", error); return; }
     setPaginas((prev) => [...prev, data]);
     setModulosPorPagina((prev) => ({ ...prev, [paginas.length]: [] }));
   };
@@ -274,69 +268,77 @@ export default function FlyerEditor() {
   );
 
   return (
-    <Box display="flex" flexDirection="column" height="100dvh" overflow="hidden">
-      {/* Topbar */}
-      <Box sx={{
-        height: 52, minHeight: 52, bgcolor: "#111827",
-        display: "flex", alignItems: "center",
-        px: 2, gap: 2, borderBottom: "1px solid #1f2937", flexShrink: 0,
-      }}>
-        <Tooltip title="Volver al dashboard">
-          <IconButton size="small" onClick={() => navigate("/dashboard")} sx={{ color: "white" }}>
-            <ArrowBackIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-        <Typography fontWeight={600} color="white" fontSize={14} noWrap>
-          {flyer?.name || flyer?.nombre}
-        </Typography>
-        {plantilla && (
-          <Chip label={plantilla.nombre} size="small"
-            sx={{ bgcolor: plantilla.color_header, color: "white", fontSize: 10 }} />
-        )}
-        <Chip
-          label={flyer?.estado || "BORRADOR"}
-          size="small"
-          sx={{
-            bgcolor: flyer?.estado === "publicado" ? "#10b981" : "#374151",
-            color: "white", fontSize: 11,
-          }}
-        />
-        {/* Tamaño del folleto */}
-        {flyer?.width && (
-          <Chip
-            label={`${flyer.width}×${flyer.height}px`}
-            size="small"
-            sx={{ bgcolor: "#1f2937", color: "#9ca3af", fontSize: 10, ml: "auto" }}
-          />
-        )}
-      </Box>
+    // Layout raíz: fila horizontal, full height
+    <Box display="flex" height="100dvh" overflow="hidden">
 
-      {/* Cuerpo */}
-      <Box display="flex" flex={1} overflow="hidden">
-        <ProductsSidebar
-          modulos={todosLosModulos}
-          selectedModulo={selectedModulo}
-          onSelectModulo={(m) => setSelectedModulo(m)}
-          onAddProducto={handleAddProducto}
-          onDeleteModulo={handleDeleteModulo}
-        />
-        <CanvasPreview
-          flyer={flyer}
-          plantilla={plantilla}
-          paginas={paginas}
-          modulosPorPagina={modulosPorPagina}
-          paginaActual={paginaActual}
-          setPaginaActual={setPaginaActual}
-          selectedModulo={selectedModulo}
-          onSelectModulo={(m) => setSelectedModulo(m)}
-          onFlyerUpdate={handleFlyerUpdate}
-          onReorderModulos={handleReorderModulos}
-          onAddPagina={handleAddPagina}
-          onDeletePagina={(idx, pag) => setEliminarPagina({ idx, pag })}
-          onMenuAction={handleMenuAction}
-          onResize={handleResize}
-        />
-        <PropertiesPanel modulo={selectedModulo} onUpdate={handleUpdateModulo} />
+      {/* ── COLUMNA IZQUIERDA: sidebar azul, arranca desde el tope ── */}
+      <ProductsSidebar
+        modulos={todosLosModulos}
+        selectedModulo={selectedModulo}
+        onSelectModulo={(m) => setSelectedModulo(m)}
+        onAddProducto={handleAddProducto}
+        onDeleteModulo={handleDeleteModulo}
+      />
+
+      {/* ── COLUMNA DERECHA: topbar + canvas + properties ── */}
+      <Box display="flex" flexDirection="column" flex={1} overflow="hidden">
+
+        {/* Topbar — solo sobre la zona derecha */}
+        <Box sx={{
+          height: 52, minHeight: 52,
+          bgcolor: "#ffffff",
+          display: "flex", alignItems: "center",
+          px: 2, gap: 2, flexShrink: 0,
+        }}>
+          <Tooltip title="Volver al dashboard">
+            <IconButton size="small" onClick={() => navigate("/dashboard")} sx={{ color: "#025BA9" }}>
+              <ArrowBackIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Typography fontWeight={600} color="#025BA9" fontSize={14} noWrap>
+            {flyer?.name || flyer?.nombre}
+          </Typography>
+          {plantilla && (
+            <Chip label={plantilla.nombre} size="small"
+              sx={{ bgcolor: plantilla.color_header, color: "#025BA9", fontSize: 10 }} />
+          )}
+          <Chip
+            label={flyer?.estado || "BORRADOR"}
+            size="small"
+            sx={{
+              bgcolor: flyer?.estado === "publicado" ? "#025BA9" : "#025BA9",
+              color: "white", fontSize: 11,
+            }}
+          />
+          {flyer?.width && (
+            <Chip
+              label={`${flyer.width}×${flyer.height}px`}
+              size="small"
+              sx={{ bgcolor: "#025BA9", color: "white", fontSize: 10, ml: "auto" }}
+            />
+          )}
+        </Box>
+
+        {/* Canvas + Properties en fila */}
+        <Box display="flex" flex={1} overflow="hidden">
+          <CanvasPreview
+            flyer={flyer}
+            plantilla={plantilla}
+            paginas={paginas}
+            modulosPorPagina={modulosPorPagina}
+            paginaActual={paginaActual}
+            setPaginaActual={setPaginaActual}
+            selectedModulo={selectedModulo}
+            onSelectModulo={(m) => setSelectedModulo(m)}
+            onFlyerUpdate={handleFlyerUpdate}
+            onReorderModulos={handleReorderModulos}
+            onAddPagina={handleAddPagina}
+            onDeletePagina={(idx, pag) => setEliminarPagina({ idx, pag })}
+            onMenuAction={handleMenuAction}
+            onResize={handleResize}
+          />
+          <PropertiesPanel modulo={selectedModulo} onUpdate={handleUpdateModulo} />
+        </Box>
       </Box>
 
       <DuplicarModal

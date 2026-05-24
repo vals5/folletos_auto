@@ -136,45 +136,81 @@ function HeaderImprecionante({ flyer, onFlyerUpdate }) {
   );
 }
 
-// FIX #6: si isBgRed → star blanco con números rojos
+// Starburst draggable dentro del módulo — solo se mueve cuando el módulo está seleccionado
 // $ eliminado — el usuario lo escribe en el precio si lo necesita
-function PrecioStarburst({ precio, subtitulo, tipoPrecio, size, isBgRed = false }) {
+function PrecioStarburst({ precio, subtitulo, tipoPrecio, size, isBgRed = false, isModuloSelected = false }) {
   const starSize      = size.width > 200 ? 82 : size.width > 140 ? 66 : 54;
   const priceFontSize = size.width > 200 ? "16pt" : size.width > 140 ? "13pt" : "10pt";
   const subtFontSize  = size.width > 200 ? "6pt" : "5pt";
   const tarjetaLogo   = TARJETA_LOGO[tipoPrecio];
 
-  // FIX #6: invertir colores cuando fondo es rojo
   const starBg     = isBgRed ? IMPREC.colors.white : IMPREC.colors.red;
   const priceColor = isBgRed ? IMPREC.colors.red   : IMPREC.colors.white;
   const subtColor  = isBgRed ? IMPREC.colors.red   : IMPREC.colors.white;
 
-  // Mostrar el número tal cual lo escribió el usuario, sin agregar $ automático
   const precioDisplay = precio.toLocaleString("es-AR");
 
+  // Posición en px desde top-left del módulo; inicializa en esquina inferior derecha
+  const [pos, setPos]    = useState({ x: size.width - starSize - 4, y: size.height - starSize - 4 });
+  const dragging         = useRef(false);
+  const startMouse       = useRef({ x: 0, y: 0 });
+  const startPos         = useRef({ x: 0, y: 0 });
+
+  const handleMouseDown = (e) => {
+    if (!isModuloSelected) return;
+    e.stopPropagation();
+    e.preventDefault();
+    dragging.current   = true;
+    startMouse.current = { x: e.clientX, y: e.clientY };
+    startPos.current   = { ...pos };
+    const onMove = (ev) => {
+      if (!dragging.current) return;
+      const dx   = ev.clientX - startMouse.current.x;
+      const dy   = ev.clientY - startMouse.current.y;
+      const newX = Math.min(Math.max(startPos.current.x + dx, 0), size.width  - starSize);
+      const newY = Math.min(Math.max(startPos.current.y + dy, 0), size.height - starSize);
+      setPos({ x: newX, y: newY });
+    };
+    const onUp = () => {
+      dragging.current = false;
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup",   onUp);
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup",   onUp);
+  };
+
   return (
-    <Box sx={{
-      position:"absolute", bottom:4, right:4,
-      zIndex:50,
-      width:starSize, height:starSize,
-      bgcolor:starBg,
-      clipPath:STARBURST_CLIP,
-      display:"flex", flexDirection:"column",
-      alignItems:"center", justifyContent:"center",
-      textAlign:"center", pointerEvents:"none",
-      gap:0,
-    }}>
+    <Box
+      onMouseDown={handleMouseDown}
+      sx={{
+        position:"absolute", left: pos.x, top: pos.y,
+        zIndex:50,
+        width:starSize, height:starSize,
+        bgcolor:starBg,
+        clipPath:STARBURST_CLIP,
+        display:"flex", flexDirection:"column",
+        alignItems:"center", justifyContent:"center",
+        textAlign:"center", gap:0,
+        cursor: isModuloSelected ? "grab" : "default",
+        "&:active": { cursor: isModuloSelected ? "grabbing" : "default" },
+        // Outline suave cuando está seleccionado para indicar que es movible
+        outline: isModuloSelected ? "2px dashed rgba(245,158,11,0.8)" : "none",
+        outlineOffset: 4,
+        borderRadius: "50%",
+      }}
+    >
       {tarjetaLogo ? (
         <>
           <Box component="img" src={tarjetaLogo}
-            sx={{ width: starSize * 0.45, height: starSize * 0.22, objectFit:"contain" }}
+            sx={{ width: starSize * 0.45, height: starSize * 0.22, objectFit:"contain", pointerEvents:"none" }}
             onError={(e) => { e.target.style.display="none"; }} />
           <Typography sx={{ ...IMPREC.price, fontSize: priceFontSize, fontWeight:900,
-            px:0.3, wordBreak:"break-all", lineHeight:1, color: priceColor }}>
+            px:0.3, wordBreak:"break-all", lineHeight:1, color: priceColor, pointerEvents:"none" }}>
             {precioDisplay}
           </Typography>
           {subtitulo && (
-            <Typography sx={{ ...IMPREC.subtPrice, fontSize: subtFontSize, letterSpacing:0.3, color: subtColor }}>
+            <Typography sx={{ ...IMPREC.subtPrice, fontSize: subtFontSize, letterSpacing:0.3, color: subtColor, pointerEvents:"none" }}>
               {subtitulo}
             </Typography>
           )}
@@ -182,11 +218,11 @@ function PrecioStarburst({ precio, subtitulo, tipoPrecio, size, isBgRed = false 
       ) : (
         <>
           <Typography sx={{ ...IMPREC.price, fontSize: priceFontSize, fontWeight:900,
-            px:0.5, wordBreak:"break-all", lineHeight:1, color: priceColor }}>
+            px:0.5, wordBreak:"break-all", lineHeight:1, color: priceColor, pointerEvents:"none" }}>
             {precioDisplay}
           </Typography>
           {subtitulo && (
-            <Typography sx={{ ...IMPREC.subtPrice, fontSize: subtFontSize, letterSpacing:0.3, color: subtColor }}>
+            <Typography sx={{ ...IMPREC.subtPrice, fontSize: subtFontSize, letterSpacing:0.3, color: subtColor, pointerEvents:"none" }}>
               {subtitulo}
             </Typography>
           )}
@@ -196,7 +232,7 @@ function PrecioStarburst({ precio, subtitulo, tipoPrecio, size, isBgRed = false 
   );
 }
 
-function MiniProducto({ producto, imgOverride, textColor, showPrice, precio, subtitulo, tipoPrecio, size, isBgRed }) {
+function MiniProducto({ producto, imgOverride, textColor, showPrice, precio, subtitulo, tipoPrecio, size, isBgRed, isModuloSelected }) {
   const imgSrc = imgOverride || producto?.imagen_url;
   return (
     <Box sx={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center",
@@ -223,7 +259,7 @@ function MiniProducto({ producto, imgOverride, textColor, showPrice, precio, sub
         </Typography>
       )}
       {showPrice && precio && (
-        <PrecioStarburst precio={precio} subtitulo={subtitulo} tipoPrecio={tipoPrecio} size={size} isBgRed={isBgRed} />
+        <PrecioStarburst precio={precio} subtitulo={subtitulo} tipoPrecio={tipoPrecio} size={size} isBgRed={isBgRed} isModuloSelected={isModuloSelected} />
       )}
     </Box>
   );
@@ -365,9 +401,9 @@ function SortableModuloCard({ modulo, isSelected, onClick, onMenuAction, onResiz
                 </Typography>
               )}
               {modulo.precio && (
-                // FIX #6: pasar isBgRed al starburst
                 <PrecioStarburst precio={modulo.precio} subtitulo={subtituloPrecio}
-                  tipoPrecio={modulo.tipo_precio} size={size} isBgRed={isBgRed} />
+                  tipoPrecio={modulo.tipo_precio} size={size} isBgRed={isBgRed}
+                  isModuloSelected={isSelected} />
               )}
             </>
           );
@@ -381,7 +417,8 @@ function SortableModuloCard({ modulo, isSelected, onClick, onMenuAction, onResiz
                 textColor={textColor}
                 showPrice={i===todosLosProductos.length-1}
                 precio={modulo.precio} subtitulo={subtituloPrecio}
-                tipoPrecio={modulo.tipo_precio} size={size} isBgRed={isBgRed} />
+                tipoPrecio={modulo.tipo_precio} size={size} isBgRed={isBgRed}
+                isModuloSelected={isSelected} />
             ))}
           </Box>
         )}
