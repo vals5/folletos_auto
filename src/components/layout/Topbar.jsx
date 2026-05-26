@@ -40,12 +40,11 @@ export default function Topbar() {
         Panel de administración
       </Typography>
       <Button
-        variant="outlined"
         size="small"
         onClick={logout}
         sx={{
           borderRadius: 5,
-          color: "#000",
+          color: "#ff0000",
           fontWeight: "bold",
         }}
       >

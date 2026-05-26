@@ -1,11 +1,10 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef } from "react";
 import { Box, Typography, Chip, Tooltip, CircularProgress, Button, IconButton, Menu, MenuItem, } from "@mui/material";
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
 import DeleteIcon             from "@mui/icons-material/Delete";
 import AddIcon                from "@mui/icons-material/Add";
 import MoreHorizIcon          from "@mui/icons-material/MoreHoriz";
 import CloseIcon              from "@mui/icons-material/Close";
-import DownloadIcon           from "@mui/icons-material/Download";
 import ImageIcon              from "@mui/icons-material/Image";
 import PictureAsPdfIcon       from "@mui/icons-material/PictureAsPdf";
 import DragIndicatorIcon      from "@mui/icons-material/DragIndicator";
@@ -50,13 +49,9 @@ const TAMANO_SIZE = {
   M: { width:185, height:140 }, L:{ width:250, height:160 }, XL:{ width:350, height:185 },
 };
 
-// FIX #4: "llevando3" key pero label "LLEVANDO 2"
 const TIPO_PRECIO_LABEL = { regular:null, llevando3:"LLEVANDO 2", vea_ahorro:"VEA AHORRO", regular_cencosud:"CENCOSUD" };
-
-const FONDO_COLORS  = { white:"#ffffff", red:"#ff0000", yellow:"#fff800", empty:"transparent" };
-
-// FIX #5: bordes punteado y sólido en rojo
-const BORDER_STYLES = { none:"none", solid:"2px solid #ff0000", dashed:"2px dashed #ff0000", thick:"3px solid #ff0000" };
+const FONDO_COLORS      = { white:"#ffffff", red:"#ff0000", yellow:"#fff800", empty:"transparent" };
+const BORDER_STYLES     = { none:"none", solid:"2px solid #ff0000", dashed:"2px dashed #ff0000", thick:"3px solid #ff0000" };
 
 const STARBURST_CLIP = `polygon(
   50% 0%,56% 8%,65% 4%,67% 13%,77% 11%,75% 21%,
@@ -72,13 +67,9 @@ const TARJETA_LOGO = { vea_ahorro: TarjetaVea, regular_cencosud: TarjetaCencosud
 function InlineText({ value, onSave, style={}, placeholder="Editar" }) {
   const [editing, setEditing] = useState(false);
   const [draft,   setDraft]   = useState(value || "");
-  const inputRef = useRef(null);
-
   const handleSave = () => { setEditing(false); if (draft !== value) onSave(draft); };
-
   if (editing) return (
-    <input ref={inputRef} value={draft}
-      autoFocus
+    <input value={draft} autoFocus
       onChange={(e) => setDraft(e.target.value)}
       onBlur={handleSave}
       onKeyDown={(e) => { if(e.key==="Enter") handleSave(); if(e.key==="Escape") setEditing(false); }}
@@ -100,21 +91,16 @@ function HeaderImprecionante({ flyer, onFlyerUpdate }) {
     onFlyerUpdate(field, value);
     await supabase.from("flyers").update({ [field]: value }).eq("id", flyer.id);
   };
-
   const LogoSlot = ({ slot }) => (
     <Box sx={{ width:68, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
       <Box component="img" src={DEFAULT_LOGOS[slot]}
-        alt={slot==="izq"?"Logo Imprecionante":"Logo Vea"}
         onError={(e) => { e.target.style.opacity="0.15"; }}
         sx={{ maxHeight:48, maxWidth:66, objectFit:"contain" }} />
     </Box>
   );
-
   const vi = { fontFamily:"'Imprec-Vigency',sans-serif", fontSize:"inherit", color:"#ff0000", textTransform:"uppercase" };
-
   return (
-    <Box bgcolor={IMPREC.colors.yellow} borderRadius="4px 4px 0 0"
-      px={1.5} py={0.8}
+    <Box bgcolor={IMPREC.colors.yellow} borderRadius="4px 4px 0 0" px={1.5} py={0.8}
       display="flex" justifyContent="space-between" alignItems="center" gap={1}>
       <LogoSlot slot="izq" />
       <Box textAlign="center" flex={1} sx={{ whiteSpace:"nowrap" }}>
@@ -122,13 +108,13 @@ function HeaderImprecionante({ flyer, onFlyerUpdate }) {
           {"DEL "}
           <InlineText value={flyer?.fecha_inicio_texto} onSave={(v)=>saveFlyer("fecha_inicio_texto",v)} placeholder="05" style={vi}/>
           {" DE "}
-          <InlineText value={flyer?.mes_inicio}         onSave={(v)=>saveFlyer("mes_inicio",v)}         placeholder="DICIEMBRE" style={vi}/>
+          <InlineText value={flyer?.mes_inicio} onSave={(v)=>saveFlyer("mes_inicio",v)} placeholder="DICIEMBRE" style={vi}/>
         </Typography>
         <Typography sx={{ ...IMPREC.vigency }}>
           {"AL "}
-          <InlineText value={flyer?.fecha_fin_texto}    onSave={(v)=>saveFlyer("fecha_fin_texto",v)}    placeholder="12" style={vi}/>
+          <InlineText value={flyer?.fecha_fin_texto} onSave={(v)=>saveFlyer("fecha_fin_texto",v)} placeholder="12" style={vi}/>
           {" DE "}
-          <InlineText value={flyer?.mes_fin}            onSave={(v)=>saveFlyer("mes_fin",v)}            placeholder="ENERO" style={vi}/>
+          <InlineText value={flyer?.mes_fin} onSave={(v)=>saveFlyer("mes_fin",v)} placeholder="ENERO" style={vi}/>
         </Typography>
       </Box>
       <LogoSlot slot="der" />
@@ -136,25 +122,25 @@ function HeaderImprecionante({ flyer, onFlyerUpdate }) {
   );
 }
 
-// Starburst draggable dentro del módulo — solo se mueve cuando el módulo está seleccionado
-// $ eliminado — el usuario lo escribe en el precio si lo necesita
-function PrecioStarburst({ precio, subtitulo, tipoPrecio, size, isBgRed = false, isModuloSelected = false }) {
+// Starburst draggable — $ pegado al número, c/u automático para llevando3
+function PrecioStarburst({ precio, tipoPrecio, size, isBgRed = false, isModuloSelected = false }) {
   const starSize      = size.width > 200 ? 82 : size.width > 140 ? 66 : 54;
-  const priceFontSize = size.width > 200 ? "16pt" : size.width > 140 ? "13pt" : "10pt";
-  const subtFontSize  = size.width > 200 ? "6pt" : "5pt";
+  const priceFontSize = size.width > 200 ? "15pt" : size.width > 140 ? "12pt" : "9pt";
+  const subtFontSize  = size.width > 200 ? "6pt"  : "5pt";
   const tarjetaLogo   = TARJETA_LOGO[tipoPrecio];
+  const isLlevando    = tipoPrecio === "llevando3";
 
   const starBg     = isBgRed ? IMPREC.colors.white : IMPREC.colors.red;
   const priceColor = isBgRed ? IMPREC.colors.red   : IMPREC.colors.white;
   const subtColor  = isBgRed ? IMPREC.colors.red   : IMPREC.colors.white;
 
-  const precioDisplay = precio.toLocaleString("es-AR");
+  // $ pegado al número, mismo tamaño y color
+  const precioDisplay = `$${precio.toLocaleString("es-AR")}`;
 
-  // Posición en px desde top-left del módulo; inicializa en esquina inferior derecha
-  const [pos, setPos]    = useState({ x: size.width - starSize - 4, y: size.height - starSize - 4 });
-  const dragging         = useRef(false);
-  const startMouse       = useRef({ x: 0, y: 0 });
-  const startPos         = useRef({ x: 0, y: 0 });
+  const [pos, setPos]  = useState({ x: size.width - starSize - 4, y: size.height - starSize - 4 });
+  const dragging       = useRef(false);
+  const startMouse     = useRef({ x:0, y:0 });
+  const startPos       = useRef({ x:0, y:0 });
 
   const handleMouseDown = (e) => {
     if (!isModuloSelected) return;
@@ -165,80 +151,65 @@ function PrecioStarburst({ precio, subtitulo, tipoPrecio, size, isBgRed = false,
     startPos.current   = { ...pos };
     const onMove = (ev) => {
       if (!dragging.current) return;
-      const dx   = ev.clientX - startMouse.current.x;
-      const dy   = ev.clientY - startMouse.current.y;
-      const newX = Math.min(Math.max(startPos.current.x + dx, 0), size.width  - starSize);
-      const newY = Math.min(Math.max(startPos.current.y + dy, 0), size.height - starSize);
+      const newX = Math.min(Math.max(startPos.current.x + ev.clientX - startMouse.current.x, 0), size.width  - starSize);
+      const newY = Math.min(Math.max(startPos.current.y + ev.clientY - startMouse.current.y, 0), size.height - starSize);
       setPos({ x: newX, y: newY });
     };
     const onUp = () => {
       dragging.current = false;
       window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseup",   onUp);
+      window.removeEventListener("mouseup", onUp);
     };
     window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup",   onUp);
+    window.addEventListener("mouseup", onUp);
   };
 
   return (
-    <Box
-      onMouseDown={handleMouseDown}
-      sx={{
-        position:"absolute", left: pos.x, top: pos.y,
-        zIndex:50,
-        width:starSize, height:starSize,
-        bgcolor:starBg,
-        clipPath:STARBURST_CLIP,
-        display:"flex", flexDirection:"column",
-        alignItems:"center", justifyContent:"center",
-        textAlign:"center", gap:0,
-        cursor: isModuloSelected ? "grab" : "default",
-        "&:active": { cursor: isModuloSelected ? "grabbing" : "default" },
-        // Outline suave cuando está seleccionado para indicar que es movible
-        outline: isModuloSelected ? "2px dashed rgba(245,158,11,0.8)" : "none",
-        outlineOffset: 4,
-        borderRadius: "50%",
-      }}
-    >
-      {tarjetaLogo ? (
-        <>
-          <Box component="img" src={tarjetaLogo}
-            sx={{ width: starSize * 0.45, height: starSize * 0.22, objectFit:"contain", pointerEvents:"none" }}
-            onError={(e) => { e.target.style.display="none"; }} />
-          <Typography sx={{ ...IMPREC.price, fontSize: priceFontSize, fontWeight:900,
-            px:0.3, wordBreak:"break-all", lineHeight:1, color: priceColor, pointerEvents:"none" }}>
-            {precioDisplay}
-          </Typography>
-          {subtitulo && (
-            <Typography sx={{ ...IMPREC.subtPrice, fontSize: subtFontSize, letterSpacing:0.3, color: subtColor, pointerEvents:"none" }}>
-              {subtitulo}
-            </Typography>
-          )}
-        </>
-      ) : (
-        <>
-          <Typography sx={{ ...IMPREC.price, fontSize: priceFontSize, fontWeight:900,
-            px:0.5, wordBreak:"break-all", lineHeight:1, color: priceColor, pointerEvents:"none" }}>
-            {precioDisplay}
-          </Typography>
-          {subtitulo && (
-            <Typography sx={{ ...IMPREC.subtPrice, fontSize: subtFontSize, letterSpacing:0.3, color: subtColor, pointerEvents:"none" }}>
-              {subtitulo}
-            </Typography>
-          )}
-        </>
+    <Box onMouseDown={handleMouseDown} sx={{
+      position:"absolute", left: pos.x, top: pos.y, zIndex:50,
+      width:starSize, height:starSize,
+      bgcolor:starBg, clipPath:STARBURST_CLIP,
+      display:"flex", flexDirection:"column",
+      alignItems:"center", justifyContent:"center",
+      textAlign:"center", gap:0,
+      cursor: isModuloSelected ? "grab" : "default",
+      "&:active": { cursor: isModuloSelected ? "grabbing" : "default" },
+      outline: isModuloSelected ? "2px dashed rgba(245,158,11,0.8)" : "none",
+      outlineOffset: 4, borderRadius:"50%",
+    }}>
+      {/* Logo tarjeta si aplica */}
+      {tarjetaLogo && (
+        <Box component="img" src={tarjetaLogo}
+          sx={{ width: starSize*0.45, height: starSize*0.2, objectFit:"contain", pointerEvents:"none" }}
+          onError={(e) => { e.target.style.display="none"; }} />
+      )}
+
+      {/* Precio con $ pegado */}
+      <Typography sx={{ ...IMPREC.price, fontSize: priceFontSize, fontWeight:900,
+        px:0.3, wordBreak:"break-all", lineHeight:1, color: priceColor, pointerEvents:"none" }}>
+        {precioDisplay}
+      </Typography>
+
+      {/* c/u automático para llevando3, nada para el resto */}
+      {isLlevando && (
+        <Typography sx={{ ...IMPREC.subtPrice, fontSize: subtFontSize, letterSpacing:0.3,
+          color: subtColor, pointerEvents:"none" }}>
+          c/u
+        </Typography>
       )}
     </Box>
   );
 }
 
-function MiniProducto({ producto, imgOverride, textColor, showPrice, precio, subtitulo, tipoPrecio, size, isBgRed, isModuloSelected }) {
-  const imgSrc = imgOverride || producto?.imagen_url;
+function MiniProducto({ producto, nombreOverride, descripcionOverride, imgOverride, textColor, showPrice, precio, tipoPrecio, size, isBgRed, isModuloSelected }) {
+  const imgSrc   = imgOverride || producto?.imagen_url;
+  const nombre   = nombreOverride || producto?.nombre || "Sin nombre";
+  const desc     = descripcionOverride !== undefined ? descripcionOverride : producto?.descripcion;
   return (
     <Box sx={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center",
       justifyContent:"flex-start", position:"relative", overflow:"hidden", minWidth:0, px:0.3, pt:0.5 }}>
       {imgSrc ? (
-        <Box component="img" src={imgSrc} alt={producto?.nombre}
+        <Box component="img" src={imgSrc} alt={nombre}
           sx={{ maxWidth:"90%", maxHeight:"42%", objectFit:"contain", mb:0.3 }}
           onError={(e) => { e.target.style.display="none"; }} />
       ) : (
@@ -249,17 +220,18 @@ function MiniProducto({ producto, imgOverride, textColor, showPrice, precio, sub
       )}
       <Typography sx={{ ...IMPREC.productName, color:textColor, width:"100%", textAlign:"center",
         overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-        {producto?.nombre||"Sin nombre"}
+        {nombre}
       </Typography>
-      {producto?.descripcion && (
+      {desc && (
         <Typography sx={{ ...IMPREC.productDesc,
           color:textColor==="#ffffff"?"rgba(255,255,255,0.75)":"#555",
           width:"100%", textAlign:"center", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-          {producto.descripcion}
+          {desc}
         </Typography>
       )}
       {showPrice && precio && (
-        <PrecioStarburst precio={precio} subtitulo={subtitulo} tipoPrecio={tipoPrecio} size={size} isBgRed={isBgRed} isModuloSelected={isModuloSelected} />
+        <PrecioStarburst precio={precio} tipoPrecio={tipoPrecio} size={size}
+          isBgRed={isBgRed} isModuloSelected={isModuloSelected} />
       )}
     </Box>
   );
@@ -281,22 +253,22 @@ function SortableModuloCard({ modulo, isSelected, onClick, onMenuAction, onResiz
   const isBgRed     = modulo.fondo_modulo === "red";
   const textColor   = isBgRed ? IMPREC.colors.white : IMPREC.colors.black;
 
-  const productosExtra     = modulo.productos_extra || [];
-  const todosLosProductos  = [
-    { producto:modulo.productos, imgOverride:modulo.imagen_url_override, precio:modulo.precio },
-    ...productosExtra.map((pe)=>({ producto:pe.producto, imgOverride:pe.imagen_url_override, precio:pe.precio })),
+  const productosExtra    = modulo.productos_extra || [];
+  const todosLosProductos = [
+    { producto:modulo.productos, imgOverride:modulo.imagen_url_override,
+      nombreOverride: modulo.nombre_override, descripcionOverride: modulo.descripcion_override,
+      precio:modulo.precio },
+    ...productosExtra.map((pe)=>({ producto:pe.producto, imgOverride:pe.imagen_url_override,
+      nombreOverride: undefined, descripcionOverride: undefined, precio:pe.precio })),
   ];
   const esMulti  = todosLosProductos.length > 1;
   const gridCols = todosLosProductos.length <= 2 ? todosLosProductos.length : 2;
-  const subtituloPrecio = priceLabel || "X UNIDAD";
 
   const openMenu  = (e) => { e.stopPropagation(); setMenuAnchor(e.currentTarget); };
   const closeMenu = () => setMenuAnchor(null);
 
-  // Resize arrastrando esquina
   const handleResizeMouseDown = (e) => {
-    e.stopPropagation();
-    e.preventDefault();
+    e.stopPropagation(); e.preventDefault();
     dragStartX.current   = e.clientX;
     dragStartIdx.current = tamanoIdx;
     const onMove = (ev) => {
@@ -309,10 +281,15 @@ function SortableModuloCard({ modulo, isSelected, onClick, onMenuAction, onResiz
     window.addEventListener("mouseup", onUp);
   };
 
+  // Nombre y descripción: usa override si existe, sino el del producto
+  const nombreMostrado = modulo.nombre_override ?? modulo.productos?.nombre ?? "Sin nombre";
+  const descMostrada   = modulo.descripcion_override !== undefined && modulo.descripcion_override !== null
+    ? modulo.descripcion_override
+    : modulo.productos?.descripcion;
+
   return (
     <Box position="relative" onMouseEnter={()=>setHovered(true)} onMouseLeave={()=>setHovered(false)}>
 
-      {/* Menú 3 puntitos */}
       {(hovered||!!menuAnchor) && (
         <Box onClick={openMenu}
           sx={{ position:"absolute", top:2, right:2, zIndex:15, bgcolor:"rgba(0,0,0,0.55)",
@@ -322,20 +299,13 @@ function SortableModuloCard({ modulo, isSelected, onClick, onMenuAction, onResiz
         </Box>
       )}
 
-      {/* FIX #1: handle de drag separado — no interfiere con el click */}
       {(hovered || isSelected) && (
-        <Box
-          {...listeners}
-          {...attributes}
-          sx={{
-            position:"absolute", top:2, left:2, zIndex:15,
+        <Box {...listeners} {...attributes}
+          sx={{ position:"absolute", top:2, left:2, zIndex:15,
             bgcolor:"rgba(0,0,0,0.45)", borderRadius:1,
             width:20, height:20, display:"flex", alignItems:"center", justifyContent:"center",
-            cursor:"grab", "&:active":{ cursor:"grabbing" },
-            "&:hover":{ bgcolor:"rgba(0,0,0,0.7)" },
-          }}
-          onMouseDown={(e) => e.stopPropagation()}
-        >
+            cursor:"grab", "&:active":{ cursor:"grabbing" }, "&:hover":{ bgcolor:"rgba(0,0,0,0.7)" } }}
+          onMouseDown={(e) => e.stopPropagation()}>
           <DragIndicatorIcon sx={{ color:"white", fontSize:14 }} />
         </Box>
       )}
@@ -346,19 +316,15 @@ function SortableModuloCard({ modulo, isSelected, onClick, onMenuAction, onResiz
         <MenuItem onClick={()=>{ closeMenu(); onMenuAction("eliminar",modulo); }} sx={{ fontSize:13, color:"#ef4444" }}>Eliminar módulo</MenuItem>
       </Menu>
 
-      {/* Tarjeta — sin listeners de drag, el handle los tiene */}
-      <Box ref={setNodeRef} onClick={onClick}
-        sx={{
-          width:size.width, height:size.height,
-          bgcolor:bgColor, border:borderStyle, borderRadius:"3px",
-          display:"flex", flexDirection:"column",
-          alignItems:"stretch", justifyContent:"flex-start",
-          cursor:"pointer",
-          position:"relative", opacity:isDragging?0.5:1,
-          boxShadow:isSelected?"0 0 0 3px #f59e0b55":bgColor==="transparent"?"none":"0 1px 4px rgba(0,0,0,0.18)",
-          transform:CSS.Transform.toString(transform), transition,
-          overflow:"hidden",
-        }}>
+      <Box ref={setNodeRef} onClick={onClick} sx={{
+        width:size.width, height:size.height,
+        bgcolor:bgColor, border:borderStyle, borderRadius:"3px",
+        display:"flex", flexDirection:"column",
+        alignItems:"stretch", justifyContent:"flex-start",
+        cursor:"pointer", position:"relative", opacity:isDragging?0.5:1,
+        boxShadow:isSelected?"0 0 0 3px #f59e0b55":bgColor==="transparent"?"none":"0 1px 4px rgba(0,0,0,0.18)",
+        transform:CSS.Transform.toString(transform), transition, overflow:"hidden",
+      }}>
 
         {/* Banner tipo precio */}
         {priceLabel && !esMulti && (
@@ -376,7 +342,7 @@ function SortableModuloCard({ modulo, isSelected, onClick, onMenuAction, onResiz
           return (
             <>
               {imgSrc ? (
-                <Box component="img" src={imgSrc} alt={modulo.productos?.nombre}
+                <Box component="img" src={imgSrc} alt={nombreMostrado}
                   sx={{ maxWidth:"68%", maxHeight:"42%", objectFit:"contain",
                     alignSelf:"center", mt:priceLabel?0.3:0.8, mb:0.3 }}
                   onError={(e)=>{ e.target.style.display="none"; }} />
@@ -390,20 +356,19 @@ function SortableModuloCard({ modulo, isSelected, onClick, onMenuAction, onResiz
               <Typography sx={{ ...IMPREC.productName, color:textColor,
                 width:"96%", px:0.4, textAlign:"center", alignSelf:"center",
                 overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                {modulo.productos?.nombre||"Sin nombre"}
+                {nombreMostrado}
               </Typography>
-              {modulo.productos?.descripcion && (
+              {descMostrada && (
                 <Typography sx={{ ...IMPREC.productDesc,
                   color:isBgRed?"rgba(255,255,255,0.75)":"#555",
                   width:"96%", px:0.4, textAlign:"center", alignSelf:"center",
                   overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                  {modulo.productos.descripcion}
+                  {descMostrada}
                 </Typography>
               )}
               {modulo.precio && (
-                <PrecioStarburst precio={modulo.precio} subtitulo={subtituloPrecio}
-                  tipoPrecio={modulo.tipo_precio} size={size} isBgRed={isBgRed}
-                  isModuloSelected={isSelected} />
+                <PrecioStarburst precio={modulo.precio} tipoPrecio={modulo.tipo_precio}
+                  size={size} isBgRed={isBgRed} isModuloSelected={isSelected} />
               )}
             </>
           );
@@ -413,27 +378,28 @@ function SortableModuloCard({ modulo, isSelected, onClick, onMenuAction, onResiz
         {esMulti && (
           <Box sx={{ display:"grid", gridTemplateColumns:`repeat(${gridCols},1fr)`, flex:1, p:0.3 }}>
             {todosLosProductos.map((item,i) => (
-              <MiniProducto key={i} producto={item.producto} imgOverride={item.imgOverride}
+              <MiniProducto key={i}
+                producto={item.producto}
+                imgOverride={item.imgOverride}
+                nombreOverride={item.nombreOverride}
+                descripcionOverride={item.descripcionOverride}
                 textColor={textColor}
                 showPrice={i===todosLosProductos.length-1}
-                precio={modulo.precio} subtitulo={subtituloPrecio}
-                tipoPrecio={modulo.tipo_precio} size={size} isBgRed={isBgRed}
-                isModuloSelected={isSelected} />
+                precio={modulo.precio}
+                tipoPrecio={modulo.tipo_precio}
+                size={size} isBgRed={isBgRed} isModuloSelected={isSelected} />
             ))}
           </Box>
         )}
 
-        {/* Handle resize — puntito esquina inferior derecha */}
         {isSelected && (
           <Box onMouseDown={handleResizeMouseDown}
-            sx={{
-              position:"absolute", bottom:3, right:3, zIndex:20,
+            sx={{ position:"absolute", bottom:3, right:3, zIndex:20,
               width:10, height:10, borderRadius:"50%",
               bgcolor:"#f59e0b", border:"2px solid white",
               cursor:"se-resize", boxShadow:"0 1px 3px rgba(0,0,0,0.4)",
               "&:hover":{ bgcolor:"#ef4444", transform:"scale(1.3)" },
-              transition:"transform 0.1s",
-            }} />
+              transition:"transform 0.1s" }} />
         )}
       </Box>
     </Box>
@@ -513,57 +479,46 @@ function LegalEditable({ flyerId, legal, onUpdate }) {
 
 function ExportButtons({ canvasRef, flyerName }) {
   const [exporting, setExporting] = useState(null);
-
   const capture = async () => {
     const { default: html2canvas } = await import("html2canvas");
-    return html2canvas(canvasRef.current, {
-      scale: 3,
-      useCORS: true,
-      allowTaint: true,
-      backgroundColor: "#fff800",
-    });
+    return html2canvas(canvasRef.current, { scale:3, useCORS:true, allowTaint:true, backgroundColor:"#fff800" });
   };
-
   const exportJPG = async () => {
     setExporting("jpg");
     try {
       const canvas = await capture();
-      const link   = document.createElement("a");
-      link.download = `${flyerName || "folleto"}.jpg`;
-      link.href     = canvas.toDataURL("image/jpeg", 0.95);
+      const link = document.createElement("a");
+      link.download = `${flyerName||"folleto"}.jpg`;
+      link.href = canvas.toDataURL("image/jpeg", 0.95);
       link.click();
     } catch(e) { console.error(e); }
     setExporting(null);
   };
-
   const exportPDF = async () => {
     setExporting("pdf");
     try {
-      const canvas  = await capture();
+      const canvas = await capture();
       const imgData = canvas.toDataURL("image/jpeg", 0.95);
       const { jsPDF } = await import("jspdf");
       const pdf = new jsPDF({ orientation: canvas.width > canvas.height ? "l" : "p", unit:"px", format:[canvas.width, canvas.height] });
       pdf.addImage(imgData, "JPEG", 0, 0, canvas.width, canvas.height);
-      pdf.save(`${flyerName || "folleto"}.pdf`);
+      pdf.save(`${flyerName||"folleto"}.pdf`);
     } catch(e) { console.error(e); }
     setExporting(null);
   };
-
   return (
     <Box display="flex" gap={1}>
       <Tooltip title="Exportar JPG">
-        <Button size="small" variant="outlined" startIcon={exporting==="jpg"?<CircularProgress size={14}/>:<ImageIcon/>}
+        <Button size="small" variant="outlined"
+          startIcon={exporting==="jpg"?<CircularProgress size={14}/>:<ImageIcon/>}
           onClick={exportJPG} disabled={!!exporting}
-          sx={{ fontSize:11, borderColor:"#d1d5db", color:"#374151" }}>
-          JPG
-        </Button>
+          sx={{ fontSize:11, borderColor:"#d1d5db", color:"#374151" }}>JPG</Button>
       </Tooltip>
       <Tooltip title="Exportar PDF">
-        <Button size="small" variant="outlined" startIcon={exporting==="pdf"?<CircularProgress size={14}/>:<PictureAsPdfIcon/>}
+        <Button size="small" variant="outlined"
+          startIcon={exporting==="pdf"?<CircularProgress size={14}/>:<PictureAsPdfIcon/>}
           onClick={exportPDF} disabled={!!exporting}
-          sx={{ fontSize:11, borderColor:"#d1d5db", color:"#374151" }}>
-          PDF
-        </Button>
+          sx={{ fontSize:11, borderColor:"#d1d5db", color:"#374151" }}>PDF</Button>
       </Tooltip>
     </Box>
   );
@@ -574,7 +529,6 @@ export default function CanvasPreview({
   selectedModulo, onSelectModulo, onFlyerUpdate, onReorderModulos,
   onAddPagina, onDeletePagina, onMenuAction, onResize,
 }) {
-  // FIX #1: el sensor solo activa al hacer drag desde el handle (distance:5 sigue igual)
   const sensors   = useSensors(useSensor(PointerSensor, { activationConstraint:{ distance:5 } }));
   const modulos   = modulosPorPagina[paginaActual] || [];
   const canvasRef = useRef(null);
@@ -597,7 +551,7 @@ export default function CanvasPreview({
       alignItems="center" overflow="auto" py={3}>
       <GlobalFonts />
 
-      {/* Barra superior: páginas + export */}
+      {/* Barra superior: selector páginas + export */}
       <Box display="flex" alignItems="center" gap={1} mb={2} flexWrap="wrap" justifyContent="center">
         {paginas.filter(Boolean).map((pag, idx) => (
           <Box key={pag.id} position="relative" sx={{ "&:hover .del-pag":{ opacity:1 } }}>
@@ -621,10 +575,6 @@ export default function CanvasPreview({
             )}
           </Box>
         ))}
-        <IconButton size="small" onClick={onAddPagina}
-          sx={{ bgcolor:"white", border:"1px solid #d1d5db" }}>
-          <AddIcon fontSize="small" />
-        </IconButton>
         <Chip label={flyer?.estado} size="small" color={flyer?.estado==="publicado"?"success":"default"} />
         <ExportButtons canvasRef={canvasRef} flyerName={flyer?.name} />
       </Box>
@@ -635,7 +585,7 @@ export default function CanvasPreview({
         </Typography>
       )}
 
-      {/* Canvas — ref para export */}
+      {/* Canvas */}
       <Box ref={canvasRef} sx={{
         width:canvasW, minHeight:canvasH,
         bgcolor:IMPREC.colors.yellow,
@@ -671,6 +621,18 @@ export default function CanvasPreview({
           <LegalEditable flyerId={flyer?.id} legal={flyer?.legal}
             onUpdate={(val)=>onFlyerUpdate("legal",val)} />
         </Box>
+      </Box>
+
+      {/* Botón agregar página — DEBAJO del canvas */}
+      <Box display="flex" justifyContent="center" mt={2}>
+        <Tooltip title="Agregar página">
+          <Button size="small" variant="outlined" startIcon={<AddIcon/>}
+            onClick={onAddPagina}
+            sx={{ fontSize:12, borderColor:"#9ca3af", color:"#374151",
+              bgcolor:"white", "&:hover":{ bgcolor:"#f9fafb" } }}>
+            Agregar página
+          </Button>
+        </Tooltip>
       </Box>
     </Box>
   );

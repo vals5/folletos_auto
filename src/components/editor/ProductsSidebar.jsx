@@ -71,7 +71,7 @@ export default function ProductsSidebar({
             mt: 1,
             "& .MuiTab-root": { color: "#ffffff", fontSize: 12, minWidth: 0, px: 1 },
             "& .Mui-selected": { color: "white" },
-            "& .MuiTabs-indicator": { bgcolor: "white" },
+            "& .MuiTabs-indicator": { bgcolor: "black" },
           }}
         >
           <Tab label={`En folleto (${modulos.length})`} />

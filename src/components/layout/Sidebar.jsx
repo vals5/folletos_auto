@@ -1,16 +1,5 @@
 import { useState } from "react";
-import {
-  Box,
-  List,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  Typography,
-  IconButton,
-  Drawer,
-  useMediaQuery,
-  useTheme,
-} from "@mui/material";
+import { Box, List, ListItemButton, ListItemIcon, ListItemText, Typography, IconButton, Drawer, useMediaQuery, useTheme, } from "@mui/material";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import DescriptionIcon from "@mui/icons-material/Description";
 import PaletteIcon from "@mui/icons-material/Palette";
@@ -24,10 +13,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 const menu = [
   { text: "Inicio", icon: <DashboardIcon />, path: "/dashboard" },
   { text: "Folletos", icon: <DescriptionIcon />, path: "/flyers" },
-  { text: "Estilos", icon: <PaletteIcon />, path: "/styles" },
   { text: "Bases de datos", icon: <StorageIcon />, path: "/databases" },
   { text: "Usuarios", icon: <GroupIcon />, path: "/users" },
-  { text: "Configuración", icon: <SettingsIcon />, path: "/settings" },
 ];
 
 function SidebarContent({ onClose }) {
