@@ -19,15 +19,11 @@ const TIPOS_PRECIO = [
 
 const ESTILOS_BORDE = [
   { value: "none",   label: "Sin borde"    },
-  { value: "solid",  label: "Sólido rojo"  },
-  { value: "dashed", label: "Punteado rojo"},
   { value: "thick",  label: "Grueso rojo"  },
 ];
 
 const FONDOS_MODULO = [
-  { value: "white",  label: "Blanco"      },
-  { value: "red",    label: "Rojo oferta" },
-  { value: "yellow", label: "Amarillo"    },
+  { value: "red",    label: "Rojo" },
   { value: "empty",  label: "Sin fondo"   },
 ];
 

@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Box, Typography, Chip, Tooltip, CircularProgress, Button, IconButton, Menu, MenuItem, } from "@mui/material";
+import { Box, Typography, Chip, Tooltip, CircularProgress, Button, IconButton, Menu, MenuItem, Slider, } from "@mui/material";
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
 import DeleteIcon             from "@mui/icons-material/Delete";
 import AddIcon                from "@mui/icons-material/Add";
@@ -8,6 +8,8 @@ import CloseIcon              from "@mui/icons-material/Close";
 import ImageIcon              from "@mui/icons-material/Image";
 import PictureAsPdfIcon       from "@mui/icons-material/PictureAsPdf";
 import DragIndicatorIcon      from "@mui/icons-material/DragIndicator";
+import ZoomInIcon             from "@mui/icons-material/ZoomIn";
+import ZoomOutIcon            from "@mui/icons-material/ZoomOut";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, } from "@dnd-kit/core";
 import { SortableContext, rectSortingStrategy, useSortable, arrayMove, } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -63,6 +65,8 @@ const STARBURST_CLIP = `polygon(
   25% 9%,35% 14%,38% 3%,47% 10%)`;
 
 const TARJETA_LOGO = { vea_ahorro: TarjetaVea, regular_cencosud: TarjetaCencosud };
+
+const BTN_ROUND = { borderRadius: "20px", textTransform: "none", fontSize: 12 };
 
 function InlineText({ value, onSave, style={}, placeholder="Editar" }) {
   const [editing, setEditing] = useState(false);
@@ -122,11 +126,10 @@ function HeaderImprecionante({ flyer, onFlyerUpdate }) {
   );
 }
 
-// Starburst draggable — $ pegado al número, c/u automático para llevando3
 function PrecioStarburst({ precio, tipoPrecio, size, isBgRed = false, isModuloSelected = false }) {
   const starSize      = size.width > 200 ? 82 : size.width > 140 ? 66 : 54;
   const priceFontSize = size.width > 200 ? "15pt" : size.width > 140 ? "12pt" : "9pt";
-  const subtFontSize  = size.width > 200 ? "6pt"  : "5pt";
+  const subtFontSize  = size.width > 200 ? "6pt" : "5pt";
   const tarjetaLogo   = TARJETA_LOGO[tipoPrecio];
   const isLlevando    = tipoPrecio === "llevando3";
 
@@ -134,7 +137,6 @@ function PrecioStarburst({ precio, tipoPrecio, size, isBgRed = false, isModuloSe
   const priceColor = isBgRed ? IMPREC.colors.red   : IMPREC.colors.white;
   const subtColor  = isBgRed ? IMPREC.colors.red   : IMPREC.colors.white;
 
-  // $ pegado al número, mismo tamaño y color
   const precioDisplay = `$${precio.toLocaleString("es-AR")}`;
 
   const [pos, setPos]  = useState({ x: size.width - starSize - 4, y: size.height - starSize - 4 });
@@ -144,8 +146,7 @@ function PrecioStarburst({ precio, tipoPrecio, size, isBgRed = false, isModuloSe
 
   const handleMouseDown = (e) => {
     if (!isModuloSelected) return;
-    e.stopPropagation();
-    e.preventDefault();
+    e.stopPropagation(); e.preventDefault();
     dragging.current   = true;
     startMouse.current = { x: e.clientX, y: e.clientY };
     startPos.current   = { ...pos };
@@ -155,11 +156,7 @@ function PrecioStarburst({ precio, tipoPrecio, size, isBgRed = false, isModuloSe
       const newY = Math.min(Math.max(startPos.current.y + ev.clientY - startMouse.current.y, 0), size.height - starSize);
       setPos({ x: newX, y: newY });
     };
-    const onUp = () => {
-      dragging.current = false;
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseup", onUp);
-    };
+    const onUp = () => { dragging.current = false; window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp); };
     window.addEventListener("mousemove", onMove);
     window.addEventListener("mouseup", onUp);
   };
@@ -169,28 +166,22 @@ function PrecioStarburst({ precio, tipoPrecio, size, isBgRed = false, isModuloSe
       position:"absolute", left: pos.x, top: pos.y, zIndex:50,
       width:starSize, height:starSize,
       bgcolor:starBg, clipPath:STARBURST_CLIP,
-      display:"flex", flexDirection:"column",
-      alignItems:"center", justifyContent:"center",
+      display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
       textAlign:"center", gap:0,
       cursor: isModuloSelected ? "grab" : "default",
       "&:active": { cursor: isModuloSelected ? "grabbing" : "default" },
       outline: isModuloSelected ? "2px dashed rgba(245,158,11,0.8)" : "none",
       outlineOffset: 4, borderRadius:"50%",
     }}>
-      {/* Logo tarjeta si aplica */}
       {tarjetaLogo && (
         <Box component="img" src={tarjetaLogo}
           sx={{ width: starSize*0.45, height: starSize*0.2, objectFit:"contain", pointerEvents:"none" }}
           onError={(e) => { e.target.style.display="none"; }} />
       )}
-
-      {/* Precio con $ pegado */}
       <Typography sx={{ ...IMPREC.price, fontSize: priceFontSize, fontWeight:900,
         px:0.3, wordBreak:"break-all", lineHeight:1, color: priceColor, pointerEvents:"none" }}>
         {precioDisplay}
       </Typography>
-
-      {/* c/u automático para llevando3, nada para el resto */}
       {isLlevando && (
         <Typography sx={{ ...IMPREC.subtPrice, fontSize: subtFontSize, letterSpacing:0.3,
           color: subtColor, pointerEvents:"none" }}>
@@ -202,9 +193,9 @@ function PrecioStarburst({ precio, tipoPrecio, size, isBgRed = false, isModuloSe
 }
 
 function MiniProducto({ producto, nombreOverride, descripcionOverride, imgOverride, textColor, showPrice, precio, tipoPrecio, size, isBgRed, isModuloSelected }) {
-  const imgSrc   = imgOverride || producto?.imagen_url;
-  const nombre   = nombreOverride || producto?.nombre || "Sin nombre";
-  const desc     = descripcionOverride !== undefined ? descripcionOverride : producto?.descripcion;
+  const imgSrc = imgOverride || producto?.imagen_url;
+  const nombre = nombreOverride || producto?.nombre || "Sin nombre";
+  const desc   = descripcionOverride !== undefined ? descripcionOverride : producto?.descripcion;
   return (
     <Box sx={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center",
       justifyContent:"flex-start", position:"relative", overflow:"hidden", minWidth:0, px:0.3, pt:0.5 }}>
@@ -218,14 +209,16 @@ function MiniProducto({ producto, nombreOverride, descripcionOverride, imgOverri
           <Typography fontSize={7} color="#9ca3af">IMG</Typography>
         </Box>
       )}
-      <Typography sx={{ ...IMPREC.productName, color:textColor, width:"100%", textAlign:"center",
+      <Typography sx={{ ...IMPREC.productName, color:textColor, width:(flyer?.width||420)*0.5,
+        minHeight:(flyer?.height||600)*0.5, textAlign:"center",
         overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
         {nombre}
       </Typography>
       {desc && (
         <Typography sx={{ ...IMPREC.productDesc,
           color:textColor==="#ffffff"?"rgba(255,255,255,0.75)":"#555",
-          width:"100%", textAlign:"center", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+          width:(flyer?.width||420)*0.5,
+        minHeight:(flyer?.height||600)*0.5, textAlign:"center", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
           {desc}
         </Typography>
       )}
@@ -256,8 +249,7 @@ function SortableModuloCard({ modulo, isSelected, onClick, onMenuAction, onResiz
   const productosExtra    = modulo.productos_extra || [];
   const todosLosProductos = [
     { producto:modulo.productos, imgOverride:modulo.imagen_url_override,
-      nombreOverride: modulo.nombre_override, descripcionOverride: modulo.descripcion_override,
-      precio:modulo.precio },
+      nombreOverride: modulo.nombre_override, descripcionOverride: modulo.descripcion_override, precio:modulo.precio },
     ...productosExtra.map((pe)=>({ producto:pe.producto, imgOverride:pe.imagen_url_override,
       nombreOverride: undefined, descripcionOverride: undefined, precio:pe.precio })),
   ];
@@ -269,27 +261,22 @@ function SortableModuloCard({ modulo, isSelected, onClick, onMenuAction, onResiz
 
   const handleResizeMouseDown = (e) => {
     e.stopPropagation(); e.preventDefault();
-    dragStartX.current   = e.clientX;
-    dragStartIdx.current = tamanoIdx;
+    dragStartX.current = e.clientX; dragStartIdx.current = tamanoIdx;
     const onMove = (ev) => {
       const steps  = Math.round((ev.clientX - dragStartX.current) / 40);
       const newIdx = Math.min(Math.max(dragStartIdx.current + steps, 0), TAMANOS.length - 1);
       if (TAMANOS[newIdx] !== modulo.tamano) onResize(modulo.id, TAMANOS[newIdx]);
     };
     const onUp = () => { window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp); };
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup", onUp);
+    window.addEventListener("mousemove", onMove); window.addEventListener("mouseup", onUp);
   };
 
-  // Nombre y descripción: usa override si existe, sino el del producto
   const nombreMostrado = modulo.nombre_override ?? modulo.productos?.nombre ?? "Sin nombre";
   const descMostrada   = modulo.descripcion_override !== undefined && modulo.descripcion_override !== null
-    ? modulo.descripcion_override
-    : modulo.productos?.descripcion;
+    ? modulo.descripcion_override : modulo.productos?.descripcion;
 
   return (
     <Box position="relative" onMouseEnter={()=>setHovered(true)} onMouseLeave={()=>setHovered(false)}>
-
       {(hovered||!!menuAnchor) && (
         <Box onClick={openMenu}
           sx={{ position:"absolute", top:2, right:2, zIndex:15, bgcolor:"rgba(0,0,0,0.55)",
@@ -298,45 +285,37 @@ function SortableModuloCard({ modulo, isSelected, onClick, onMenuAction, onResiz
           <MoreHorizIcon sx={{ color:"white", fontSize:14 }} />
         </Box>
       )}
-
       {(hovered || isSelected) && (
         <Box {...listeners} {...attributes}
           sx={{ position:"absolute", top:2, left:2, zIndex:15,
-            bgcolor:"rgba(0,0,0,0.45)", borderRadius:1,
-            width:20, height:20, display:"flex", alignItems:"center", justifyContent:"center",
+            bgcolor:"rgba(0,0,0,0.45)", borderRadius:1, width:20, height:20,
+            display:"flex", alignItems:"center", justifyContent:"center",
             cursor:"grab", "&:active":{ cursor:"grabbing" }, "&:hover":{ bgcolor:"rgba(0,0,0,0.7)" } }}
           onMouseDown={(e) => e.stopPropagation()}>
           <DragIndicatorIcon sx={{ color:"white", fontSize:14 }} />
         </Box>
       )}
-
       <Menu anchorEl={menuAnchor} open={!!menuAnchor} onClose={closeMenu}
         PaperProps={{ sx:{ minWidth:160, borderRadius:2 } }}>
         <MenuItem onClick={()=>{ closeMenu(); onMenuAction("duplicar",modulo); }} sx={{ fontSize:13 }}>Duplicar módulo</MenuItem>
         <MenuItem onClick={()=>{ closeMenu(); onMenuAction("eliminar",modulo); }} sx={{ fontSize:13, color:"#ef4444" }}>Eliminar módulo</MenuItem>
       </Menu>
-
       <Box ref={setNodeRef} onClick={onClick} sx={{
-        width:size.width, height:size.height,
-        bgcolor:bgColor, border:borderStyle, borderRadius:"3px",
-        display:"flex", flexDirection:"column",
-        alignItems:"stretch", justifyContent:"flex-start",
+        width:size.width, height:size.height, bgcolor:bgColor, border:borderStyle, borderRadius:"3px",
+        display:"flex", flexDirection:"column", alignItems:"stretch", justifyContent:"flex-start",
         cursor:"pointer", position:"relative", opacity:isDragging?0.5:1,
         boxShadow:isSelected?"0 0 0 3px #f59e0b55":bgColor==="transparent"?"none":"0 1px 4px rgba(0,0,0,0.18)",
         transform:CSS.Transform.toString(transform), transition, overflow:"hidden",
       }}>
-
-        {/* Banner tipo precio */}
         {priceLabel && !esMulti && (
-          <Box sx={{ width:"100%", bgcolor:IMPREC.colors.red, display:"flex",
+          <Box sx={{ width:(flyer?.width||420)*0.5,
+        minHeight:(flyer?.height||600)*0.5, bgcolor:IMPREC.colors.red, display:"flex",
             alignItems:"center", justifyContent:"center", py:0.2 }}>
             <Typography sx={{ ...IMPREC.subtPrice, fontSize:"6pt", color:IMPREC.colors.white, letterSpacing:0.8 }}>
               {priceLabel}
             </Typography>
           </Box>
         )}
-
-        {/* ── SINGLE ── */}
         {!esMulti && (() => {
           const imgSrc = modulo.imagen_url_override || modulo.productos?.imagen_url;
           return (
@@ -373,33 +352,23 @@ function SortableModuloCard({ modulo, isSelected, onClick, onMenuAction, onResiz
             </>
           );
         })()}
-
-        {/* ── MULTI ── */}
         {esMulti && (
           <Box sx={{ display:"grid", gridTemplateColumns:`repeat(${gridCols},1fr)`, flex:1, p:0.3 }}>
             {todosLosProductos.map((item,i) => (
-              <MiniProducto key={i}
-                producto={item.producto}
-                imgOverride={item.imgOverride}
-                nombreOverride={item.nombreOverride}
-                descripcionOverride={item.descripcionOverride}
-                textColor={textColor}
-                showPrice={i===todosLosProductos.length-1}
-                precio={modulo.precio}
-                tipoPrecio={modulo.tipo_precio}
+              <MiniProducto key={i} producto={item.producto} imgOverride={item.imgOverride}
+                nombreOverride={item.nombreOverride} descripcionOverride={item.descripcionOverride}
+                textColor={textColor} showPrice={i===todosLosProductos.length-1}
+                precio={modulo.precio} tipoPrecio={modulo.tipo_precio}
                 size={size} isBgRed={isBgRed} isModuloSelected={isSelected} />
             ))}
           </Box>
         )}
-
         {isSelected && (
           <Box onMouseDown={handleResizeMouseDown}
             sx={{ position:"absolute", bottom:3, right:3, zIndex:20,
-              width:10, height:10, borderRadius:"50%",
-              bgcolor:"#f59e0b", border:"2px solid white",
+              width:10, height:10, borderRadius:"50%", bgcolor:"#f59e0b", border:"2px solid white",
               cursor:"se-resize", boxShadow:"0 1px 3px rgba(0,0,0,0.4)",
-              "&:hover":{ bgcolor:"#ef4444", transform:"scale(1.3)" },
-              transition:"transform 0.1s" }} />
+              "&:hover":{ bgcolor:"#ef4444", transform:"scale(1.3)" }, transition:"transform 0.1s" }} />
         )}
       </Box>
     </Box>
@@ -428,7 +397,8 @@ function FooterUploader({ flyerId, footerUrl, onUpdate }) {
   };
   if (footerUrl) return (
     <Box position="relative" sx={{ "&:hover .rem":{ opacity:1 } }}>
-      <Box component="img" src={footerUrl} alt="Pie" sx={{ width:"100%", borderRadius:1 }} />
+      <Box component="img" src={footerUrl} alt="Pie" sx={{ width:(flyer?.width||420)*0.5,
+        minHeight:(flyer?.height||600)*0.5, borderRadius:1 }} />
       <Box className="rem" onClick={handleRemove}
         sx={{ position:"absolute", top:4, right:4, bgcolor:"rgba(0,0,0,0.6)", borderRadius:"50%",
           width:24, height:24, display:"flex", alignItems:"center", justifyContent:"center",
@@ -464,7 +434,8 @@ function LegalEditable({ flyerId, legal, onUpdate }) {
       {editing ? (
         <textarea value={draft} onChange={(e)=>setDraft(e.target.value)}
           onBlur={save} autoFocus rows={2}
-          style={{ width:"100%", background:"transparent", border:"1px dashed rgba(0,0,0,0.25)",
+          style={{ width:(flyer?.width||420)*0.5,
+        minHeight:(flyer?.height||600)*0.5, background:"transparent", border:"1px dashed rgba(0,0,0,0.25)",
             borderRadius:4, resize:"none", outline:"none", padding:"2px 4px",
             fontFamily:"'Imprec-Legal',sans-serif", fontSize:"9pt", color:"#333" }} />
       ) : (
@@ -477,117 +448,106 @@ function LegalEditable({ flyerId, legal, onUpdate }) {
   );
 }
 
-function ExportButtons({ canvasRef, flyerName }) {
+function ExportButtons({ canvasRefs, flyerName, paginas }) {
   const [exporting, setExporting] = useState(null);
-  const capture = async () => {
+
+  const captureAll = async () => {
     const { default: html2canvas } = await import("html2canvas");
-    return html2canvas(canvasRef.current, { scale:3, useCORS:true, allowTaint:true, backgroundColor:"#fff800" });
+    const canvases = [];
+    for (const ref of canvasRefs) {
+      if (ref?.current) {
+        const c = await html2canvas(ref.current, { scale:3, useCORS:true, allowTaint:true, backgroundColor:"#fff800" });
+        canvases.push(c);
+      }
+    }
+    return canvases;
   };
+
   const exportJPG = async () => {
     setExporting("jpg");
     try {
-      const canvas = await capture();
-      const link = document.createElement("a");
-      link.download = `${flyerName||"folleto"}.jpg`;
-      link.href = canvas.toDataURL("image/jpeg", 0.95);
-      link.click();
+      const canvases = await captureAll();
+      canvases.forEach((canvas, i) => {
+        const link = document.createElement("a");
+        link.download = `${flyerName||"folleto"}_p${i+1}.jpg`;
+        link.href = canvas.toDataURL("image/jpeg", 0.95);
+        link.click();
+      });
     } catch(e) { console.error(e); }
     setExporting(null);
   };
+
   const exportPDF = async () => {
     setExporting("pdf");
     try {
-      const canvas = await capture();
-      const imgData = canvas.toDataURL("image/jpeg", 0.95);
+      const canvases = await captureAll();
       const { jsPDF } = await import("jspdf");
-      const pdf = new jsPDF({ orientation: canvas.width > canvas.height ? "l" : "p", unit:"px", format:[canvas.width, canvas.height] });
-      pdf.addImage(imgData, "JPEG", 0, 0, canvas.width, canvas.height);
+      const first = canvases[0];
+      const pdf = new jsPDF({ orientation: first.width > first.height ? "l" : "p", unit:"px", format:[first.width, first.height] });
+      canvases.forEach((canvas, i) => {
+        if (i > 0) pdf.addPage([canvas.width, canvas.height], canvas.width > canvas.height ? "l" : "p");
+        pdf.addImage(canvas.toDataURL("image/jpeg", 0.95), "JPEG", 0, 0, canvas.width, canvas.height);
+      });
       pdf.save(`${flyerName||"folleto"}.pdf`);
     } catch(e) { console.error(e); }
     setExporting(null);
   };
+
   return (
     <Box display="flex" gap={1}>
-      <Tooltip title="Exportar JPG">
+      <Tooltip title="Exportar JPG (una por página)">
         <Button size="small" variant="outlined"
           startIcon={exporting==="jpg"?<CircularProgress size={14}/>:<ImageIcon/>}
           onClick={exportJPG} disabled={!!exporting}
-          sx={{ fontSize:11, borderColor:"#d1d5db", color:"#374151" }}>JPG</Button>
+          sx={{ ...BTN_ROUND, borderColor:"#d1d5db", color:"#374151" }}>JPG</Button>
       </Tooltip>
-      <Tooltip title="Exportar PDF">
+      <Tooltip title="Exportar PDF (todas las páginas)">
         <Button size="small" variant="outlined"
           startIcon={exporting==="pdf"?<CircularProgress size={14}/>:<PictureAsPdfIcon/>}
           onClick={exportPDF} disabled={!!exporting}
-          sx={{ fontSize:11, borderColor:"#d1d5db", color:"#374151" }}>PDF</Button>
+          sx={{ ...BTN_ROUND, borderColor:"#d1d5db", color:"#374151" }}>PDF</Button>
       </Tooltip>
     </Box>
   );
 }
 
-export default function CanvasPreview({
-  flyer, plantilla, paginas, modulosPorPagina, paginaActual, setPaginaActual,
-  selectedModulo, onSelectModulo, onFlyerUpdate, onReorderModulos,
-  onAddPagina, onDeletePagina, onMenuAction, onResize,
-}) {
-  const sensors   = useSensors(useSensor(PointerSensor, { activationConstraint:{ distance:5 } }));
-  const modulos   = modulosPorPagina[paginaActual] || [];
-  const canvasRef = useRef(null);
+function PaginaCanvas({ flyer, pag, pagIdx, modulos, selectedModulo, onSelectModulo,
+  onMenuAction, onResize, onDeletePagina, canvasRef, totalPaginas, sensors,
+  onReorderModulos, onFlyerUpdate, esPrimera }) {
 
   const handleDragEnd = async ({ active, over }) => {
     if (!over || active.id===over.id) return;
     const oldIdx    = modulos.findIndex((m)=>m.id===active.id);
     const newIdx    = modulos.findIndex((m)=>m.id===over.id);
     const reordered = arrayMove(modulos, oldIdx, newIdx);
-    onReorderModulos(paginaActual, reordered);
+    onReorderModulos(pagIdx, reordered);
     await Promise.all(reordered.map((m,i)=>supabase.from("modulos").update({ posicion:i }).eq("id",m.id)));
   };
 
-  const CANVAS_SCALE = 0.5;
-  const canvasW = (flyer?.width  || 420) * CANVAS_SCALE;
-  const canvasH = (flyer?.height || 600) * CANVAS_SCALE;
-
   return (
-    <Box flex={1} bgcolor="#e5e7eb" display="flex" flexDirection="column"
-      alignItems="center" overflow="auto" py={3}>
-      <GlobalFonts />
+    <Box sx={{ display:"flex", flexDirection:"column", alignItems:"center", mb:4 }}>
 
-      {/* Barra superior: selector páginas + export */}
-      <Box display="flex" alignItems="center" gap={1} mb={2} flexWrap="wrap" justifyContent="center">
-        {paginas.filter(Boolean).map((pag, idx) => (
-          <Box key={pag.id} position="relative" sx={{ "&:hover .del-pag":{ opacity:1 } }}>
-            <Button size="small"
-              variant={paginaActual===idx?"contained":"outlined"}
-              onClick={()=>setPaginaActual(idx)}
-              sx={{ fontSize:12, minWidth:90, pr:paginas.length>1?3.5:1.5,
-                ...(paginaActual===idx&&{ bgcolor:"#1a1a2e", "&:hover":{ bgcolor:"#2d2d5e" } }) }}>
-              Página {pag.numero}
-            </Button>
-            {paginas.length > 1 && (
-              <Tooltip title="Eliminar página">
-                <Box className="del-pag" onClick={()=>onDeletePagina(idx,pag)}
-                  sx={{ position:"absolute", top:-6, right:-6, bgcolor:"#ef4444",
-                    borderRadius:"50%", width:18, height:18,
-                    display:"flex", alignItems:"center", justifyContent:"center",
-                    cursor:"pointer", opacity:0, transition:"opacity 0.2s", zIndex:10 }}>
-                  <CloseIcon sx={{ color:"white", fontSize:12 }} />
-                </Box>
-              </Tooltip>
-            )}
-          </Box>
-        ))}
-        <Chip label={flyer?.estado} size="small" color={flyer?.estado==="publicado"?"success":"default"} />
-        <ExportButtons canvasRef={canvasRef} flyerName={flyer?.name} />
+      {/* Etiqueta de página + botón eliminar — redondeados */}
+      <Box display="flex" alignItems="center" gap={1} mb={1}>
+        <Chip label={`Página ${pag.numero}`} size="small"
+          sx={{ borderRadius:"20px", fontWeight:600, fontSize:12,
+            bgcolor:"#1a1a2e", color:"white", px:1 }} />
+        {totalPaginas > 1 && (
+          <Tooltip title="Eliminar página">
+            <Box onClick={()=>onDeletePagina(pagIdx, pag)}
+              sx={{ display:"flex", alignItems:"center", gap:0.4, cursor:"pointer",
+                bgcolor:"#ef4444", color:"white", borderRadius:"20px",
+                px:1.2, height:24, "&:hover":{ bgcolor:"#dc2626" } }}>
+              <CloseIcon sx={{ fontSize:13 }} />
+            </Box>
+          </Tooltip>
+        )}
       </Box>
 
-      {flyer?.width && (
-        <Typography fontSize={11} color="#6b7280" mb={1} fontWeight={600}>
-          {flyer.width}×{flyer.height}px
-        </Typography>
-      )}
-
-      {/* Canvas */}
+      {/* Canvas de esta página */}
       <Box ref={canvasRef} sx={{
-        width:canvasW, minHeight:canvasH,
+        width:(flyer?.width||420)*0.5,
+        minHeight:(flyer?.height||600)*0.5,
         bgcolor:IMPREC.colors.yellow,
         borderRadius:"6px",
         boxShadow:"0 8px 32px rgba(0,0,0,0.25)",
@@ -597,7 +557,7 @@ export default function CanvasPreview({
         <HeaderImprecionante flyer={flyer} onFlyerUpdate={onFlyerUpdate} />
 
         {modulos.length===0 ? (
-          <Box display="flex" alignItems="center" justifyContent="center" minHeight={200} color="#92400e">
+          <Box display="flex" alignItems="center" justifyContent="center" minHeight={160} color="#92400e">
             <Typography fontSize={13} textAlign="center">Agregá productos desde el panel izquierdo</Typography>
           </Box>
         ) : (
@@ -615,24 +575,114 @@ export default function CanvasPreview({
           </DndContext>
         )}
 
-        <Box px={1} pb={0.8}>
-          <FooterUploader flyerId={flyer?.id} footerUrl={flyer?.footer_url}
-            onUpdate={(url)=>onFlyerUpdate("footer_url",url)} />
-          <LegalEditable flyerId={flyer?.id} legal={flyer?.legal}
-            onUpdate={(val)=>onFlyerUpdate("legal",val)} />
+        {/* Footer y legal solo en la primera página */}
+        {esPrimera && (
+          <Box px={1} pb={0.8}>
+            <FooterUploader flyerId={flyer?.id} footerUrl={flyer?.footer_url}
+              onUpdate={(url)=>onFlyerUpdate("footer_url", url)} />
+            <LegalEditable flyerId={flyer?.id} legal={flyer?.legal}
+              onUpdate={(val)=>onFlyerUpdate("legal", val)} />
+          </Box>
+        )}
+      </Box>
+    </Box>
+  );
+}
+
+export default function CanvasPreview({
+  flyer, plantilla, paginas, modulosPorPagina, paginaActual, setPaginaActual, selectedModulo, onSelectModulo, onFlyerUpdate, onReorderModulos, onAddPagina, onDeletePagina, onMenuAction, onResize, }) {
+  const sensors  = useSensors(useSensor(PointerSensor, { activationConstraint:{ distance:5 } }));
+  const [zoom, setZoom] = useState(150); 
+
+  const canvasRefs = useRef([]);
+  if (canvasRefs.current.length !== paginas.length) {
+    canvasRefs.current = paginas.map((_, i) => canvasRefs.current[i] || { current: null });
+  }
+
+  const scale = zoom / 100;
+
+  return (
+    <Box flex={1} bgcolor="#e5e7eb" display="flex" flexDirection="column"
+      alignItems="center" overflow="auto" py={3}>
+      <GlobalFonts />
+
+      {/* TOP TOOLBAR */}
+      <Box display="flex" alignItems="center" gap={2} mb={3} px={2}
+        flexWrap="wrap" justifyContent="center">
+
+        {/* SCALE */}
+        <Box display="flex" alignItems="center" gap={1} bgcolor="white"
+          borderRadius="20px" px={1.5} py={0.5}
+          sx={{ boxShadow:"0 1px 4px rgba(0,0,0,0.12)", minWidth:180 }}>
+          <Tooltip title="Alejar">
+            <IconButton size="small" onClick={()=>setZoom(z=>Math.max(30,z-10))}>
+              <ZoomOutIcon fontSize="small"/>
+            </IconButton>
+          </Tooltip>
+          <Slider value={zoom} min={100} max={250} step={5}
+            onChange={(_, v) => setZoom(v)} size="small"
+            sx={{ flex:1, color:"#1a1a2e", "& .MuiSlider-thumb":{ width:14, height:14 } }} />
+          <Tooltip title="Acercar">
+            <IconButton size="small" onClick={()=>setZoom(z=>Math.min(250,z+10))}>
+              <ZoomInIcon fontSize="small"/>
+            </IconButton>
+          </Tooltip>
+          <Typography fontSize={11} color="#6b7280" sx={{ minWidth:32, textAlign:"right" }}>
+            {zoom}%
+          </Typography>
         </Box>
+
+        <Chip label={flyer?.estado || "borrador"} size="small"
+          color={flyer?.estado==="publicado"?"success":"default"}
+          sx={{ borderRadius:"20px" }} />
+
+        <ExportButtons canvasRefs={canvasRefs.current} flyerName={flyer?.name} paginas={paginas} />
       </Box>
 
-      {/* Botón agregar página — DEBAJO del canvas */}
-      <Box display="flex" justifyContent="center" mt={2}>
-        <Tooltip title="Agregar página">
-          <Button size="small" variant="outlined" startIcon={<AddIcon/>}
-            onClick={onAddPagina}
-            sx={{ fontSize:12, borderColor:"#9ca3af", color:"#374151",
-              bgcolor:"white", "&:hover":{ bgcolor:"#f9fafb" } }}>
-            Agregar página
-          </Button>
-        </Tooltip>
+      {flyer?.width && (
+        <Typography fontSize={11} color="#6b7280" mb={2} fontWeight={600}>
+          {flyer.width}×{flyer.height}px · {zoom}%
+        </Typography>
+      )}
+      <Box sx={{ position:"relative", width:"100%" }}>
+        <Box sx={{
+          transformOrigin:"top center",
+          transform:`scale(${scale})`,
+          mb: scale < 1 ? `${-(1 - scale) * 100}%` : 0,
+        }}>
+          {paginas.filter(Boolean).map((pag, idx) => {
+            if (!canvasRefs.current[idx]) canvasRefs.current[idx] = { current: null };
+            return (
+              <PaginaCanvas
+                key={pag.id}
+                flyer={flyer}
+                pag={pag}
+                pagIdx={idx}
+                modulos={modulosPorPagina[idx] || []}
+                selectedModulo={selectedModulo}
+                onSelectModulo={onSelectModulo}
+                onMenuAction={onMenuAction}
+                onResize={onResize}
+                onDeletePagina={onDeletePagina}
+                canvasRef={(el) => { canvasRefs.current[idx] = { current: el }; }}
+                totalPaginas={paginas.length}
+                sensors={sensors}
+                onReorderModulos={onReorderModulos}
+                onFlyerUpdate={onFlyerUpdate}
+                esPrimera={idx === 0}
+              />
+            );
+          })}
+
+          {/* ADD PAGE */}
+          <Box display="flex" justifyContent="center" mt={1} mb={2}>
+            <Button variant="outlined" startIcon={<AddIcon/>} onClick={onAddPagina}
+              sx={{ ...BTN_ROUND, borderColor:"#9ca3af", color:"#374151",
+                bgcolor:"white", "&:hover":{ bgcolor:"#f9fafb" }, px:3 }}>
+              Agregar página
+            </Button>
+          </Box>
+        </Box>
       </Box>
     </Box>
   );
