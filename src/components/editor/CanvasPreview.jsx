@@ -230,7 +230,7 @@ function MiniProducto({ producto, nombreOverride, descripcionOverride, imgOverri
   );
 }
 
-function SortableModuloCard({ modulo, isSelected, onClick, onMenuAction, onResize }) {
+function SortableModuloCard({ modulo, isSelected, onClick, onMenuAction, onResize, flyer }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: modulo.id });
   const [menuAnchor, setMenuAnchor] = useState(null);
@@ -511,9 +511,7 @@ function ExportButtons({ canvasRefs, flyerName, paginas }) {
   );
 }
 
-function PaginaCanvas({ flyer, pag, pagIdx, modulos, selectedModulo, onSelectModulo,
-  onMenuAction, onResize, onDeletePagina, canvasRef, totalPaginas, sensors,
-  onReorderModulos, onFlyerUpdate, esPrimera }) {
+function PaginaCanvas({ flyer, pag, pagIdx, modulos, selectedModulo, onSelectModulo, onMenuAction, onResize, onDeletePagina, canvasRef, totalPaginas, sensors, onReorderModulos, onFlyerUpdate, esPrimera }) {
 
   const handleDragEnd = async ({ active, over }) => {
     if (!over || active.id===over.id) return;
@@ -527,7 +525,7 @@ function PaginaCanvas({ flyer, pag, pagIdx, modulos, selectedModulo, onSelectMod
   return (
     <Box sx={{ display:"flex", flexDirection:"column", alignItems:"center", mb:4 }}>
 
-      {/* Etiqueta de página + botón eliminar — redondeados */}
+      {/* ROUNDED BUTTONS */}
       <Box display="flex" alignItems="center" gap={1} mb={1}>
         <Chip label={`Página ${pag.numero}`} size="small"
           sx={{ borderRadius:"20px", fontWeight:600, fontSize:12,
@@ -544,7 +542,7 @@ function PaginaCanvas({ flyer, pag, pagIdx, modulos, selectedModulo, onSelectMod
         )}
       </Box>
 
-      {/* Canvas de esta página */}
+      {/* THIS PAGE'S CANVAS */}
       <Box ref={canvasRef} sx={{
         width:(flyer?.width||420)*0.5,
         minHeight:(flyer?.height||600)*0.5,
@@ -565,7 +563,7 @@ function PaginaCanvas({ flyer, pag, pagIdx, modulos, selectedModulo, onSelectMod
             <SortableContext items={modulos.map((m)=>m.id)} strategy={rectSortingStrategy}>
               <Box display="flex" flexWrap="wrap" gap={0.5} justifyContent="center" px={0.8} py={0.8}>
                 {modulos.map((modulo)=>(
-                  <SortableModuloCard key={modulo.id} modulo={modulo}
+                  <SortableModuloCard key={modulo.id} modulo={modulo} flyer={flyer}
                     isSelected={selectedModulo?.id===modulo.id}
                     onClick={()=>onSelectModulo(modulo)}
                     onMenuAction={onMenuAction} onResize={onResize} />

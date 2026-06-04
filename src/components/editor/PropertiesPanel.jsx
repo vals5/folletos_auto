@@ -19,7 +19,7 @@ const TIPOS_PRECIO = [
 
 const ESTILOS_BORDE = [
   { value: "none",   label: "Sin borde"    },
-  { value: "thick",  label: "Grueso rojo"  },
+  { value: "thick",  label: "Rojo"  },
 ];
 
 const FONDOS_MODULO = [
@@ -254,7 +254,7 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
         </FormControl>
 
         <FormControl size="small" fullWidth>
-          <InputLabel>Fondo del módulo</InputLabel>
+          <InputLabel>Fondo</InputLabel>
           <Select value={modulo.fondo_modulo || "white"} label="Fondo del módulo"
             onChange={(e) => update("fondo_modulo", e.target.value)}>
             {FONDOS_MODULO.map((f) => (
