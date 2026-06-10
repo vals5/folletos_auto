@@ -17,7 +17,7 @@ export const TEMPLATES = [
 ];
 
 export const SIZE_PRESETS = [
-  { label: "A4 Vertical",       width: 595,  height: 872,  cols: 3, rows: 4 },
+  { label: "A4 Vertical",       width: 595,  height: 841,  cols: 3, rows: 4 },
   { label: "Cuadrado 1080",     width: 1080, height: 1080, cols: 3, rows: 3 },
   { label: "Historia 1080",     width: 1080, height: 1920, cols: 2, rows: 5 },
   { label: "HD 1920",           width: 1920, height: 1080, cols: 4, rows: 2 },

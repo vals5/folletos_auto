@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Box, Typography, Chip, Tooltip, CircularProgress, Button, IconButton, Menu, MenuItem, Slider, } from "@mui/material";
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
 import DeleteIcon             from "@mui/icons-material/Delete";
@@ -24,14 +24,14 @@ const DEFAULT_LOGOS = { izq: ImprecLogo, der: VeaLogo };
 
 const GlobalFonts = () => (
   <style>{`
-    @font-face { font-family:'Imprec-Vigency';  src:url('/src/assets/fonts/imprecionante/GothamCondensed-Bold.otf') format('truetype'); }
-    @font-face { font-family:'Imprec-Legal';    src:url('/src/assets/fonts/imprecionante/Zuume-Light.otf')          format('truetype'); }
-    @font-face { font-family:'Imprec-Price';    src:url('/src/assets/fonts/imprecionante/GothamCondensed-Bold.otf') format('truetype'); }
-    @font-face { font-family:'Imprec-SubtPrice';src:url('/src/assets/fonts/imprecionante/GothamCondensed-Bold.otf') format('truetype'); }
-    @font-face { font-family:'Imprec-RegPrice'; src:url('/src/assets/fonts/imprecionante/Zuume-Bold.otf')           format('truetype'); }
-    @font-face { font-family:'Imprec-kgPrice';  src:url('/src/assets/fonts/imprecionante/Zuume-Light.otf')          format('truetype'); }
-    @font-face { font-family:'Imprec-Name';     src:url('/src/assets/fonts/imprecionante/Zuume-SemiBold.otf')       format('truetype'); }
-    @font-face { font-family:'Imprec-Desc';     src:url('/src/assets/fonts/imprecionante/Zuume-Light.otf')          format('truetype'); }
+    @font-face { font-family:'Imprec-Vigency';  src:url('/src/assets/fonts/imprecionante/GothamCondensed-Bold.otf') format('opentype'); }
+    @font-face { font-family:'Imprec-Legal';    src:url('/src/assets/fonts/imprecionante/Zuume-Light.otf')          format('opentype'); }
+    @font-face { font-family:'Imprec-Price';    src:url('/src/assets/fonts/imprecionante/GothamCondensed-Bold.otf') format('opentype'); }
+    @font-face { font-family:'Imprec-SubtPrice';src:url('/src/assets/fonts/imprecionante/GothamCondensed-Bold.otf') format('opentype'); }
+    @font-face { font-family:'Imprec-RegPrice'; src:url('/src/assets/fonts/imprecionante/Zuume-Bold.otf')           format('opentype'); }
+    @font-face { font-family:'Imprec-kgPrice';  src:url('/src/assets/fonts/imprecionante/Zuume-Light.otf')          format('opentype'); }
+    @font-face { font-family:'Imprec-Name';     src:url('/src/assets/fonts/imprecionante/Zuume-SemiBold.otf')       format('opentype'); }
+    @font-face { font-family:'Imprec-Desc';     src:url('/src/assets/fonts/imprecionante/Zuume-Light.otf')          format('opentype'); }
   `}</style>
 );
 
@@ -104,24 +104,41 @@ function HeaderImprecionante({ flyer, onFlyerUpdate }) {
   );
   const vi = { fontFamily:"'Imprec-Vigency',sans-serif", fontSize:"inherit", color:"#ff0000", textTransform:"uppercase" };
   return (
-    <Box bgcolor={IMPREC.colors.yellow} borderRadius="4px 4px 0 0" px={1.5} py={0.8}
-      display="flex" justifyContent="space-between" alignItems="center" gap={1}>
-      <LogoSlot slot="izq" />
-      <Box textAlign="center" flex={1} sx={{ whiteSpace:"nowrap" }}>
-        <Typography sx={{ ...IMPREC.vigency }}>
-          {"DEL "}
-          <InlineText value={flyer?.fecha_inicio_texto} onSave={(v)=>saveFlyer("fecha_inicio_texto",v)} placeholder="05" style={vi}/>
-          {" DE "}
-          <InlineText value={flyer?.mes_inicio} onSave={(v)=>saveFlyer("mes_inicio",v)} placeholder="DICIEMBRE" style={vi}/>
-        </Typography>
-        <Typography sx={{ ...IMPREC.vigency }}>
-          {"AL "}
-          <InlineText value={flyer?.fecha_fin_texto} onSave={(v)=>saveFlyer("fecha_fin_texto",v)} placeholder="12" style={vi}/>
-          {" DE "}
-          <InlineText value={flyer?.mes_fin} onSave={(v)=>saveFlyer("mes_fin",v)} placeholder="ENERO" style={vi}/>
-        </Typography>
+    <Box 
+      bgcolor={IMPREC.colors.yellow} borderRadius="4px 4px 0 0" px={1.5} py={0.8} display="flex" justifyContent="center" alignItems="center" position="relative" sx={{ minHeight: 60 }} 
+    >
+      {/* LOGO IZQUIERDO: Posición fija absoluta a la izquierda */}
+      <Box sx={{ position: "absolute", left: 8, top: "50%", transform: "translateY(-50%)", zIndex: 2 }}>
+        <LogoSlot slot="izq" />
       </Box>
-      <LogoSlot slot="der" />
+
+      {/* TEXTO CENTRAL (FECHAS) */}
+    <Box textAlign="center" sx={{ px: 9 }}> 
+     <Typography sx={{ ...IMPREC.vigency }}>
+    {"DEL "}
+     <InlineText value={flyer?.fecha_inicio_texto} onSave={(v)=>saveFlyer("fecha_inicio_texto",v)} placeholder="05" style={vi}/>
+    
+    {/* SI LOS MESES SON DISTINTOS, MUESTRA EL MES DE INICIO. SI SON IGUALES, LO CORTA */}
+    {flyer?.mes_inicio !== flyer?.mes_fin && (
+      <>
+        {" DE "}
+        <InlineText value={flyer?.mes_inicio} onSave={(v)=>saveFlyer("mes_inicio",v)} placeholder="DICIEMBRE" style={vi}/>
+      </>
+    )}
+      </Typography>
+  
+  <Typography sx={{ ...IMPREC.vigency }}>
+    {"AL "}
+    <InlineText value={flyer?.fecha_fin_texto} onSave={(v)=>saveFlyer("fecha_fin_texto",v)} placeholder="12" style={vi}/>
+    {" DE "}
+    <InlineText value={flyer?.mes_fin} onSave={(v)=>saveFlyer("mes_fin",v)} placeholder="ENERO" style={vi}/>
+  </Typography>
+</Box>
+
+      {/* LOGO DERECHO (Vea): Posición fija absoluta a la derecha */}
+      <Box sx={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", zIndex: 2 }}>
+        <LogoSlot slot="der" />
+      </Box>
     </Box>
   );
 }
@@ -133,13 +150,18 @@ function PrecioStarburst({ precio, tipoPrecio, size, isBgRed = false, isModuloSe
   const tarjetaLogo   = TARJETA_LOGO[tipoPrecio];
   const isLlevando    = tipoPrecio === "llevando3";
 
-  const starBg     = isBgRed ? IMPREC.colors.white : IMPREC.colors.red;
+  const starColor  = isBgRed ? IMPREC.colors.white : IMPREC.colors.red;
   const priceColor = isBgRed ? IMPREC.colors.red   : IMPREC.colors.white;
   const subtColor  = isBgRed ? IMPREC.colors.red   : IMPREC.colors.white;
 
   const precioDisplay = `$${precio.toLocaleString("es-AR")}`;
 
-  const [pos, setPos]  = useState({ x: size.width - starSize - 4, y: size.height - starSize - 4 });
+  const [pos, setPos]  = useState({ x: size.width - starSize - 2, y: size.height - starSize - 2 });
+
+  useEffect(() => {
+    setPos({ x: size.width - starSize - 2, y: size.height - starSize - 2 });
+  }, [size.width, size.height, starSize]);
+
   const dragging       = useRef(false);
   const startMouse     = useRef({ x:0, y:0 });
   const startPos       = useRef({ x:0, y:0 });
@@ -152,8 +174,8 @@ function PrecioStarburst({ precio, tipoPrecio, size, isBgRed = false, isModuloSe
     startPos.current   = { ...pos };
     const onMove = (ev) => {
       if (!dragging.current) return;
-      const newX = Math.min(Math.max(startPos.current.x + ev.clientX - startMouse.current.x, 0), size.width  - starSize);
-      const newY = Math.min(Math.max(startPos.current.y + ev.clientY - startMouse.current.y, 0), size.height - starSize);
+      const newX = Math.min(Math.max(startPos.current.x + ev.clientX - startMouse.current.x, -10), size.width  - starSize + 10);
+      const newY = Math.min(Math.max(startPos.current.y + ev.clientY - startMouse.current.y, -10), size.height - starSize + 10);
       setPos({ x: newX, y: newY });
     };
     const onUp = () => { dragging.current = false; window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp); };
@@ -161,32 +183,56 @@ function PrecioStarburst({ precio, tipoPrecio, size, isBgRed = false, isModuloSe
     window.addEventListener("mouseup", onUp);
   };
 
-  return (
+return (
     <Box onMouseDown={handleMouseDown} sx={{
-      position:"absolute", left: pos.x, top: pos.y, zIndex:50,
-      width:starSize, height:starSize,
-      bgcolor:starBg, clipPath:STARBURST_CLIP,
-      display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
-      textAlign:"center", gap:0,
+      position: "absolute", 
+      left: pos.x, 
+      top: pos.y, 
+      zIndex: 50,
+      width: starSize, 
+      height: starSize,
+      display: "flex", 
+      flexDirection: "column", 
+      alignItems: "center", 
+      justifyContent: "center",
+      textAlign: "center",
       cursor: isModuloSelected ? "grab" : "default",
       "&:active": { cursor: isModuloSelected ? "grabbing" : "default" },
-      outline: isModuloSelected ? "2px dashed rgba(245,158,11,0.8)" : "none",
-      outlineOffset: 4, borderRadius:"50%",
     }}>
-      {tarjetaLogo && (
-        <Box component="img" src={tarjetaLogo}
-          sx={{ width: starSize*0.45, height: starSize*0.2, objectFit:"contain", pointerEvents:"none" }}
-          onError={(e) => { e.target.style.display="none"; }} />
-      )}
-      <Typography sx={{ ...IMPREC.price, fontSize: priceFontSize, fontWeight:900,
-        px:0.3, wordBreak:"break-all", lineHeight:1, color: priceColor, pointerEvents:"none" }}>
-        {precioDisplay}
-      </Typography>
-      {isLlevando && (
-        <Typography sx={{ ...IMPREC.subtPrice, fontSize: subtFontSize, letterSpacing:0.3,
-          color: subtColor, pointerEvents:"none" }}>
-          c/u
+      
+      {/* VECTOR DE ESTRELLA DE PUNTAS IDÉNTICAS A LA MUESTRA */}
+      <svg viewBox="0 0 100 100" style={{ position: "absolute", width: "100%", height: "100%", top: 0, left: 0, pointerEvents: "none" }}>
+        <path 
+          d="M50 0 L55 9 L64 4 L66 14 L76 11 L75 21 L85 21 L82 31 L91 33 L85 42 L93 47 L84 53 L90 62 L80 65 L83 75 L73 75 L73 85 L63 82 L61 91 L52 86 L48 95 L41 87 L35 94 L31 84 L22 88 L21 78 L11 79 L14 70 L5 67 L11 59 L3 53 L12 47 L6 38 L16 35 L12 25 L22 25 L21 15 L31 17 L34 8 L42 13 Z" 
+          fill={starColor}
+        />
+      </svg>
+
+      {/* CONTENIDO INTERNO */}
+      <Box sx={{ position: "relative", zIndex: 52, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", width: "80%" }}>
+        {tarjetaLogo && (
+          <Box component="img" src={tarjetaLogo}
+            sx={{ width: starSize * 0.45, height: starSize * 0.18, objectFit: "contain", pointerEvents: "none", mb: 0.1 }}
+            onError={(e) => { e.target.style.display = "none"; }} />
+        )}
+        <Typography sx={{ ...IMPREC.price, fontSize: priceFontSize, fontWeight: 900,
+          px: 0.2, whiteSpace: "nowrap", lineHeight: 0.95, color: priceColor, pointerEvents: "none" }}>
+          {precioDisplay}
         </Typography>
+        {isLlevando && (
+          <Typography sx={{ ...IMPREC.subtPrice, fontSize: subtFontSize, fontWeight: 700, letterSpacing: 0.2,
+            color: subtColor, pointerEvents: "none", mt: 0.2 }}>
+            X UNIDAD
+          </Typography>
+        )}
+      </Box>
+
+      {/* RECUADRO DE SELECCIÓN CUANDO SE EDITA */}
+      {isModuloSelected && (
+        <Box sx={{
+          position: "absolute", top: -4, left: -4, right: -4, bottom: -4,
+          border: "2px dashed #f59e0b", borderRadius: "50%", pointerEvents: "none", zIndex: 53
+        }} />
       )}
     </Box>
   );
@@ -277,105 +323,196 @@ function SortableModuloCard({ modulo, isSelected, onClick, onMenuAction, onResiz
 
   return (
     <Box position="relative" onMouseEnter={()=>setHovered(true)} onMouseLeave={()=>setHovered(false)}>
+      {/* MENÚ CONTEXTUAL (TRES PUNTOS) */}
       {(hovered||!!menuAnchor) && (
         <Box onClick={openMenu}
-          sx={{ position:"absolute", top:2, right:2, zIndex:15, bgcolor:"rgba(0,0,0,0.55)",
+          sx={{ position:"absolute", top:4, right:4, zIndex:60, bgcolor:"rgba(0,0,0,0.55)",
             borderRadius:1, width:20, height:20, display:"flex", alignItems:"center",
             justifyContent:"center", cursor:"pointer", "&:hover":{ bgcolor:"rgba(0,0,0,0.8)" } }}>
           <MoreHorizIcon sx={{ color:"white", fontSize:14 }} />
         </Box>
-      )}
+      )} {/* BOTÓN PARA ARRASTRAR EL MÓDULO (DRAG INDICATOR) */}
       {(hovered || isSelected) && (
         <Box {...listeners} {...attributes}
-          sx={{ position:"absolute", top:2, left:2, zIndex:15,
+          sx={{ position:"absolute", top:4, left:4, zIndex:60,
             bgcolor:"rgba(0,0,0,0.45)", borderRadius:1, width:20, height:20,
             display:"flex", alignItems:"center", justifyContent:"center",
             cursor:"grab", "&:active":{ cursor:"grabbing" }, "&:hover":{ bgcolor:"rgba(0,0,0,0.7)" } }}
           onMouseDown={(e) => e.stopPropagation()}>
           <DragIndicatorIcon sx={{ color:"white", fontSize:14 }} />
         </Box>
-      )}
+      )} {/* DROPDOWN MENU */}
       <Menu anchorEl={menuAnchor} open={!!menuAnchor} onClose={closeMenu}
         PaperProps={{ sx:{ minWidth:160, borderRadius:2 } }}>
         <MenuItem onClick={()=>{ closeMenu(); onMenuAction("duplicar",modulo); }} sx={{ fontSize:13 }}>Duplicar módulo</MenuItem>
         <MenuItem onClick={()=>{ closeMenu(); onMenuAction("eliminar",modulo); }} sx={{ fontSize:13, color:"#ef4444" }}>Eliminar módulo</MenuItem>
-      </Menu>
-      <Box ref={setNodeRef} onClick={onClick} sx={{
-        width:size.width, height:size.height, bgcolor:bgColor, border:borderStyle, borderRadius:"3px",
-        display:"flex", flexDirection:"column", alignItems:"stretch", justifyContent:"flex-start",
-        cursor:"pointer", position:"relative", opacity:isDragging?0.5:1,
-        boxShadow:isSelected?"0 0 0 3px #f59e0b55":bgColor==="transparent"?"none":"0 1px 4px rgba(0,0,0,0.18)",
-        transform:CSS.Transform.toString(transform), transition, overflow:"hidden",
-      }}>
+      </Menu> {/* CONTENEDOR PRINCIPAL DEL MÓDULO (RESPETA LA GRILLA) */}
+      <Box ref={setNodeRef} onClick={onClick} sx={{ width:"100%", height:"100%", bgcolor:bgColor, border:borderStyle, borderRadius:"3px", display:"flex", flexDirection:"column", alignItems:"stretch", justifyContent:"space-between", p: 0.5,
+        cursor:"pointer", position:"relative", opacity:isDragging?0.5:1, boxShadow:isSelected?"0 0 0 3px #f59e0b55":bgColor==="transparent"?"none":"0 1px 4px rgba(0,0,0,0.18)",
+        transform:CSS.Transform.toString(transform), transition, overflow:"visible", }}>
+          {/* FAJA DE TEXTO DE OFERTA SUPERIOR */}
         {priceLabel && !esMulti && (
-          <Box sx={{ width:(flyer?.width||420)*0.5,
-        minHeight:(flyer?.height||600)*0.5, bgcolor:IMPREC.colors.red, display:"flex",
-            alignItems:"center", justifyContent:"center", py:0.2 }}>
-            <Typography sx={{ ...IMPREC.subtPrice, fontSize:"6pt", color:IMPREC.colors.white, letterSpacing:0.8 }}>
+          <Box sx={{ width: "100%", bgcolor: IMPREC.colors.red, display: "flex", alignItems: "center", justifyContent: "center", py: 0.2, mb: 0.2 }}>
+            <Typography sx={{ ...IMPREC.subtPrice, fontSize: "6pt", color: IMPREC.colors.white, letterSpacing: 0.8 }}>
               {priceLabel}
             </Typography>
           </Box>
         )}
+        {/* CASO: PRODUCTO INDIVIDUAL */}
         {!esMulti && (() => {
           const imgSrc = modulo.imagen_url_override || modulo.productos?.imagen_url;
-          return (
-            <>
+
+          const esLayoutHorizontal = modulo.layout_type === "horizontal" || (modulo.layout_type === "auto" && (modulo.size === "L" || modulo.size === "XL"));
+          // SUB-PIEZA: IMAGEN
+          const renderImagen = (heightPct = "100%", maxWidthPct = "85%") => (
+            <Box sx={{ height: heightPct, width: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
               {imgSrc ? (
                 <Box component="img" src={imgSrc} alt={nombreMostrado}
-                  sx={{ maxWidth:"68%", maxHeight:"42%", objectFit:"contain",
-                    alignSelf:"center", mt:priceLabel?0.3:0.8, mb:0.3 }}
-                  onError={(e)=>{ e.target.style.display="none"; }} />
+                  sx={{ maxWidth: maxWidthPct, maxHeight: "100%", objectFit: "contain", display: "block" }}
+                  onError={(e) => { e.target.style.visibility = "hidden"; }} />
               ) : (
-                <Box sx={{ width:"55%", height:"35%", bgcolor:"#f3f4f6", borderRadius:1,
-                  alignSelf:"center", mt:priceLabel?0.3:0.8, mb:0.3,
-                  display:"flex", alignItems:"center", justifyContent:"center" }}>
+                <Box sx={{ width: "50%", height: "85%", bgcolor: "#f3f4f6", borderRadius: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <Typography fontSize={7} color="#9ca3af">IMG</Typography>
                 </Box>
               )}
-              <Typography sx={{ ...IMPREC.productName, color:textColor,
-                width:"96%", px:0.4, textAlign:"center", alignSelf:"center",
-                overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+            </Box>
+          );
+
+          // SUB-PIEZA: TEXTOS COMERCIALES
+          const renderTextosComerciales = (align = "center") => (
+            <Box sx={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: align }}>
+              <Typography sx={{ 
+                ...IMPREC.productName, 
+                color: textColor,
+                fontSize: "7.5pt", 
+                lineHeight: 0.95,
+                textAlign: align,
+                width: "100%",
+                wordBreak: "break-word"
+              }}>
                 {nombreMostrado}
               </Typography>
+
               {descMostrada && (
-                <Typography sx={{ ...IMPREC.productDesc,
-                  color:isBgRed?"rgba(255,255,255,0.75)":"#555",
-                  width:"96%", px:0.4, textAlign:"center", alignSelf:"center",
-                  overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                <Typography sx={{ 
+                  ...IMPREC.productDesc,
+                  color: isBgRed ? "rgba(255,255,255,0.75)" : "#555",
+                  fontSize: "6pt", 
+                  lineHeight: 0.95,
+                  textAlign: align,
+                  width: "100%",
+                  wordBreak: "break-word",
+                  mt: 0.1
+                }}>
                   {descMostrada}
                 </Typography>
               )}
-              {modulo.precio && (
-                <PrecioStarburst precio={modulo.precio} tipoPrecio={modulo.tipo_precio}
-                  size={size} isBgRed={isBgRed} isModuloSelected={isSelected} />
-              )}
-            </>
+            </Box>
           );
+
+          // SUB-PIEZA: PRECIOS LEGALES INFERIORES
+          const renderLegales = (align = "center", border = false) => (
+            <Box sx={{ 
+              width: "100%", 
+              textAlign: align,
+              borderLeft: border && !isBgRed ? "1px solid rgba(0, 0, 0, 0.15)" : "none",
+              borderLeftColor: border && isBgRed ? "rgba(255, 255, 255, 0.3)" : "none",
+              pl: border ? 0.6 : 0
+            }}>
+              <Typography sx={{ 
+                fontFamily: "'Imprec-RegPrice', sans-serif", 
+                fontSize: "4.8pt", 
+                color: isBgRed ? "white" : "black",
+                lineHeight: 1,
+                whiteSpace: "nowrap"
+              }}>
+                PRECIO REG. ${modulo.precio_regular || "0.00"} / SIN IMPUESTOS ${modulo.precio_sin_impuestos || "0.00"}
+              </Typography>
+              <Typography sx={{ 
+                fontFamily: "'Imprec-kgPrice', sans-serif", 
+                fontSize: "4.8pt", 
+                color: isBgRed ? "rgba(255,255,255,0.8)" : "#333",
+                lineHeight: 1,
+                whiteSpace: "nowrap",
+                mt: 0.1
+              }}>
+                POR KG: ${modulo.precio_kg || "0.00"} | DISPONIBLES: {modulo.stock || "100"} UN.
+              </Typography>
+            </Box>
+          );
+
+          if (esLayoutHorizontal) {
+            // DISEÑO TIPO ATÚN CUISINE & CO: Imagen izquierda, Datos derecha
+            return (
+              <Box sx={{ display: "flex", flexDirection: "row", width: "100%", height: "100%", alignItems: "center", p: 0.3 }}>
+                {/* Lado Izquierdo: Foto del producto */}
+                <Box sx={{ width: "40%", height: "100%" }}>
+                  {renderImagen("100%", "95%")}
+                </Box>
+
+                {/* Lado Derecho: Textos Comerciales y Legales acoplados */}
+                <Box sx={{ width: "60%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "center", gap: 0.4, pl: 0.5 }}>
+                  {renderTextosComerciales("left")}
+                  {renderLegales("left", true)} {/* Pone barrita divisoria prolija */}
+                </Box>
+              </Box>
+            );
+          } else {
+            // DISEÑO TIPO LEVITÉ / CLÁSICO: Apilado Vertical Uniforme
+            return (
+              <Box sx={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between", width: "100%" }}>
+                {/* Contenedor de Imagen */}
+                <Box sx={{ height: "35%", width: "100%", mt: priceLabel ? 0.1 : 0.4 }}>
+                  {renderImagen("100%", "85%")}
+                </Box>
+
+                {/* Contenedor de Texto Comercial */}
+                <Box sx={{ flexGrow: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", my: 0.2, px: 0.3 }}>
+                  {renderTextosComerciales("center")}
+                </Box>
+
+                {/* Línea de Legales Inferiores */}
+                <Box sx={{ width: "100%", pb: 0.1, mt: "auto" }}>
+                  {renderLegales("center", false)}
+                </Box>
+              </Box>
+            );
+          }
         })()}
+
+        {/* CASO: MULTI-PRODUCTO */}
         {esMulti && (
-          <Box sx={{ display:"grid", gridTemplateColumns:`repeat(${gridCols},1fr)`, flex:1, p:0.3 }}>
-            {todosLosProductos.map((item,i) => (
+          <Box sx={{ display: "grid", gridTemplateColumns: `repeat(${gridCols},1fr)`, flex: 1, p: 0.3 }}>
+            {todosLosProductos.map((item, i) => (
               <MiniProducto key={i} producto={item.producto} imgOverride={item.imgOverride}
                 nombreOverride={item.nombreOverride} descripcionOverride={item.descripcionOverride}
-                textColor={textColor} showPrice={i===todosLosProductos.length-1}
+                textColor={textColor} showPrice={i === todosLosProductos.length - 1}
                 precio={modulo.precio} tipoPrecio={modulo.tipo_precio}
                 size={size} isBgRed={isBgRed} isModuloSelected={isSelected} />
             ))}
           </Box>
         )}
+
+        {/* MANEJADOR DE RESIZE */}
         {isSelected && (
           <Box onMouseDown={handleResizeMouseDown}
-            sx={{ position:"absolute", bottom:3, right:3, zIndex:20,
-              width:10, height:10, borderRadius:"50%", bgcolor:"#f59e0b", border:"2px solid white",
-              cursor:"se-resize", boxShadow:"0 1px 3px rgba(0,0,0,0.4)",
-              "&:hover":{ bgcolor:"#ef4444", transform:"scale(1.3)" }, transition:"transform 0.1s" }} />
+            sx={{ position: "absolute", bottom: 3, right: 3, zIndex: 20,
+              width: 10, height: 10, borderRadius: "50%", bgcolor: "#f59e0b", border: "2px solid white",
+              cursor: "se-resize", boxShadow: "0 1px 3px rgba(0,0,0,0.4)",
+              "&:hover": { bgcolor: "#ef4444", transform: "scale(1.3)" }, transition: "transform 0.1s" }} />
         )}
       </Box>
+
+      {/* CUCARDA DE PRECIO (STARBURST) */}
+      {modulo.precio && (
+        <PrecioStarburst precio={modulo.precio} tipoPrecio={modulo.tipo_precio}
+          size={size} isBgRed={isBgRed} isModuloSelected={isSelected} />
+      )}
     </Box>
   );
 }
 
-function FooterUploader({ flyerId, footerUrl, onUpdate }) {
+function FooterUploader({ flyer, flyerId, footerUrl, onUpdate }) {
   const [uploading, setUploading] = useState(false);
   const inputRef = useRef(null);
   const handleUpload = async (e) => {
@@ -543,43 +680,44 @@ function PaginaCanvas({ flyer, pag, pagIdx, modulos, selectedModulo, onSelectMod
       </Box>
 
       {/* THIS PAGE'S CANVAS */}
-      <Box ref={canvasRef} sx={{
-        width:(flyer?.width||420)*0.5,
-        minHeight:(flyer?.height||600)*0.5,
-        bgcolor:IMPREC.colors.yellow,
-        borderRadius:"6px",
-        boxShadow:"0 8px 32px rgba(0,0,0,0.25)",
-        display:"flex", flexDirection:"column",
-        overflow:"hidden",
-      }}>
-        <HeaderImprecionante flyer={flyer} onFlyerUpdate={onFlyerUpdate} />
+      <Box ref={canvasRef} sx={{ width: (flyer?.width || 595) * 0.5, height: (flyer?.height || 841) * 0.5, bgcolor: IMPREC.colors.yellow, borderRadius: "6px", boxShadow: "0 8px 32px rgba(0,0,0,0.25)", display: "flex", 
+       flexDirection: "column", overflow: "hidden", position: "relative", }}>
+  
+  {/* SECCIÓN SUPERIOR: Header fijo */}
+  <HeaderImprecionante flyer={flyer} onFlyerUpdate={onFlyerUpdate} />
 
-        {modulos.length===0 ? (
-          <Box display="flex" alignItems="center" justifyContent="center" minHeight={160} color="#92400e">
-            <Typography fontSize={13} textAlign="center">Agregá productos desde el panel izquierdo</Typography>
+  {/* SECCIÓN CENTRAL: El contenedor de la grilla con scroll interno si hay más de 12 */}
+  <Box sx={{ flex: 1, overflow: "hidden", px: 0.8, py: 0.5 }}>
+    {modulos.length === 0 ? (
+      <Box display="flex" alignItems="center" justifyContent="center" minHeight={160} color="#92400e">
+        <Typography fontSize={13} textAlign="center">Agregá productos desde el panel izquierdo</Typography>
+      </Box>
+    ) : (
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={modulos.map((m)=>m.id)} strategy={rectSortingStrategy}>
+          <Box 
+            sx={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gridAutoRows: "max-content", gap: 0.5, justifyContent: "center", }}
+          >
+            {modulos.map((modulo)=>(
+              <SortableModuloCard key={modulo.id} modulo={modulo}
+                isSelected={selectedModulo?.id===modulo.id}
+                onClick={()=>onSelectModulo(modulo)}
+                onMenuAction={onMenuAction} onResize={onResize}
+                flyer={flyer} />
+            ))}
           </Box>
-        ) : (
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <SortableContext items={modulos.map((m)=>m.id)} strategy={rectSortingStrategy}>
-              <Box display="flex" flexWrap="wrap" gap={0.5} justifyContent="center" px={0.8} py={0.8}>
-                {modulos.map((modulo)=>(
-                  <SortableModuloCard key={modulo.id} modulo={modulo} flyer={flyer}
-                    isSelected={selectedModulo?.id===modulo.id}
-                    onClick={()=>onSelectModulo(modulo)}
-                    onMenuAction={onMenuAction} onResize={onResize} />
-                ))}
-              </Box>
-            </SortableContext>
-          </DndContext>
-        )}
+        </SortableContext>
+      </DndContext>
+    )}
+  </Box>
 
-        {/* Footer y legal solo en la primera página */}
-        {esPrimera && (
-          <Box px={1} pb={0.8}>
-            <FooterUploader flyerId={flyer?.id} footerUrl={flyer?.footer_url}
-              onUpdate={(url)=>onFlyerUpdate("footer_url", url)} />
-            <LegalEditable flyerId={flyer?.id} legal={flyer?.legal}
-              onUpdate={(val)=>onFlyerUpdate("legal", val)} />
+  {/* SECCIÓN INFERIOR: El Footer y Legal siempre fijos abajo de todo */}
+  {esPrimera && (
+    <Box sx={{ px: 1, pb: 0.8, bgcolor: IMPREC.colors.yellow, mt: "auto", zIndex: 10 }}>
+      <FooterUploader flyer={flyer} flyerId={flyer?.id} footerUrl={flyer?.footer_url}
+        onUpdate={(url)=>onFlyerUpdate("footer_url", url)} />
+      <LegalEditable flyerId={flyer?.id} legal={flyer?.legal}
+        onUpdate={(val)=>onFlyerUpdate("legal", val)} />
           </Box>
         )}
       </Box>

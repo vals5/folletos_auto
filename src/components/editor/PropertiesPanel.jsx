@@ -1,12 +1,28 @@
 import { useState, useEffect } from "react";
-import { Box, Typography, TextField, Select, MenuItem, FormControl, InputLabel, Switch, Divider, InputAdornment, Button, ToggleButton, ToggleButtonGroup, Tooltip, IconButton, Autocomplete, CircularProgress, } from "@mui/material";
-import AttachMoneyIcon  from "@mui/icons-material/AttachMoney";
-import ImageIcon        from "@mui/icons-material/Image";
-import ContentCopyIcon  from "@mui/icons-material/ContentCopy";
-import AddCircleIcon    from "@mui/icons-material/AddCircle";
-import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
-import RestartAltIcon   from "@mui/icons-material/RestartAlt";
-import { supabase } from "../../services/supabase";
+import { 
+  Box, 
+  Typography, 
+  TextField, 
+  Select, 
+  MenuItem, 
+  FormControl, 
+  InputLabel, 
+  Switch, 
+  Divider, 
+  InputAdornment, 
+  Button, 
+  ToggleButton, 
+  ToggleButtonGroup, 
+  Tooltip, 
+  IconButton 
+} from "@mui/material";
+import AttachMoneyIcon   from "@mui/icons-material/AttachMoney";
+import ImageIcon         from "@mui/icons-material/Image";
+import ContentCopyIcon   from "@mui/icons-material/ContentCopy";
+import RestartAltIcon    from "@mui/icons-material/RestartAlt";
+import AutoAwesomeIcon   from "@mui/icons-material/AutoAwesome";
+import ViewStreamIcon    from "@mui/icons-material/ViewStream";
+import ViewColumnIcon    from "@mui/icons-material/ViewColumn";
 
 const TAMANOS = ["XS", "S", "M", "L", "XL"];
 
@@ -18,93 +34,14 @@ const TIPOS_PRECIO = [
 ];
 
 const ESTILOS_BORDE = [
-  { value: "none",   label: "Sin borde"    },
-  { value: "thick",  label: "Rojo"  },
+  { value: "none",   label: "Sin borde" },
+  { value: "thick",  label: "Rojo"      },
 ];
 
 const FONDOS_MODULO = [
-  { value: "red",    label: "Rojo" },
-  { value: "empty",  label: "Sin fondo"   },
+  { value: "red",    label: "Rojo"      },
+  { value: "empty",  label: "Sin fondo" },
 ];
-
-function ProductosExtraSection({ modulo, onUpdate }) {
-  const [catalogo, setCatalogo] = useState([]);
-  const [loading, setLoading]   = useState(false);
-  const [fetched, setFetched]   = useState(false);
-
-  const productosExtra = modulo.productos_extra || [];
-
-  const loadCatalogo = async () => {
-    if (fetched) return;
-    setLoading(true);
-    const { data } = await supabase.from("productos").select("id, nombre, sku, imagen_url").order("nombre");
-    setCatalogo(data || []);
-    setFetched(true);
-    setLoading(false);
-  };
-
-  const saveExtra = (nuevoExtra) => onUpdate(modulo.id, { productos_extra: nuevoExtra });
-
-  const agregarProducto = (producto) => {
-    if (!producto || productosExtra.length >= 3) return;
-    saveExtra([...productosExtra, { producto_id: producto.id, producto, imagen_url_override: null, precio: null }]);
-  };
-
-  const quitarProducto = (idx) => saveExtra(productosExtra.filter((_, i) => i !== idx));
-
-  const updateExtra = (idx, field, value) =>
-    saveExtra(productosExtra.map((pe, i) => i === idx ? { ...pe, [field]: value } : pe));
-
-  return (
-    <Box>
-      <Typography fontSize={12} fontWeight={700} mb={1} color="#374151">Productos adicionales</Typography>
-      <Typography fontSize={11} color="#6b7280" mb={1.5}>
-        Hasta 3 extra. Se muestran lado a lado (2) o en grilla 2×2 (3-4).
-      </Typography>
-      {productosExtra.map((pe, idx) => (
-        <Box key={idx} sx={{ bgcolor:"white", borderRadius:1.5, p:1.5, mb:1, border:"1px solid #e5e7eb" }}>
-          <Box display="flex" alignItems="center" justifyContent="space-between" mb={1}>
-            <Typography fontSize={12} fontWeight={600} noWrap sx={{ maxWidth:200 }}>
-              {pe.producto?.nombre || `Producto ${idx + 2}`}
-            </Typography>
-            <Tooltip title="Quitar">
-              <IconButton size="small" onClick={() => quitarProducto(idx)} sx={{ color:"#ef4444", p:0.3 }}>
-                <RemoveCircleIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          </Box>
-          <TextField label={`Precio producto ${idx + 2}`} type="number"
-            value={pe.precio || ""} size="small" fullWidth sx={{ mb:1 }}
-            onChange={(e) => updateExtra(idx, "precio", e.target.value ? Number(e.target.value) : null)}
-            InputProps={{ startAdornment: <InputAdornment position="start"><AttachMoneyIcon fontSize="small"/></InputAdornment> }} />
-          <TextField label="Imagen override (URL)" value={pe.imagen_url_override || ""}
-            onChange={(e) => updateExtra(idx, "imagen_url_override", e.target.value || null)}
-            size="small" fullWidth
-            InputProps={{ startAdornment: <InputAdornment position="start"><ImageIcon fontSize="small"/></InputAdornment> }} />
-        </Box>
-      ))}
-      {productosExtra.length < 3 && (
-        <Box onClick={loadCatalogo}>
-          {loading ? (
-            <Box display="flex" justifyContent="center" py={1}><CircularProgress size={18}/></Box>
-          ) : (
-            <Autocomplete options={catalogo} getOptionLabel={(o) => `${o.nombre} (${o.sku})`}
-              onChange={(_, value) => agregarProducto(value)}
-              value={null} blurOnSelect clearOnBlur size="small" noOptionsText="Sin resultados"
-              renderInput={(params) => (
-                <TextField {...params} label="Buscar y agregar producto" placeholder="Nombre o SKU…" size="small"
-                  InputProps={{ ...params.InputProps,
-                    startAdornment: (<><InputAdornment position="start"><AddCircleIcon fontSize="small" sx={{ color:"#10b981" }}/></InputAdornment>{params.InputProps.startAdornment}</>) }} />
-              )} />
-          )}
-        </Box>
-      )}
-      {productosExtra.length >= 3 && (
-        <Typography fontSize={11} color="#f59e0b" fontWeight={600}>Máximo 4 productos por módulo</Typography>
-      )}
-    </Box>
-  );
-}
 
 export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
   if (!modulo) {
@@ -137,7 +74,7 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
         display="flex" justifyContent="space-between" alignItems="center">
         <Box>
           <Typography variant="subtitle2" fontWeight={700}>Propiedades</Typography>
-          <Typography variant="caption" color="text.secondary" noWrap>
+          <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block', maxWidth: 160 }}>
             {modulo.productos?.nombre}
           </Typography>
         </Box>
@@ -164,6 +101,47 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
                 {t}
               </ToggleButton>
             ))}
+          </ToggleButtonGroup>
+        </Box>
+
+        <Divider />
+
+        {/* NUEVA SECCIÓN: Maquetación (layout_type) */}
+        <Box>
+          <Typography fontSize={12} fontWeight={600} mb={1} color="#374151">Maquetación</Typography>
+          <ToggleButtonGroup
+            value={modulo.layout_type || 'auto'}
+            exclusive
+            onChange={(_, val) => val && update("layout_type", val)}
+            size="small"
+            fullWidth
+          >
+            <ToggleButton value="auto" sx={{ "&.Mui-selected":{ bgcolor:"#1a1a2e", color:"white", "&:hover":{ bgcolor:"#2d2d5e" } } }}>
+              <Tooltip title="Automático (según tamaño)">
+                <Box display="flex" flexDirection="column" alignItems="center">
+                  <AutoAwesomeIcon fontSize="small" />
+                  <Typography fontSize={9} mt={0.3}>Auto</Typography>
+                </Box>
+              </Tooltip>
+            </ToggleButton>
+
+            <ToggleButton value="vertical" sx={{ "&.Mui-selected":{ bgcolor:"#1a1a2e", color:"white", "&:hover":{ bgcolor:"#2d2d5e" } } }}>
+              <Tooltip title="Vertical (Imagen arriba)">
+                <Box display="flex" flexDirection="column" alignItems="center">
+                  <ViewStreamIcon fontSize="small" />
+                  <Typography fontSize={9} mt={0.3}>Vertical</Typography>
+                </Box>
+              </Tooltip>
+            </ToggleButton>
+
+            <ToggleButton value="horizontal" sx={{ "&.Mui-selected":{ bgcolor:"#1a1a2e", color:"white", "&:hover":{ bgcolor:"#2d2d5e" } } }}>
+              <Tooltip title="Horizontal (Imagen izquierda)">
+                <Box display="flex" flexDirection="column" alignItems="center">
+                  <ViewColumnIcon fontSize="small" />
+                  <Typography fontSize={9} mt={0.3}>Horizontal</Typography>
+                </Box>
+              </Tooltip>
+            </ToggleButton>
           </ToggleButtonGroup>
         </Box>
 
@@ -233,13 +211,6 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
           size="small" fullWidth
           InputProps={{ startAdornment: <InputAdornment position="start"><AttachMoneyIcon fontSize="small"/></InputAdornment> }} />
 
-        <Box display="flex" alignItems="center" justifyContent="space-between"
-          bgcolor="white" borderRadius={2} px={1.5} py={0.8} border="1px solid #e5e7eb">
-          <Typography fontSize={13} fontWeight={500}>Precio Cencosud</Typography>
-          <Switch checked={modulo.precio_cencosud || false} size="small"
-            onChange={(e) => update("precio_cencosud", e.target.checked)} />
-        </Box>
-
         <Divider />
 
         {/* Estilo visual */}
@@ -263,33 +234,7 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
           </Select>
         </FormControl>
 
-        <Divider />
-
-        {/* Imagen override */}
-        <Box>
-          <Typography fontSize={12} fontWeight={600} mb={0.5} color="#374151">Imagen del módulo</Typography>
-          <TextField placeholder="URL alternativa de imagen"
-            value={modulo.imagen_url_override || ""}
-            onChange={(e) => update("imagen_url_override", e.target.value || null)}
-            size="small" fullWidth
-            InputProps={{ startAdornment: <InputAdornment position="start"><ImageIcon fontSize="small"/></InputAdornment> }} />
-          <Typography fontSize={11} color="text.secondary" mt={0.5}>
-            Dejá vacío para usar la imagen del catálogo
-          </Typography>
-        </Box>
-
-        {/* Texto libre */}
-        <Box>
-          <Typography fontSize={12} fontWeight={600} mb={0.5} color="#374151">Texto libre</Typography>
-          <TextField placeholder="Ej: 2da unidad 50% off"
-            value={modulo.texto_libre || ""}
-            onChange={(e) => update("texto_libre", e.target.value || null)}
-            size="small" fullWidth multiline rows={2} />
-        </Box>
-
-        <Divider />
-
-        <ProductosExtraSection modulo={modulo} onUpdate={onUpdate} />
+        <Divider />   
 
       </Box>
     </Box>
