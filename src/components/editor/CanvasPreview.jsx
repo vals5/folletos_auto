@@ -585,16 +585,40 @@ function LegalEditable({ flyerId, legal, onUpdate }) {
   );
 }
 
-function ExportButtons({ canvasRefs, flyerName, paginas }) {
+function ExportButtons({ canvasRefs, flyerName }) {
   const [exporting, setExporting] = useState(null);
 
   const captureAll = async () => {
     const { default: html2canvas } = await import("html2canvas");
     const canvases = [];
+    
     for (const ref of canvasRefs) {
       if (ref?.current) {
-        const c = await html2canvas(ref.current, { scale:3, useCORS:true, allowTaint:true, backgroundColor:"#fff800" });
-        canvases.push(c);
+        const targetElement = ref.current;
+
+        try {
+          const c = await html2canvas(targetElement, { 
+            scale: 3, 
+            useCORS: true, 
+            allowTaint: false, 
+            backgroundColor: "#ffffff", 
+            letterRendering: true,
+            logging: false,
+            onclone: (clonedDocument) => {
+              const textElements = clonedDocument.querySelectorAll('*');
+              textElements.forEach(el => {
+                const style = window.getComputedStyle(el);
+                if (style.textAlign === 'justify') {
+                  el.style.textAlign = 'left';
+                }
+                el.style.textJustify = 'none';
+              });
+            }
+          });
+          canvases.push(c);
+        } catch (error) {
+          console.error("Error capturando página:", error);
+        }
       }
     }
     return canvases;
@@ -602,47 +626,93 @@ function ExportButtons({ canvasRefs, flyerName, paginas }) {
 
   const exportJPG = async () => {
     setExporting("jpg");
-    try {
+    setTimeout ( async () => {
+      try {
       const canvases = await captureAll();
       canvases.forEach((canvas, i) => {
         const link = document.createElement("a");
-        link.download = `${flyerName||"folleto"}_p${i+1}.jpg`;
+        link.download = `${flyerName || "folleto"}_p${i + 1}.jpg`;
         link.href = canvas.toDataURL("image/jpeg", 0.95);
         link.click();
       });
-    } catch(e) { console.error(e); }
+    } catch (e) { 
+      console.error(e); 
+    } finally {
     setExporting(null);
-  };
+    }
+  }, 250);
+    };
+    
 
   const exportPDF = async () => {
     setExporting("pdf");
-    try {
-      const canvases = await captureAll();
-      const { jsPDF } = await import("jspdf");
-      const first = canvases[0];
-      const pdf = new jsPDF({ orientation: first.width > first.height ? "l" : "p", unit:"px", format:[first.width, first.height] });
-      canvases.forEach((canvas, i) => {
-        if (i > 0) pdf.addPage([canvas.width, canvas.height], canvas.width > canvas.height ? "l" : "p");
-        pdf.addImage(canvas.toDataURL("image/jpeg", 0.95), "JPEG", 0, 0, canvas.width, canvas.height);
-      });
-      pdf.save(`${flyerName||"folleto"}.pdf`);
-    } catch(e) { console.error(e); }
-    setExporting(null);
+    
+    setTimeout(async () => {
+      try {
+        const canvases = await captureAll();
+        if (canvases.length === 0) {
+          setExporting(null);
+          return;
+        }
+
+        const { jsPDF } = await import("jspdf");
+        
+        const scaleFactor = 3; 
+        const first = canvases[0];
+        const pdfW = first.width / scaleFactor;
+        const pdfH = first.height / scaleFactor;
+
+        const pdf = new jsPDF({ 
+          orientation: pdfW > pdfH ? "l" : "p", 
+          unit: "px", 
+          format: [pdfW, pdfH] 
+        });
+
+        canvases.forEach((canvas, i) => {
+          const w = canvas.width / scaleFactor;
+          const h = canvas.height / scaleFactor;
+
+          if (i > 0) {
+            pdf.addPage([w, h], w > h ? "l" : "p");
+          }
+          
+          pdf.addImage(canvas.toDataURL("image/jpeg", 0.95), "JPEG", 0, 0, w, h);
+        });
+        
+        pdf.save(`${flyerName || "folleto"}.pdf`);
+      } catch (e) { 
+        console.error(e); 
+      } finally {
+        setExporting(null);
+      }
+    }, 250);
   };
 
   return (
     <Box display="flex" gap={1}>
       <Tooltip title="Exportar JPG (una por página)">
-        <Button size="small" variant="outlined"
-          startIcon={exporting==="jpg"?<CircularProgress size={14}/>:<ImageIcon/>}
-          onClick={exportJPG} disabled={!!exporting}
-          sx={{ ...BTN_ROUND, borderColor:"#d1d5db", color:"#374151" }}>JPG</Button>
+        <Button 
+          size="small" 
+          variant="outlined"
+          startIcon={exporting === "jpg" ? <CircularProgress size={14} /> : <ImageIcon />}
+          onClick={exportJPG} 
+          disabled={!!exporting}
+          sx={{ ...BTN_ROUND, borderColor: "#d1d5db", color: "#374151" }}
+        >
+          JPG
+        </Button>
       </Tooltip>
       <Tooltip title="Exportar PDF (todas las páginas)">
-        <Button size="small" variant="outlined"
-          startIcon={exporting==="pdf"?<CircularProgress size={14}/>:<PictureAsPdfIcon/>}
-          onClick={exportPDF} disabled={!!exporting}
-          sx={{ ...BTN_ROUND, borderColor:"#d1d5db", color:"#374151" }}>PDF</Button>
+        <Button 
+          size="small" 
+          variant="outlined"
+          startIcon={exporting === "pdf" ? <CircularProgress size={14} /> : <PictureAsPdfIcon />}
+          onClick={exportPDF} 
+          disabled={!!exporting}
+          sx={{ ...BTN_ROUND, borderColor: "#d1d5db", color: "#374151" }}
+        >
+          PDF
+        </Button>
       </Tooltip>
     </Box>
   );
