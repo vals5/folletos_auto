@@ -615,6 +615,26 @@ function ExportButtons({ canvasRefs, flyerName }) {
               });
             }
           });
+ 
+          const tarjetas = clonedDocument.querySelectorAll('[ref]');
+          clonedDocument.querySelectorAll('*').forEach(el => {
+            if (el.style.boxShadow && el.style.boxShadow.includes('245')) {
+              el.style.boxShadow = 'none';
+            }
+            if (el.style.outline && el.style.outline.includes('rgb')){
+              el.style.outline = 'none';
+            }
+          });
+
+          clonedDocument.querySelectorAll('*').forEach(el => {
+            const style = window.getComputedStyle(el);
+           const style = window.getComputedStyle(el);
+                if (style.position === 'absolute' && 
+                    ((style.top === '2px' || style.top === '4px') || 
+                     (style.bottom === '3px' && style.cursor === 'se-resize'))) {
+                  el.style.display = 'none';
+                }
+              });
           canvases.push(c);
         } catch (error) {
           console.error("Error capturando página:", error);
