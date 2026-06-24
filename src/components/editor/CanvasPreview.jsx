@@ -613,28 +613,29 @@ function ExportButtons({ canvasRefs, flyerName }) {
                 }
                 el.style.textJustify = 'none';
               });
-            }
-          });
- 
-          const tarjetas = clonedDocument.querySelectorAll('[ref]');
-          clonedDocument.querySelectorAll('*').forEach(el => {
-            if (el.style.boxShadow && el.style.boxShadow.includes('245')) {
-              el.style.boxShadow = 'none';
-            }
-            if (el.style.outline && el.style.outline.includes('rgb')){
-              el.style.outline = 'none';
-            }
-          });
 
-          clonedDocument.querySelectorAll('*').forEach(el => {
-            const style = window.getComputedStyle(el);
-           const style = window.getComputedStyle(el);
-                if (style.position === 'absolute' && 
-                    ((style.top === '2px' || style.top === '4px') || 
-                     (style.bottom === '3px' && style.cursor === 'se-resize'))) {
+              // 2. REMOVE OUTLINE
+              clonedDocument.querySelectorAll('*').forEach(el => {
+                if (el.style.boxShadow && el.style.boxShadow.includes('245')) { // #f59e0b
+                  el.style.boxShadow = 'none';
+                }
+                if (el.style.outline && el.style.outline.includes('rgb')) {
+                  el.style.outline = 'none';
+                }
+              });
+
+              // HIDE EDIT BUTTONS
+              clonedDocument.querySelectorAll('*').forEach(el => {
+                const computedStyle = window.getComputedStyle(el); 
+                
+                if (computedStyle.position === 'absolute' && 
+                    ((computedStyle.top === '2px' || computedStyle.top === '4px') || 
+                     (computedStyle.bottom === '3px' && computedStyle.cursor === 'se-resize'))) {
                   el.style.display = 'none';
                 }
               });
+            }
+          });
           canvases.push(c);
         } catch (error) {
           console.error("Error capturando página:", error);
