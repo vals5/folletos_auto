@@ -67,7 +67,6 @@ export function NewFlyerModal({ open, onClose, onCreate }) {
   const template = TEMPLATES[0]; 
   const preset   = SIZE_PRESETS[sizeIdx];
 
-  // Modificamos para manejar el evento del formulario (evitando la recarga de página)
   const handleCreate = async (e) => {
     if (e) e.preventDefault(); 
     if (!name.trim() || isSubmitting) return;
@@ -89,7 +88,6 @@ export function NewFlyerModal({ open, onClose, onCreate }) {
   };
 
   return (
-    // Aumentamos maxWidth a "md" para que los dos paneles horizontales quepan cómodamente
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle sx={{ fontWeight: 800, pb: 0 }}>Nuevo</DialogTitle>
 

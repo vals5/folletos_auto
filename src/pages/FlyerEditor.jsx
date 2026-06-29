@@ -268,7 +268,6 @@ export default function FlyerEditor() {
   );
 
   return (
-    // Layout raíz: fila horizontal, full height
     <Box display="flex" height="100dvh" overflow="hidden">
 
       {/* ── COLUMNA IZQUIERDA: sidebar azul, arranca desde el tope ── */}

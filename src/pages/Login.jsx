@@ -14,9 +14,24 @@ export default function Login() {
   const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate("/dashboard");
-    });
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      
+      if (data.session) {
+        const loginTimestamp = localStorage.getItem("login_timestamp");
+        const tenHours = 10 * 60 * 60 * 1000;
+        const now = Date.now();
+
+        if (loginTimestamp && now - parseInt(loginTimestamp) > tenHours) {
+          await supabase.auth.signOut();
+          localStorage.removeItem("login_timestamp");
+        } else {
+          navigate("/dashboard");
+        }
+      }
+    };
+
+    checkSession();
   }, [navigate]);
 
   const login = async () => {
@@ -33,6 +48,8 @@ export default function Login() {
       setErrorMsg("Email o contraseña incorrectos");
       return;
     }
+
+    localStorage.setItem("login_timestamp", Date.now().toString());
 
     navigate("/dashboard");
   };
