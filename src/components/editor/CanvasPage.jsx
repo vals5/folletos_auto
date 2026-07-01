@@ -6,7 +6,7 @@ import { supabase } from "../../services/supabase";
 import HeaderImprecionante from "./HeaderImprecionante";
 import SortableModuloCard from "./SortableModuloCard";
 import FooterUploader from "./FooterUploader";
-import LegalEditable from "./LegalEditable";
+import LegalEditable from "./Legal";
 
 export default function PaginaCanvas({ flyer, pag, pagIdx, modulos, selectedModulo, onSelectModulo, onMenuAction, onResize, onDeletePagina, canvasRef, totalPaginas, sensors, onReorderModulos, onFlyerUpdate, esPrimera, TAMANO_SIZE, TIPO_PRECIO_LABEL, FONDO_COLORS, BORDER_STYLES, TAMANOS, IMPREC, TARJETA_LOGO, DEFAULT_LOGOS }) {
   

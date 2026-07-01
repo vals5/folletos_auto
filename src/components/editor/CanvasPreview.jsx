@@ -5,7 +5,7 @@ import ZoomOutIcon from "@mui/icons-material/ZoomOut";
 import AddIcon from "@mui/icons-material/Add";
 import { useSensors, useSensor, PointerSensor } from "@dnd-kit/core";
 
-import PaginaCanvas from "./PaginaCanvas";
+import PaginaCanvas from "./CanvasPage";
 import ExportButtons from "./ExportButtons"; 
 
 import ImprecLogo from "../../assets/img/Imprecionante.svg";

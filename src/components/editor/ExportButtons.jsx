@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Box, Button, Tooltip, CircularProgress } from "@mui/material";
-import { ImageIcon, PictureAsPdfIcon } from "@mui/icons-material";
+import { Image, PictureAsPdf } from "@mui/icons-material";
 import { exportToJPG, exportToPDF } from "../utils/ExportFlyer";
 
 export default function ExportButtons({ canvasRefs, flyerName, btnStyle = {} }) {
@@ -24,7 +24,7 @@ export default function ExportButtons({ canvasRefs, flyerName, btnStyle = {} }) 
         <Button 
           size="small" 
           variant="outlined"
-          startIcon={exporting === "jpg" ? <CircularProgress size={14} /> : <ImageIcon />}
+          startIcon={exporting === "jpg" ? <CircularProgress size={14} /> : <Image />}
           onClick={() => handleExport("jpg")} 
           disabled={!!exporting}
           sx={{ ...btnStyle, borderColor: "#d1d5db", color: "#374151" }}
@@ -37,7 +37,7 @@ export default function ExportButtons({ canvasRefs, flyerName, btnStyle = {} }) 
         <Button 
           size="small" 
           variant="outlined"
-          startIcon={exporting === "pdf" ? <CircularProgress size={14} /> : <PictureAsPdfIcon />}
+          startIcon={exporting === "pdf" ? <CircularProgress size={14} /> : <PictureAsPdf />}
           onClick={() => handleExport("pdf")} 
           disabled={!!exporting}
           sx={{ ...btnStyle, borderColor: "#d1d5db", color: "#374151" }}

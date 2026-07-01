@@ -9,7 +9,6 @@ export default function PrecioStarburst({ precio, tipoPrecio, size, isBgRed = fa
   const isLlevando = tipoPrecio === "llevando3";
 
   const starColor = isBgRed ? IMPREC.colors.white : IMPREC.colors.red;
-  const starColor = isBgRed ? IMPREC.colors.white : IMPREC.colors.red;
   const subtColor = isBgRed ? IMPREC.colors.red : IMPREC.colors.white;
 
   const precioDisplay = `$${precio.toLocaleString("es-AR")}`;
