@@ -50,7 +50,7 @@ const FONDO_COLORS = { white: "#ffffff", red: "#ff0000", yellow: "#fff800", empt
 const BORDER_STYLES = { none: "none", solid: "2px solid #ff0000", dashed: "2px dashed #ff0000", thick: "3px solid #ff0000" };
 const BTN_ROUND = { borderRadius: "20px", textTransform: "none", fontSize: 12 };
 
-export default function CanvasPreview({ flyer, plantilla, paginas, modulosPorPagina, paginaActual, setPaginaActual, selectedModulo, onSelectModulo, onFlyerUpdate, onReorderModulos, onAddPagina, onDeletePagina, onMenuAction, onResize, onAddProducto }) {
+export default function CanvasPreview({ flyer, plantilla, paginas = [], modulosPorPagina = {}, paginaActual, setPaginaActual, selectedModulo, onSelectModulo, onFlyerUpdate, onReorderModulos, onAddPagina, onDeletePagina, onMenuAction, onResize }) {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
   const [zoom, setZoom] = useState(150);
 
@@ -62,20 +62,20 @@ export default function CanvasPreview({ flyer, plantilla, paginas, modulosPorPag
   const scale = zoom / 100;
 
   return (
-    <Box flex={1} bgcolor="#e5e7eb" display="flex" flexDirection="column" alignItems="center" overflow="auto" py={3}>
+    <Box flex={1} bgcolor="#e5e7eb" display="flex" flexDirection="column" alignItems="center" overflow="auto" py={3} sx={{ width: "100%" }}>
       <GlobalFonts />
 
       {/* TOP TOOLBAR */}
-      <Box display="flex" alignItems="center" gap={2} mb={3} px={2} flexWrap="wrap" justifyContent="center">
+      <Box display="flex" alignItems="center" gap={2} mb={3} px={2} flexWrap="wrap" justifyContent="center" sx={{ width: "100%", zIndex: 20 }}>
         <Box display="flex" alignItems="center" gap={1} bgcolor="white" borderRadius="20px" px={1.5} py={0.5} sx={{ boxShadow: "0 1px 4px rgba(0,0,0,0.12)", minWidth: 180 }}>
           <Tooltip title="Alejar">
-            <IconButton size="small" onClick={() => setZoom(z => Math.max(30, z - 10))}>
+            <IconButton size="small" onClick={() => setZoom(z => Math.max(50, z - 10))}>
               <ZoomOutIcon fontSize="small" />
             </IconButton>
           </Tooltip>
-          <Slider value={zoom} min={100} max={250} step={5} onChange={(_, v) => setZoom(v)} size="small" sx={{ flex: 1, color: "#1a1a2e", "& .MuiSlider-thumb": { width: 14, height: 14 } }} />
+          <Slider value={zoom} min={50} max={200} step={5} onChange={(_, v) => setZoom(v)} size="small" sx={{ flex: 1, color: "#1a1a2e", "& .MuiSlider-thumb": { width: 14, height: 14 } }} />
           <Tooltip title="Acercar">
-            <IconButton size="small" onClick={() => setZoom(z => Math.min(250, z + 10))}>
+            <IconButton size="small" onClick={() => setZoom(z => Math.min(200, z + 10))}>
               <ZoomInIcon fontSize="small" />
             </IconButton>
           </Tooltip>
@@ -92,19 +92,39 @@ export default function CanvasPreview({ flyer, plantilla, paginas, modulosPorPag
         </Typography>
       )}
 
-      <Box sx={{ position: "relative", width: "100%" }}>
-        <Box sx={{ transformOrigin: "top center", transform: `scale(${scale})`, mb: scale < 1 ? `${-(1 - scale) * 100}%` : 0 }}>
-          {paginas.filter(Boolean).map((pag, idx) => {
-            if (!canvasRefs.current[idx]) canvasRefs.current[idx] = { current: null };
-            return (
-              <PaginaCanvas key={pag.id} flyer={flyer} pag={pag} pagIdx={idx} modulos={modulosPorPagina[idx] || []} selectedModulo={selectedModulo} onSelectModulo={onSelectModulo}
-                onMenuAction={onMenuAction} onResize={onResize} onDeletePagina={onDeletePagina} canvasRef={(el) => { canvasRefs.current[idx] = { current: el }; }} totalPaginas={paginas.length}
-                sensors={sensors} onReorderModulos={onReorderModulos} onFlyerUpdate={onFlyerUpdate} esPrimera={idx === 0} TAMANO_SIZE={TAMANO_SIZE} TIPO_PRECIO_LABEL={TIPO_PRECIO_LABEL}
-                FONDO_COLORS={FONDO_COLORS} BORDER_STYLES={BORDER_STYLES} TAMANOS={TAMANOS} IMPREC={IMPREC} TARJETA_LOGO={TARJETA_LOGO} DEFAULT_LOGOS={DEFAULT_LOGOS} onAddProducto={onAddProducto} />
-            );
-          })}
+      {/* CONTENEDOR SEGURO CONTRA SCROLL HORIZONTAL */}
+      <Box sx={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", overflow: "visible" }}>
+        <Box 
+          sx={{ 
+            transformOrigin: "top center", 
+            transform: `scale(${scale})`, 
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            width: "100%",
+            height: "auto",
+            transition: "transform 0.1s ease-out"
+          }}
+        >
+          {paginas.length === 0 ? (
+            <Box bgcolor="white" p={4} borderRadius="8px" textAlign="center" boxShadow="0 2px 10px rgba(0,0,0,0.05)">
+              <Typography color="textSecondary" fontSize={14}>No hay páginas en este folleto.</Typography>
+            </Box>
+          ) : (
+            paginas.filter(Boolean).map((pag, idx) => {
+              if (!canvasRefs.current[idx]) canvasRefs.current[idx] = { current: null };
+              return (
+                <PaginaCanvas 
+                  key={pag.id} flyer={flyer} pag={pag} pagIdx={idx} modulos={modulosPorPagina[idx] || []} selectedModulo={selectedModulo} onSelectModulo={onSelectModulo}
+                  onMenuAction={onMenuAction} onResize={onResize} onDeletePagina={onDeletePagina} canvasRef={(el) => { canvasRefs.current[idx] = { current: el }; }} totalPaginas={paginas.length}
+                  sensors={sensors} onReorderModulos={onReorderModulos} onFlyerUpdate={onFlyerUpdate} esPrimera={idx === 0} TAMANO_SIZE={TAMANO_SIZE} TIPO_PRECIO_LABEL={TIPO_PRECIO_LABEL}
+                  FONDO_COLORS={FONDO_COLORS} BORDER_STYLES={BORDER_STYLES} TAMANOS={TAMANOS} IMPREC={IMPREC} TARJETA_LOGO={TARJETA_LOGO} DEFAULT_LOGOS={DEFAULT_LOGOS} 
+                />
+              );
+            })
+          )}
 
-          <Box display="flex" justifyContent="center" mt={1} mb={2}>
+          <Box display="flex" justifyContent="center" mt={1} mb={4}>
             <Button variant="outlined" startIcon={<AddIcon />} onClick={onAddPagina} sx={{ ...BTN_ROUND, borderColor: "#9ca3af", color: "#374151", bgcolor: "white", "&:hover": { bgcolor: "#f9fafb" }, px: 3 }}>
               Agregar página
             </Button>
