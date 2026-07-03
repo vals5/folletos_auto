@@ -8,7 +8,7 @@ import { supabase } from "../../services/supabase";
 
 const tamanoColor = { XS: "#9e9e9e", S: "#f59e0b", M: "#3b82f6", L: "#10b981", XL: "#8b5cf6" };
 
-export default function ProductsSidebar({ modulos, selectedModulo, onSelectModulo, onAddProducto, onDeleteModulo }) {
+export default function ProductsSidebar({ modulos = [], selectedModulo, onSelectModulo, onAddProducto, onDeleteModulo }) {
   const [tab, setTab] = useState(0);
   const [productos, setProductos] = useState([]);
   const [search, setSearch] = useState("");

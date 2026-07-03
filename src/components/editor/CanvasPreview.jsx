@@ -50,7 +50,7 @@ const FONDO_COLORS = { white: "#ffffff", red: "#ff0000", yellow: "#fff800", empt
 const BORDER_STYLES = { none: "none", solid: "2px solid #ff0000", dashed: "2px dashed #ff0000", thick: "3px solid #ff0000" };
 const BTN_ROUND = { borderRadius: "20px", textTransform: "none", fontSize: 12 };
 
-export default function CanvasPreview({ flyer, plantilla, paginas, modulosPorPagina, paginaActual, setPaginaActual, selectedModulo, onSelectModulo, onFlyerUpdate, onReorderModulos, onAddPagina, onDeletePagina, onMenuAction, onResize }) {
+export default function CanvasPreview({ flyer, plantilla, paginas, modulosPorPagina, paginaActual, setPaginaActual, selectedModulo, onSelectModulo, onFlyerUpdate, onReorderModulos, onAddPagina, onDeletePagina, onMenuAction, onResize, onAddProducto }) {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
   const [zoom, setZoom] = useState(150);
 
@@ -100,7 +100,7 @@ export default function CanvasPreview({ flyer, plantilla, paginas, modulosPorPag
               <PaginaCanvas key={pag.id} flyer={flyer} pag={pag} pagIdx={idx} modulos={modulosPorPagina[idx] || []} selectedModulo={selectedModulo} onSelectModulo={onSelectModulo}
                 onMenuAction={onMenuAction} onResize={onResize} onDeletePagina={onDeletePagina} canvasRef={(el) => { canvasRefs.current[idx] = { current: el }; }} totalPaginas={paginas.length}
                 sensors={sensors} onReorderModulos={onReorderModulos} onFlyerUpdate={onFlyerUpdate} esPrimera={idx === 0} TAMANO_SIZE={TAMANO_SIZE} TIPO_PRECIO_LABEL={TIPO_PRECIO_LABEL}
-                FONDO_COLORS={FONDO_COLORS} BORDER_STYLES={BORDER_STYLES} TAMANOS={TAMANOS} IMPREC={IMPREC} TARJETA_LOGO={TARJETA_LOGO} DEFAULT_LOGOS={DEFAULT_LOGOS} />
+                FONDO_COLORS={FONDO_COLORS} BORDER_STYLES={BORDER_STYLES} TAMANOS={TAMANOS} IMPREC={IMPREC} TARJETA_LOGO={TARJETA_LOGO} DEFAULT_LOGOS={DEFAULT_LOGOS} onAddProducto={onAddProducto} />
             );
           })}
 
