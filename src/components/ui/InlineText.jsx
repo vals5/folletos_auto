@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Box } from "@mui/material";
 
-export default function InlineText ({ value, onSave, style = {}, placeholer = "Editar"}){
+export default function InlineText ({ value, onSave, style = {}, placeholder = "Editar"}){
     const [ editing, setEditing ] = useState (false);
-    const [ draft, setDraft ] = useState (vakue || "");
+    const [ draft, setDraft ] = useState (value || "");
 
     const handleSave = () => {
         setEditing (false);

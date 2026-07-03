@@ -36,66 +36,103 @@ export default function FlyerEditor() {
       setErrorMsg(null);
 
       // 1. Obtener datos del folleto (Flyer)
-      const { data: flyerData, error: fErr } = await supabase
+      const { data: flyerData, error: flyerError } = await supabase
         .from("flyers")
         .select("*")
         .eq("id", id)
         .single();
 
-      if (fErr || !flyerData) {
+      if (flyerError || !flyerData) {
         setErrorMsg("No se encontró el folleto solicitado.");
+        setLoading(false);
         return;
       }
       setFlyer(flyerData);
 
-      // 2. Obtener datos de la plantilla usando la columna correcta "id_plantilla"
-      if (flyerData.template_id || flyerData.plantilla_id) {
-        const targetTemplateId = flyerData.template_id || flyerData.plantilla_id;
-        
-        // Si viene el string "imprec", forzamos la búsqueda por el ID numérico 1 que está en tu BD
-        const parsedId = targetTemplateId === "imprec" ? 1 : targetTemplateId;
+      // 2. Obtener datos de la plantilla usando la columna correcta y resolviendo el ID
+      const baseTemplateId = flyerData.plantilla_id || flyerData.template_id;
+      if (baseTemplateId) {
+        // Si el id es "imprec", sabemos que en la base de datos se guardó como string "1"
+        const parsedId = baseTemplateId === "imprec" ? "1" : String(baseTemplateId);
 
-        const { data: tData } = await supabase
-          .from("plantillas")
-          .select("*")
-          .eq("id_plantilla", parsedId)
-          .single();
-        
-        setPlantilla(tData);
+        try {
+          const { data: plantillaData, error: plantillaError } = await supabase
+            .from("plantillas")
+            .select("*")
+            .eq("id_plantilla", parsedId)
+            .single();
+
+          if (plantillaError) throw plantillaError;
+          if (plantillaData) setPlantilla(plantillaData);
+        } catch (templateError) {
+          console.warn("No se pudo obtener la plantilla de la BD, aplicando objeto default:", templateError);
+          // Objeto de respaldo para que el canvas nunca quede en blanco
+          setPlantilla({
+            id_plantilla: "1",
+            nombre: "IMPRECIONANTE",
+            color_header: "#ff0000",
+            color_fondo: "#fff800"
+          });
+        }
+      } else {
+        // Fallback si el folleto no tiene plantilla vinculada
+        setPlantilla({
+          id_plantilla: "1",
+          nombre: "IMPRECIONANTE",
+          color_header: "#ff0000",
+          color_fondo: "#fff800"
+        });
       }
 
       // 3. Obtener páginas usando la columna correcta de ordenamiento "numero"
-      const { data: pagData, error: pErr } = await supabase
+      let { data: paginasData, error: pagError } = await supabase
         .from("paginas")
         .select("*")
         .eq("flyer_id", id)
         .order("numero", { ascending: true });
 
-      if (pErr) throw pErr;
-      setPaginas(pagData || []);
+      if (pagError) console.error("Error cargando páginas:", pagError);
 
-      // 4. Obtener los módulos (en plural) asociados a las páginas obtenidas
-      if (pagData && pagData.length > 0) {
-        const pagIds = pagData.map((p) => p.id);
-        const { data: modData, error: mErr } = await supabase
-          .from("modulos")
-          .select("*, productos(*)")
-          .in("pagina_id", pagIds)
-          .order("orden", { ascending: true });
+      paginasData = (paginasData || []).filter(Boolean);
 
-        if (mErr) throw mErr;
+      // Crear página inicial si no existe ninguna
+      if (paginasData.length === 0) {
+        const { data: newPag, error: insertError } = await supabase
+          .from("paginas")
+          .insert({ flyer_id: id, numero: 1 })
+          .select()
+          .single();
 
-        const mapeo = {};
-        pagData.forEach((p) => {
-          mapeo[p.id] = (modData || []).filter((m) => m.pagina_id === p.id);
-        });
-        setModulosPorPagina(mapeo);
-      } else {
-        setModulosPorPagina({});
+        if (insertError || !newPag) {
+          console.error("Error creando página inicial:", insertError);
+          paginasData = [{ id: `local-${Date.now()}`, flyer_id: id, numero: 1 }];
+        } else {
+          paginasData = [newPag];
+        }
       }
-    } catch (err) {
-      console.error("Error global fetchFlyer:", err);
-      setErrorMsg("Ocurrió un error al cargar los datos del editor.");
+      setPaginas(paginasData);
+
+      // 4. Obtener los módulos ordenados por posición
+      const { data: modulosData, error: modError } = await supabase
+        .from("modulos")
+        .select("*, productos(*)")
+        .eq("flyer_id", id)
+        .order("posicion", { ascending: true });
+
+      if (modError) console.error("Error cargando módulos:", modError);
+
+      // Agrupar los módulos mapeándolos al estado correspondiente por índice de página
+      const agrupados = {};
+      paginasData.forEach((p, idx) => {
+        agrupados[idx] = (modulosData || []).filter(
+          (m) => m && (m.pagina_id === p.id || (!m.pagina_id && idx === 0))
+        );
+      });
+      setModulosPorPagina(agrupados);
+
+    } catch (globalError) {
+      console.error("Error crítico en fetchFlyer:", globalError);
+      setErrorMsg("Ocurrió un error al procesar los datos del editor.");
     } finally {
       setLoading(false);
     }
@@ -105,7 +142,6 @@ export default function FlyerEditor() {
     try {
       const siguienteNro = paginas.length + 1;
       
-      // Corregido: Insertamos apuntando a la columna "numero" de tu base de datos
       const { data: nuevaPag, error } = await supabase
         .from("paginas")
         .insert([{ flyer_id: id, numero: siguienteNro }])
@@ -116,7 +152,7 @@ export default function FlyerEditor() {
 
       setPaginas((prev) => [...prev, nuevaPag]);
       setModulosPorPagina((prev) => ({ ...prev, [nuevaPag.id]: [] }));
-      setPaginaActual(paginas.length); // Mueve la vista a la nueva página
+      setPaginaActual(paginas.length);
     } catch (err) {
       console.error("Error al añadir página:", err);
     }
@@ -132,13 +168,11 @@ export default function FlyerEditor() {
 
       const nuevasPaginas = paginas.filter((p) => p.id !== pag.id);
       
-      // Corregido: Reindexamos usando la columna "numero" para que sea consistente
       const paginasFormateadas = nuevasPaginas.map((p, i) => ({
         ...p,
         numero: i + 1,
       }));
 
-      // Actualizamos de forma asíncrona las posiciones en la base de datos para evitar desajustes
       await Promise.all(paginasFormateadas.map((p) => 
         supabase.from("paginas").update({ numero: p.numero }).eq("id", p.id)
       ));
