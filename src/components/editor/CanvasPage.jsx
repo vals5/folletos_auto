@@ -8,6 +8,8 @@ import SortableModuloCard from "./SortableModuloCard";
 import FooterUploader from "./FooterUploader";
 import LegalEditable from "./Legal";
 
+import FondoTextura from "../../assets/img/Fondo-Imprec.jpg";
+
 export default function PaginaCanvas({ flyer, pag, pagIdx, modulos, selectedModulo, onSelectModulo, onMenuAction, onResize, onDeletePagina, canvasRef, totalPaginas, sensors, onReorderModulos, onFlyerUpdate, esPrimera, TAMANO_SIZE, TIPO_PRECIO_LABEL, FONDO_COLORS, BORDER_STYLES, TAMANOS, IMPREC, TARJETA_LOGO, DEFAULT_LOGOS }) {
   
   const handleDragEnd = async ({ active, over }) => {
@@ -32,7 +34,25 @@ export default function PaginaCanvas({ flyer, pag, pagIdx, modulos, selectedModu
         )}
       </Box>
 
-      <Box ref={canvasRef} sx={{ width: (flyer?.width || 595) * 0.5, height: (flyer?.height || 841) * 0.5, bgcolor: IMPREC.colors.yellow, borderRadius: "6px", boxShadow: "0 8px 32px rgba(0,0,0,0.25)", display: "flex", flexDirection: "column", overflow: "hidden", position: "relative" }}>
+      <Box 
+        ref={canvasRef} 
+        style={{
+          backgroundImage: `url(${FondoTextura})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat"
+        }}
+        sx={{ 
+          width: (flyer?.width || 595) * 0.5, 
+          height: (flyer?.height || 841) * 0.5, 
+          borderRadius: "6px", 
+          boxShadow: "0 8px 32px rgba(0,0,0,0.25)", 
+          display: "flex", 
+          flexDirection: "column", 
+          overflow: "hidden", 
+          position: "relative" 
+        }}
+      >
         <HeaderImprecionante flyer={flyer} onFlyerUpdate={onFlyerUpdate} IMPREC={IMPREC} DEFAULT_LOGOS={DEFAULT_LOGOS} />
 
         <Box sx={{ flex: 1, overflow: "hidden", px: 0.8, py: 0.5 }}>
@@ -54,7 +74,7 @@ export default function PaginaCanvas({ flyer, pag, pagIdx, modulos, selectedModu
         </Box>
 
         {esPrimera && (
-          <Box sx={{ px: 1, pb: 0.8, bgcolor: IMPREC.colors.yellow, mt: "auto", zIndex: 10 }}>
+          <Box sx={{ px: 1, pb: 0.8, mt: "auto", zIndex: 10 }}>
             <FooterUploader flyer={flyer} flyerId={flyer?.id} footerUrl={flyer?.footer_url} onUpdate={(url) => onFlyerUpdate("footer_url", url)} />
             <LegalEditable flyer={flyer} flyerId={flyer?.id} legal={flyer?.legal} onUpdate={(val) => onFlyerUpdate("legal", val)} IMPREC={IMPREC} />
           </Box>

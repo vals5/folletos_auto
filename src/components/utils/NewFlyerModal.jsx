@@ -86,17 +86,10 @@ export default function NewFlyerModal({ open, onClose, onCreate }) {
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle sx={{ fontWeight: 800, pb: 0 }}>Nuevo</DialogTitle>
+      <DialogTitle sx={{ fontWeight: 800, pb: 0 }}>Nuevo Folleto</DialogTitle>
 
       <form onSubmit={handleCreate} style={{ display: 'contents' }}>
-        <DialogContent sx={{ 
-          display: "flex", 
-          flexDirection: { xs: "column", md: "row" }, 
-          gap: 4, 
-          pt: 2 
-        }}>
-          
-          {/* COLUMNA IZQUIERDA: Formulario */}
+        <DialogContent sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 4, pt: 2 }}>
           <Box flex={1} display="flex" flexDirection="column" gap={2.5}>
             <TextField
               label="Nombre del folleto"
@@ -105,72 +98,33 @@ export default function NewFlyerModal({ open, onClose, onCreate }) {
               fullWidth variant="filled"
               autoFocus
             />
-
             <Box>
               <Typography variant="caption" fontWeight={700} color="text.secondary" display="block" mb={0.5}>
                 PLANTILLA
               </Typography>
-              <Box display="flex" alignItems="center" gap={1}
-                sx={{ bgcolor: "#fff8e1", border: "1px solid #ffe082", borderRadius: 1, px: 2, py: 1 }}>
+              <Box display="flex" alignItems="center" gap={1} sx={{ bgcolor: "#fff8e1", border: "1px solid #ffe082", borderRadius: 1, px: 2, py: 1 }}>
                 <Box sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: "#ff0000", flexShrink: 0 }} />
                 <Box sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: "#fff800", border: "1px solid #ccc", flexShrink: 0 }} />
                 <Typography fontWeight={800} fontSize={13} letterSpacing={1}>IMPRECIONANTE</Typography>
               </Box>
             </Box>
-
-            <Box sx={{ bgcolor: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 1, p: 2, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
-              <Box>
-                <Typography fontSize={10} color="text.secondary">Dimensiones</Typography>
-                <Typography fontSize={13} fontWeight={700}>{preset.width} × {preset.height} px</Typography>
-              </Box>
-              <Box>
-                <Typography fontSize={10} color="text.secondary">Grilla sugerida</Typography>
-                <Typography fontSize={13} fontWeight={700}>{preset.cols} col × {preset.rows} fil</Typography>
-              </Box>
-              <Box>
-                <Typography fontSize={10} color="text.secondary">Fondo</Typography>
-                <Box display="flex" alignItems="center" gap={0.5}>
-                  <Box sx={{ width: 14, height: 14, bgcolor: "#fff800", border: "1px solid #ccc", borderRadius: "3px" }} />
-                  <Typography fontSize={13} fontWeight={700}>#FFF800</Typography>
-                </Box>
-              </Box>
-              <Box>
-                <Typography fontSize={10} color="text.secondary">Cabecera</Typography>
-                <Box display="flex" alignItems="center" gap={0.5}>
-                  <Box sx={{ width: 14, height: 14, bgcolor: "#ff0000", borderRadius: "3px" }} />
-                  <Typography fontSize={13} fontWeight={700}>#FF0000</Typography>
-                </Box>
-              </Box>
-            </Box>
           </Box>
 
-          {/* COLUMNA DERECHA: Selección de tamaño */}
           <Box flex={1} sx={{ borderLeft: { xs: "none", md: "1px solid #e2e8f0" }, pl: { xs: 0, md: 4 } }}>
             <Typography variant="caption" fontWeight={700} color="text.secondary" display="block" mb={1}>
               TAMAÑO
             </Typography>
             <Box display="flex" flexWrap="wrap" gap={1.5} justifyContent="flex-start">
               {SIZE_PRESETS.map((s, i) => (
-                <SizePreviewCard
-                  key={s.label}
-                  preset={s}
-                  selected={sizeIdx === i}
-                  onClick={() => setSizeIdx(i)}
-                />
+                <SizePreviewCard key={s.label} preset={s} selected={sizeIdx === i} onClick={() => setSizeIdx(i)} />
               ))}
             </Box>
           </Box>
-
         </DialogContent>
 
         <DialogActions sx={{ px: 3, pb: 3 }}>
           <Button onClick={onClose} color="inherit">Cancelar</Button>
-          <Button
-            type="submit"
-            variant="contained"
-            disabled={!name.trim() || isSubmitting}
-            sx={{ bgcolor: "#025BA9", px: 4, fontWeight: 700 }}
-          >
+          <Button type="submit" variant="contained" disabled={!name.trim() || isSubmitting} sx={{ bgcolor: "#025BA9", px: 4, fontWeight: 700 }}>
             {isSubmitting ? "Creando…" : "Aceptar"}
           </Button>
         </DialogActions>

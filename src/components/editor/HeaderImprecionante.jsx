@@ -10,20 +10,35 @@ export default function HeaderImprecionante({ flyer, onFlyerUpdate, IMPREC, DEFA
 
   const LogoSlot = ({ slot }) => (
     <Box sx={{ width: 68, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-      <Box component="img" src={DEFAULT_LOGOS[slot]} onError={(e) => { e.target.style.opacity = "0.15"; }} sx={{ maxHeight: 48, maxWidth: 66, objectFit: "contain" }} />
+      <Box 
+        component="img" 
+        src={DEFAULT_LOGOS[slot]} 
+        onError={(e) => { e.target.style.opacity = "0.15"; }} 
+        sx={{ maxHeight: 48, maxWidth: 66, objectFit: "contain" }} 
+      />
     </Box>
   );
 
-  const vi = { fontFamily: "'Imprec-Vigency',sans-serif", fontSize: "inherit", color: "#ff0000", textTransform: "uppercase" };
+  const vi = { fontFamily: "'Imprec-Vigency',sans-serif", fontSize: "inherit", color: "#000000", textTransform: "uppercase" };
 
   return (
-    <Box bgcolor={IMPREC.colors.yellow} borderRadius="4px 4px 0 0" px={1.5} py={0.8} display="flex" justifyContent="center" alignItems="center" position="relative" sx={{ minHeight: 60 }}>
+    <Box 
+      bgcolor="transparent" 
+      borderRadius="4px 4px 0 0" 
+      px={1.5} 
+      py={0.8} 
+      display="flex" 
+      justifyContent="center" 
+      alignItems="center" 
+      position="relative" 
+      sx={{ minHeight: 60 }}
+    >
       <Box sx={{ position: "absolute", left: 8, top: "50%", transform: "translateY(-50%)", zIndex: 2 }}>
         <LogoSlot slot="izq" />
       </Box>
 
       <Box textAlign="center" sx={{ px: 9 }}>
-        <Typography sx={{ ...IMPREC.vigency }}>
+        <Typography sx={{ ...IMPREC.vigency, color: "#ff0000" }}>
           {"DEL "}
           <InlineText value={flyer?.fecha_inicio_texto} onSave={(v) => saveFlyer("fecha_inicio_texto", v)} placeholder="05" style={vi} />
           {flyer?.mes_inicio !== flyer?.mes_fin && (
@@ -34,11 +49,11 @@ export default function HeaderImprecionante({ flyer, onFlyerUpdate, IMPREC, DEFA
           )}
         </Typography>
 
-        <Typography sx={{ ...IMPREC.vigency }}>
+        <Typography sx={{ ...IMPREC.vigency, color: "#ff0000" }}>
           {"AL "}
           <InlineText value={flyer?.fecha_fin_texto} onSave={(v) => saveFlyer("fecha_fin_texto", v)} placeholder="12" style={vi} />
           {" DE "}
-          <InlineText value={flyer?.mes_fin} onSave={(v) => saveFlyer("mes_fin", v)} placeholder="ENERO" style={vi} />
+          <InlineText value={flyer?.mes_fin} onSave={(v) => saveFlyer("mes_fin", v)} placeholder="DICIEMBRE" style={vi} />
         </Typography>
       </Box>
 

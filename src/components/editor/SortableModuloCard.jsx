@@ -7,6 +7,8 @@ import { CSS } from "@dnd-kit/utilities";
 import MiniProducto from "./MiniProducto";
 import PrecioStarburst from "./PrecioStarburst";
 
+import Fondo from "../../assets/img/Fondo-Imprec.jpg";
+
 export default function SortableModuloCard({ modulo, isSelected, onClick, onMenuAction, onResize, flyer, TAMANO_SIZE, TIPO_PRECIO_LABEL, FONDO_COLORS, BORDER_STYLES, TAMANOS, IMPREC, TARJETA_LOGO }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: modulo.id });
   const [menuAnchor, setMenuAnchor] = useState(null);
@@ -16,10 +18,10 @@ export default function SortableModuloCard({ modulo, isSelected, onClick, onMenu
 
   const size = TAMANO_SIZE[modulo.tamano] || TAMANO_SIZE["S"];
   const priceLabel = TIPO_PRECIO_LABEL[modulo.tipo_precio];
-  const bgColor = FONDO_COLORS[modulo.fondo_modulo] ?? FONDO_COLORS.empty;
+  const bgColor = FONDO_COLORS[modulo.Fondo] ?? FONDO_COLORS.empty;
   const borderStyle = isSelected ? "2px solid #f59e0b" : (BORDER_STYLES[modulo.estilo_borde] || "none");
   const tamanoIdx = TAMANOS.indexOf(modulo.tamano);
-  const isBgRed = modulo.fondo_modulo === "red";
+  const isBgRed = modulo.Fondo === "red";
   const textColor = isBgRed ? IMPREC.colors.white : IMPREC.colors.black;
 
   const productosExtra = modulo.productos_extra || [];
@@ -65,7 +67,10 @@ export default function SortableModuloCard({ modulo, isSelected, onClick, onMenu
         <MenuItem onClick={() => { closeMenu(); onMenuAction("eliminar", modulo); }} sx={{ fontSize: 13, color: "#ef4444" }}>Eliminar módulo</MenuItem>
       </Menu>
       
-      <Box ref={setNodeRef} onClick={onClick} sx={{ width: "100%", height: "100%", bgcolor: bgColor, border: borderStyle, borderRadius: "3px", display: "flex", flexDirection: "column", alignItems: "stretch", justifyContent: "space-between", p: 0.5, cursor: "pointer", position: "relative", opacity: isDragging ? 0.5 : 1, boxShadow: isSelected ? "0 0 0 3px #f59e0b55" : bgColor === "transparent" ? "none" : "0 1px 4px rgba(0,0,0,0.18)", transform: CSS.Transform.toString(transform), transition, overflow: "visible" }}>
+      <Box 
+        ref={setNodeRef} onClick={onClick}
+        style={{backgroundImage: bgColor !== "transparent" ? `url(${Fondo})` : "none", backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat" }}
+        sx={{ width: "100%", height: "100%", backgroundColor: bgColor === "transparent" ? "transparent" : "none",border: borderStyle, borderRadius: "3px", display: "flex", flexDirection: "column", alignItems: "stretch", justifyContent: "space-between", p: 0.5, cursor: "pointer", position: "relative", opacity: isDragging ? 0.5 : 1, boxShadow: isSelected ? "0 0 0 3px #f59e0b55" : bgColor === "transparent" ? "none" : "0 1px 4px rgba(0,0,0,0.18)", transform: CSS.Transform.toString(transform), transition, overflow: "visible" }} >
         {priceLabel && !esMulti && (
           <Box sx={{ width: "100%", bgcolor: IMPREC.colors.red, display: "flex", alignItems: "center", justifyContent: "center", py: 0.2, mb: 0.2 }}>
             <Typography sx={{ ...IMPREC.subtPrice, fontSize: "6pt", color: IMPREC.colors.white, letterSpacing: 0.8 }}>

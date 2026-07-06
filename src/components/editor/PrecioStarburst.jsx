@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Box, Typography } from "@mui/material";
+import Cucarda from "../../assets/img/Cucarda-Imprec.svg";
 
 export default function PrecioStarburst({ precio, tipoPrecio, size, isBgRed = false, isModuloSelected = false, IMPREC, TARJETA_LOGO }) {
   const starSize = size.width > 200 ? 82 : size.width > 140 ? 66 : 54;
@@ -8,8 +9,8 @@ export default function PrecioStarburst({ precio, tipoPrecio, size, isBgRed = fa
   const tarjetaLogo = TARJETA_LOGO[tipoPrecio];
   const isLlevando = tipoPrecio === "llevando3";
 
-  const starColor = isBgRed ? IMPREC.colors.white : IMPREC.colors.red;
   const subtColor = isBgRed ? IMPREC.colors.red : IMPREC.colors.white;
+  const priceColor = isBgRed ? IMPREC.colors.red : IMPREC.colors.black;
 
   const precioDisplay = `$${precio.toLocaleString("es-AR")}`;
   const [pos, setPos] = useState({ x: size.width - starSize - 2, y: size.height - starSize - 2 });
@@ -50,12 +51,38 @@ export default function PrecioStarburst({ precio, tipoPrecio, size, isBgRed = fa
   return (
     <Box
       onMouseDown={handleMouseDown}
-      sx={{ position: "absolute", left: pos.x, top: pos.y, zIndex: 50, width: starSize, height: starSize, display: "flex", flexDirection: "column", alignItems: "center",
-        justifyContent: "center", textAlign: "center", cursor: isModuloSelected ? "grab" : "default", "&:active": { cursor: isModuloSelected ? "grabbing" : "default" }, }} >
-      <svg viewBox="0 0 100 100" style={{ position: "absolute", width: "100%", height: "100%", top: 0, left: 0, pointerEvents: "none" }}>
-        <path
-          d="M50 0 L55 9 L64 4 L66 14 L76 11 L75 21 L85 21 L82 31 L91 33 L85 42 L93 47 L84 53 L90 62 L80 65 L83 75 L73 75 L73 85 L63 82 L61 91 L52 86 L48 95 L41 87 L35 94 L31 84 L22 88 L21 78 L11 79 L14 70 L5 67 L11 59 L3 53 L12 47 L6 38 L16 35 L12 25 L22 25 L21 15 L31 17 L34 8 L42 13 Z"
-          fill={starColor} /> </svg>
+      sx={{ 
+        position: "absolute", 
+        left: pos.x, 
+        top: pos.y, 
+        zIndex: 50, 
+        width: starSize, 
+        height: starSize, 
+        display: "flex", 
+        flexDirection: "column", 
+        alignItems: "center",
+        justifyContent: "center", 
+        textAlign: "center", 
+        cursor: isModuloSelected ? "grab" : "default", 
+        "&:active": { cursor: isModuloSelected ? "grabbing" : "default" } 
+      }} 
+    >
+      <Box 
+        component="img" 
+        src={Cucarda} 
+        alt="Fondo de Precio"
+        sx={{ 
+          position: "absolute", 
+          width: "100%", 
+          height: "100%", 
+          top: 0, 
+          left: 0, 
+          pointerEvents: "none",
+          // Si el SVG necesita cambiar de color según el fondo, podés usar un filter CSS, 
+          // de lo contrario se renderizará con sus colores originales de fábrica.
+          filter: isBgRed ? "none" : "none" 
+        }} 
+      />
 
       <Box sx={{ position: "relative", zIndex: 52, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", width: "80%" }}>
         {tarjetaLogo && (
