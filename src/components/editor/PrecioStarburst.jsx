@@ -1,11 +1,21 @@
 import { useState, useRef, useEffect } from "react";
 import { Box, Typography } from "@mui/material";
-import Cucarda from "../../assets/img/Cucarda-Imprec.svg";
+
+// IMPORTANTE: Ajustá esta ruta al nombre exacto de tu archivo SVG
+import StarburstSvg from "../../assets/img/precio-starburst.svg";
 
 export default function PrecioStarburst({ precio, tipoPrecio, size, isBgRed = false, isModuloSelected = false, IMPREC, TARJETA_LOGO }) {
-  const starSize = size.width > 200 ? 82 : size.width > 140 ? 66 : 54;
-  const priceFontSize = size.width > 200 ? "15pt" : size.width > 140 ? "12pt" : "9pt";
-  const subtFontSize = size.width > 200 ? "6pt" : "5pt";
+  // Calculamos las dimensiones visuales (escaladas al 50% igual que el contenedor)
+  const visualWidth = size.width * 0.5;
+  const visualHeight = size.height * 0.5;
+
+  // Ajustamos el tamaño del círculo para que sea compacto y no invada el espacio del producto
+  const starSize = visualWidth > 100 ? 52 : visualWidth > 70 ? 44 : 36;
+  
+  // Tipografía bien ajustada para que el número quepa adentro sin desbordar
+  const priceFontSize = visualWidth > 100 ? "11pt" : visualWidth > 70 ? "9pt" : "7.5pt";
+  const subtFontSize = visualWidth > 100 ? "5pt" : "4.5pt";
+  
   const tarjetaLogo = TARJETA_LOGO[tipoPrecio];
   const isLlevando = tipoPrecio === "llevando3";
 
@@ -13,11 +23,13 @@ export default function PrecioStarburst({ precio, tipoPrecio, size, isBgRed = fa
   const priceColor = isBgRed ? IMPREC.colors.red : IMPREC.colors.black;
 
   const precioDisplay = `$${precio.toLocaleString("es-AR")}`;
-  const [pos, setPos] = useState({ x: size.width - starSize - 2, y: size.height - starSize - 2 });
+
+  // Posicionamiento inicial automático: Esquina superior derecha limpia
+  const [pos, setPos] = useState({ x: visualWidth - starSize - 4, y: 4 });
 
   useEffect(() => {
-    setPos({ x: size.width - starSize - 2, y: size.height - starSize - 2 });
-  }, [size.width, size.height, starSize]);
+    setPos({ x: visualWidth - starSize - 4, y: 4 });
+  }, [visualWidth, visualHeight, starSize]);
 
   const dragging = useRef(false);
   const startMouse = useRef({ x: 0, y: 0 });
@@ -33,8 +45,9 @@ export default function PrecioStarburst({ precio, tipoPrecio, size, isBgRed = fa
 
     const onMove = (ev) => {
       if (!dragging.current) return;
-      const newX = Math.min(Math.max(startPos.current.x + ev.clientX - startMouse.current.x, -10), size.width - starSize + 10);
-      const newY = Math.min(Math.max(startPos.current.y + ev.clientY - startMouse.current.y, -10), size.height - starSize + 10);
+      // Límites de arrastre basados en el tamaño visual real de la tarjeta
+      const newX = Math.min(Math.max(startPos.current.x + ev.clientX - startMouse.current.x, -5), visualWidth - starSize + 5);
+      const newY = Math.min(Math.max(startPos.current.y + ev.clientY - startMouse.current.y, -5), visualHeight - starSize + 5);
       setPos({ x: newX, y: newY });
     };
 
@@ -69,7 +82,7 @@ export default function PrecioStarburst({ precio, tipoPrecio, size, isBgRed = fa
     >
       <Box 
         component="img" 
-        src={Cucarda} 
+        src={StarburstSvg} 
         alt="Fondo de Precio"
         sx={{ 
           position: "absolute", 
@@ -77,34 +90,31 @@ export default function PrecioStarburst({ precio, tipoPrecio, size, isBgRed = fa
           height: "100%", 
           top: 0, 
           left: 0, 
-          pointerEvents: "none",
-          // Si el SVG necesita cambiar de color según el fondo, podés usar un filter CSS, 
-          // de lo contrario se renderizará con sus colores originales de fábrica.
-          filter: isBgRed ? "none" : "none" 
+          pointerEvents: "none"
         }} 
       />
 
-      <Box sx={{ position: "relative", zIndex: 52, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", width: "80%" }}>
+      <Box sx={{ position: "relative", zIndex: 52, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", width: "85%" }}>
         {tarjetaLogo && (
           <Box
             component="img"
             src={tarjetaLogo}
-            sx={{ width: starSize * 0.45, height: starSize * 0.18, objectFit: "contain", pointerEvents: "none", mb: 0.1 }}
+            sx={{ width: starSize * 0.5, height: starSize * 0.2, objectFit: "contain", pointerEvents: "none", mb: 0.1 }}
             onError={(e) => { e.target.style.display = "none"; }}
           />
         )}
-        <Typography sx={{ ...IMPREC.price, fontSize: priceFontSize, fontWeight: 900, px: 0.2, whiteSpace: "nowrap", lineHeight: 0.95, color: priceColor, pointerEvents: "none" }}>
+        <Typography sx={{ ...IMPREC.price, fontSize: priceFontSize, fontWeight: 900, px: 0.1, whiteSpace: "nowrap", lineHeight: 0.95, color: priceColor, pointerEvents: "none" }}>
           {precioDisplay}
         </Typography>
         {isLlevando && (
-          <Typography sx={{ ...IMPREC.subtPrice, fontSize: subtFontSize, fontWeight: 700, letterSpacing: 0.2, color: subtColor, pointerEvents: "none", mt: 0.2 }}>
+          <Typography sx={{ ...IMPREC.subtPrice, fontSize: subtFontSize, fontWeight: 700, letterSpacing: 0.2, color: subtColor, pointerEvents: "none", mt: 0.1 }}>
             X UNIDAD
           </Typography>
         )}
       </Box>
 
       {isModuloSelected && (
-        <Box sx={{ position: "absolute", top: -4, left: -4, right: -4, bottom: -4, border: "2px dashed #f59e0b", borderRadius: "50%", pointerEvents: "none", zIndex: 53 }} />
+        <Box sx={{ position: "absolute", top: -2, left: -2, right: -2, bottom: -2, border: "1.5px dashed #f59e0b", borderRadius: "50%", pointerEvents: "none", zIndex: 53 }} />
       )}
     </Box>
   );
