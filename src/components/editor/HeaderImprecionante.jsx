@@ -5,7 +5,9 @@ import { supabase } from "../../services/supabase";
 export default function HeaderImprecionante({ flyer, onFlyerUpdate, IMPREC, DEFAULT_LOGOS }) {
   const saveFlyer = async (field, value) => {
     onFlyerUpdate(field, value);
-    await supabase.from("flyers").update({ [field]: value }).eq("id", flyer.id);
+    if (flyer?.id) {
+      await supabase.from("flyers").update({ [field]: value }).eq("id", flyer.id);
+    }
   };
 
   const LogoSlot = ({ slot }) => (
@@ -20,12 +22,18 @@ export default function HeaderImprecionante({ flyer, onFlyerUpdate, IMPREC, DEFA
   );
 
   const vi = { 
-    fontFamily: "'Imprec-Vigency', sans-serif", 
+    fontFamily: IMPREC?.vigency?.fontFamily || "'Imprec-Vigency', sans-serif", 
     fontSize: "inherit", 
     color: "#ff0000", 
     textTransform: "uppercase",
     display: "inline-block"
   };
+
+  const mesInicio = (flyer?.mes_inicio || "").trim();
+  const mesFin = (flyer?.mes_fin || "").trim();
+
+  // Comprueba si no hay mes de inicio o si ambos meses son idénticos (ej: "DICIEMBRE" y "DICIEMBRE")
+  const esMismoMes = !mesInicio || mesInicio.toUpperCase() === mesFin.toUpperCase();
 
   return (
     <Box 
@@ -56,7 +64,8 @@ export default function HeaderImprecionante({ flyer, onFlyerUpdate, IMPREC, DEFA
             lineHeight: 1.1 
           }}
         >
-          {flyer?.mes_inicio && flyer?.mes_inicio !== flyer?.mes_fin ? (
+          {!esMismoMes ? (
+            /* SI SON DOS MESES DISTINTOS (ej: DEL 27 DE DICIEMBRE AL 05 DE ENERO) */
             <>
               <Box component="div" sx={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
                 DEL <InlineText value={flyer?.fecha_inicio_texto} onSave={(v) => saveFlyer("fecha_inicio_texto", v)} placeholder="27" style={vi} />
@@ -68,10 +77,19 @@ export default function HeaderImprecionante({ flyer, onFlyerUpdate, IMPREC, DEFA
               </Box>
             </>
           ) : (
-            <Box component="div" sx={{ display: "inline-flex", alignItems: "center", gap: "5px", flexWrap: "wrap", justifyContent: "center" }}>
+            /* SI ES EL MISMO MES (ej: DEL 05 AL 12 DE DICIEMBRE) */
+            <Box component="div" sx={{ display: "inline-flex", alignItems: "center", gap: "4px", flexWrap: "wrap", justifyContent: "center" }}>
               DEL <InlineText value={flyer?.fecha_inicio_texto} onSave={(v) => saveFlyer("fecha_inicio_texto", v)} placeholder="05" style={vi} />
               AL <InlineText value={flyer?.fecha_fin_texto} onSave={(v) => saveFlyer("fecha_fin_texto", v)} placeholder="12" style={vi} />
-              DE <InlineText value={flyer?.mes_fin} onSave={(v) => saveFlyer("mes_fin", v)} placeholder="DICIEMBRE" style={vi} />
+              DE <InlineText 
+                value={flyer?.mes_fin || flyer?.mes_inicio} 
+                onSave={(v) => { 
+                  saveFlyer("mes_fin", v); 
+                  saveFlyer("mes_inicio", v); 
+                }} 
+                placeholder="DICIEMBRE" 
+                style={vi} 
+              />
             </Box>
           )}
         </Typography>

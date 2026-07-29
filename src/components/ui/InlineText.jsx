@@ -3,29 +3,35 @@ import { Box } from "@mui/material";
 
 export default function InlineText({ value, onSave, style = {}, placeholder = "Editar" }) {
   const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(value || "");
+  // Conservamos el valor localmente para que la interfaz responda al instante
+  const [localVal, setLocalVal] = useState(value ?? "");
 
   useEffect(() => {
-    setDraft(value || "");
+    if (value !== undefined && value !== null) {
+      setLocalVal(value);
+    }
   }, [value]);
 
   const handleSave = () => {
     setEditing(false);
-    if (draft !== value && onSave) onSave(draft);
+    const trimmed = String(localVal).trim();
+    if (trimmed !== String(value ?? "").trim() && onSave) {
+      onSave(localVal);
+    }
   };
 
   if (editing) {
     return (
       <input
-        value={draft}
+        value={localVal}
         autoFocus
-        onChange={(e) => setDraft(e.target.value)}
+        onChange={(e) => setLocalVal(e.target.value)}
         onBlur={handleSave}
         onKeyDown={(e) => {
           if (e.key === "Enter") handleSave();
           if (e.key === "Escape") {
             setEditing(false);
-            setDraft(value || ""); 
+            setLocalVal(value ?? ""); 
           }
         }}
         style={{
@@ -49,7 +55,7 @@ export default function InlineText({ value, onSave, style = {}, placeholder = "E
     );
   }
 
-  const hasValue = value !== undefined && value !== null && String(value).trim() !== "";
+  const hasText = localVal !== undefined && localVal !== null && String(localVal).trim() !== "";
 
   return (
     <Box
@@ -67,8 +73,8 @@ export default function InlineText({ value, onSave, style = {}, placeholder = "E
         ...style, 
       }}
     >
-      {hasValue ? (
-        value
+      {hasText ? (
+        localVal
       ) : (
         <span style={{ opacity: 0.5, fontStyle: "italic", fontSize: "0.9em", color: "inherit" }}>
           {placeholder}

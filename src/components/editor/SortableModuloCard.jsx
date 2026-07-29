@@ -20,6 +20,8 @@ export default function SortableModuloCard({
   TAMANOS,
   IMPREC,
   TARJETA_LOGO,
+  colSpan = 1,
+  rowSpan = 1,
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: modulo.id });
   const [hovered, setHovered] = useState(false);
@@ -71,8 +73,11 @@ export default function SortableModuloCard({
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.3 : 1,
-    width: size.width * 0.5,
-    height: size.height * 0.5,
+    // Se adaptan las dimensiones para que respeten la grilla de celdas 3x4
+    gridColumn: `span ${colSpan}`,
+    gridRow: `span ${rowSpan}`,
+    width: "100%",
+    height: "100%",
   };
 
   const handleUpdateField = (field, value, index = 0) => {

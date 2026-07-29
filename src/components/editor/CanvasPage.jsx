@@ -55,30 +55,68 @@ export default function PaginaCanvas({ flyer, pag, pagIdx, modulos, selectedModu
       >
         <HeaderImprecionante flyer={flyer} onFlyerUpdate={onFlyerUpdate} IMPREC={IMPREC} DEFAULT_LOGOS={DEFAULT_LOGOS} />
 
-        <Box sx={{ flex: 1, overflow: "hidden", px: 0.8, py: 0.5 }}>
-          {modulos.length === 0 ? (
-            <Box display="flex" alignItems="center" justifyContent="center" minHeight={160} color="#92400e">
-              <Typography fontSize={13} textAlign="center">Agregá productos desde el panel izquierdo</Typography>
-            </Box>
-          ) : (
-            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-              <SortableContext items={modulos.map((m) => m.id)} strategy={rectSortingStrategy}>
-                <Box sx={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gridAutoRows: "max-content", gap: 0.5, justifyContent: "center" }}>
-                  {modulos.map((modulo) => (
-                    <SortableModuloCard key={modulo.id} modulo={modulo} isSelected={selectedModulo?.id === modulo.id} onClick={() => onSelectModulo(modulo)} onMenuAction={onMenuAction} onResize={onResize} flyer={flyer} TAMANO_SIZE={TAMANO_SIZE} TIPO_PRECIO_LABEL={TIPO_PRECIO_LABEL} FONDO_COLORS={FONDO_COLORS} BORDER_STYLES={BORDER_STYLES} TAMANOS={TAMANOS} IMPREC={IMPREC} TARJETA_LOGO={TARJETA_LOGO} />
-                  ))}
+        <Box sx={{ flex: 1, overflow: "hidden", px: 0.8, py: 0.5, display: "flex", flexDirection: "column" }}>
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            
+            {/* INICIO GRILLA 3x4 */}
+            <Box sx={{ 
+              display: "grid", 
+              gridTemplateColumns: "repeat(3, 1fr)", 
+              gridTemplateRows: "repeat(4, 1fr)", // Grilla exacta de 3 columnas x 4 filas
+              gap: 0.5, 
+              flex: 1,
+              height: "100%"
+            }}>
+              
+              {modulos.length === 0 && !esPrimera && (
+                <Box sx={{ gridColumn: "1 / -1", gridRow: "1 / -1", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Typography fontSize={13} color="#92400e" textAlign="center">Agregá productos desde el panel izquierdo</Typography>
                 </Box>
-              </SortableContext>
-            </DndContext>
-          )}
-        </Box>
+              )}
 
-        {esPrimera && (
-          <Box sx={{ px: 1, pb: 0.8, mt: "auto", zIndex: 10 }}>
-            <FooterUploader flyer={flyer} flyerId={flyer?.id} footerUrl={flyer?.footer_url} onUpdate={(url) => onFlyerUpdate("footer_url", url)} />
-            <LegalEditable flyer={flyer} flyerId={flyer?.id} legal={flyer?.legal} onUpdate={(val) => onFlyerUpdate("legal", val)} IMPREC={IMPREC} />
-          </Box>
-        )}
+              <SortableContext items={modulos.map((m) => m.id)} strategy={rectSortingStrategy}>
+                {modulos.map((modulo) => (
+                  <SortableModuloCard 
+                    key={modulo.id} 
+                    modulo={modulo} 
+                    isSelected={selectedModulo?.id === modulo.id} 
+                    onClick={() => onSelectModulo(modulo)} 
+                    onMenuAction={onMenuAction} 
+                    onResize={onResize} 
+                    flyer={flyer} 
+                    TAMANO_SIZE={TAMANO_SIZE} 
+                    TIPO_PRECIO_LABEL={TIPO_PRECIO_LABEL} 
+                    FONDO_COLORS={FONDO_COLORS} 
+                    BORDER_STYLES={BORDER_STYLES} 
+                    TAMANOS={TAMANOS} 
+                    IMPREC={IMPREC} 
+                    TARJETA_LOGO={TARJETA_LOGO}
+                    // Le enviamos a la tarjeta cuánto espacio debe ocupar en la grilla
+                    colSpan={modulo.colSpan || 1}
+                    rowSpan={modulo.rowSpan || 1}
+                  />
+                ))}
+              </SortableContext>
+
+              {/* Pie de página INCLUIDO en la grilla (Ocupa la Fila 4 completa) */}
+              {esPrimera && (
+                <Box sx={{ 
+                  gridColumn: "1 / -1", // Ocupa las 3 columnas
+                  gridRow: "4",         // Fijado en la cuarta fila
+                  display: "flex", 
+                  flexDirection: "column", 
+                  justifyContent: "flex-end",
+                  zIndex: 10 
+                }}>
+                  <FooterUploader flyer={flyer} flyerId={flyer?.id} footerUrl={flyer?.footer_url} onUpdate={(url) => onFlyerUpdate("footer_url", url)} />
+                  <LegalEditable flyer={flyer} flyerId={flyer?.id} legal={flyer?.legal} onUpdate={(val) => onFlyerUpdate("legal", val)} IMPREC={IMPREC} />
+                </Box>
+              )}
+            </Box>
+            {/* FIN GRILLA */}
+
+          </DndContext>
+        </Box>
       </Box>
     </Box>
   );
