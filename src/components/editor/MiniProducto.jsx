@@ -7,7 +7,6 @@ export default function MiniProducto({
   nombreOverride,
   descripcionOverride,
   precioRegularOverride,
-  stockOverride,
   imgOverride,
   textColor,
   showPrice,
@@ -28,7 +27,6 @@ export default function MiniProducto({
     : producto?.descripcion || "";
   
   const precioRegular = precioRegularOverride || producto?.precio_regular || "";
-  const stock = stockOverride || producto?.stock || "1000 UNIDADES";
 
   return (
     <Box
@@ -144,11 +142,8 @@ export default function MiniProducto({
           }}
         />
 
-        {/* BLOQUE NEGRO DE PRECIO REGULAR Y STOCK (OFICIAL VEA) */}
         <Box
           sx={{
-            bgcolor: "#000000",
-            color: "#ffffff",
             px: 0.4,
             py: 0.2,
             borderRadius: "2px",
@@ -160,7 +155,15 @@ export default function MiniProducto({
           }}
         >
           <Box display="flex" alignItems="center" gap={0.3}>
-            <Typography sx={{ fontSize: "0.42rem", fontWeight: 700, color: "#fff800", whiteSpace: "nowrap", lineHeight: 1 }}>
+            <Typography
+              sx={{ 
+                ...(IMPREC?.regPrice || {}),
+                fontSize: "0.42rem", 
+                color: "#000000", 
+                whiteSpace: "nowrap", 
+                lineHeight: 1 
+              }}
+            >
               PRECIO REGULAR:
             </Typography>
             <InlineText
@@ -168,26 +171,9 @@ export default function MiniProducto({
               placeholder="$ 0"
               onSave={(newVal) => onUpdateField && onUpdateField("precio_regular", newVal.replace("$", "").trim())}
               style={{
-                color: "#ffffff",
+                ...(IMPREC?.regPrice || {}),
+                color: "#000000",
                 fontSize: "0.45rem",
-                fontWeight: 800,
-                lineHeight: 1,
-                display: "inline-block"
-              }}
-            />
-          </Box>
-          <Box display="flex" alignItems="center" gap={0.3}>
-            <Typography sx={{ fontSize: "0.38rem", fontWeight: 600, color: "rgba(255,255,255,0.85)", whiteSpace: "nowrap", lineHeight: 1 }}>
-              DISPONIBLES:
-            </Typography>
-            <InlineText
-              value={stock}
-              placeholder="1000 UNID."
-              onSave={(newVal) => onUpdateField && onUpdateField("stock", newVal)}
-              style={{
-                color: "#fff800",
-                fontSize: "0.38rem",
-                fontWeight: 700,
                 lineHeight: 1,
                 display: "inline-block"
               }}

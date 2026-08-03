@@ -35,6 +35,7 @@ const IMPREC = {
   legal: { fontFamily: "'Imprec-Legal',sans-serif", fontSize: "9pt", textTransform: "uppercase", color: "#000000" },
   price: { fontFamily: "'Imprec-Price',sans-serif", textTransform: "uppercase", lineHeight: 1 },
   subtPrice: { fontFamily: "'Imprec-SubtPrice',sans-serif", textTransform: "uppercase", lineHeight: 1 },
+  regPrice: { fontFamily: "'Imprec-RegPrice',sans-serif", textTransform: "uppercase", lineHeight: 1 },
   productName: { fontFamily: "'Imprec-Name',sans-serif", fontSize: "9pt", lineHeight: 1.05, textTransform: "uppercase", color: "#000000" },
   productDesc: { fontFamily: "'Imprec-Desc',sans-serif", fontSize: "7pt", lineHeight: 1.05, textTransform: "uppercase", color: "#555555" },
 };

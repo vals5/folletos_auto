@@ -3,37 +3,41 @@ import { Box } from "@mui/material";
 
 export default function InlineText({ value, onSave, style = {}, placeholder = "Editar" }) {
   const [editing, setEditing] = useState(false);
-  // Conservamos el valor localmente para que la interfaz responda al instante
-  const [localVal, setLocalVal] = useState(value ?? "");
+  const [draft, setDraft] = useState(value ?? "");
 
+  // Sincroniza el valor externo solo cuando no se está editando activamente
   useEffect(() => {
-    if (value !== undefined && value !== null) {
-      setLocalVal(value);
+    if (!editing) {
+      setDraft(value ?? "");
     }
-  }, [value]);
+  }, [value, editing]);
 
-  const handleSave = () => {
+  const handleBlur = () => {
     setEditing(false);
-    const trimmed = String(localVal).trim();
-    if (trimmed !== String(value ?? "").trim() && onSave) {
-      onSave(localVal);
+    if (String(draft) !== String(value ?? "") && onSave) {
+      onSave(draft);
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.target.blur(); // Dispara el blur y guarda
+    }
+    if (e.key === "Escape") {
+      setEditing(false);
+      setDraft(value ?? "");
     }
   };
 
   if (editing) {
     return (
       <input
-        value={localVal}
+        type="text"
+        value={draft}
         autoFocus
-        onChange={(e) => setLocalVal(e.target.value)}
-        onBlur={handleSave}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") handleSave();
-          if (e.key === "Escape") {
-            setEditing(false);
-            setLocalVal(value ?? ""); 
-          }
-        }}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={handleBlur}
+        onKeyDown={handleKeyDown}
         style={{
           background: "rgba(255,255,255,0.95)",
           border: "1px dashed rgba(0,0,0,0.4)",
@@ -46,7 +50,7 @@ export default function InlineText({ value, onSave, style = {}, placeholder = "E
           color: "#000000",
           width: style.width || "auto",
           maxWidth: "100%",
-          boxSizing: "border-box", 
+          boxSizing: "border-box",
           textAlign: style.textAlign || "left",
           lineHeight: style.lineHeight || 1.1,
           display: "inline-block",
@@ -55,7 +59,7 @@ export default function InlineText({ value, onSave, style = {}, placeholder = "E
     );
   }
 
-  const hasText = localVal !== undefined && localVal !== null && String(localVal).trim() !== "";
+  const hasText = draft !== undefined && draft !== null && String(draft).trim() !== "";
 
   return (
     <Box
@@ -70,11 +74,11 @@ export default function InlineText({ value, onSave, style = {}, placeholder = "E
         minHeight: "1em",
         verticalAlign: "middle",
         "&:hover": { outline: "1px dashed rgba(0,0,0,0.3)", bgcolor: "rgba(0,0,0,0.06)" },
-        ...style, 
+        ...style,
       }}
     >
       {hasText ? (
-        localVal
+        draft
       ) : (
         <span style={{ opacity: 0.5, fontStyle: "italic", fontSize: "0.9em", color: "inherit" }}>
           {placeholder}

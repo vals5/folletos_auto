@@ -32,7 +32,6 @@ export default function HeaderImprecionante({ flyer, onFlyerUpdate, IMPREC, DEFA
   const mesInicio = (flyer?.mes_inicio || "").trim();
   const mesFin = (flyer?.mes_fin || "").trim();
 
-  // Comprueba si no hay mes de inicio o si ambos meses son idénticos (ej: "DICIEMBRE" y "DICIEMBRE")
   const esMismoMes = !mesInicio || mesInicio.toUpperCase() === mesFin.toUpperCase();
 
   return (

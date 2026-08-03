@@ -73,7 +73,6 @@ export default function SortableModuloCard({
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.3 : 1,
-    // Se adaptan las dimensiones para que respeten la grilla de celdas 3x4
     gridColumn: `span ${colSpan}`,
     gridRow: `span ${rowSpan}`,
     width: "100%",
