@@ -4,6 +4,8 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import MiniProducto from "./MiniProducto";
 import PrecioStarburst from "./PrecioStarburst";
+import FooterUploader from "./FooterUploader";
+import LegalEditable from "./Legal";
 
 export default function SortableModuloCard({
   modulo,
@@ -20,12 +22,52 @@ export default function SortableModuloCard({
   TAMANOS,
   IMPREC,
   TARJETA_LOGO,
-  colSpan = 1,
-  rowSpan = 1,
+  onFlyerUpdate 
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: modulo.id });
   const [hovered, setHovered] = useState(false);
 
+  const colSpan = modulo.colSpan || 1;
+  const rowSpan = modulo.rowSpan || 1;
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.3 : 1,
+    gridColumn: `span ${colSpan}`,
+    gridRow: `span ${rowSpan}`,
+    width: "100%",
+    height: "100%",
+  };
+
+  // --- RENDERIZADO DEL FOOTER ---
+  if (modulo.formato === "footer") {
+    return (
+      <Box
+        ref={setNodeRef}
+        style={style}
+        {...attributes}
+        {...listeners}
+        onClick={(e) => { e.stopPropagation(); onClick(); }}
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "flex-end", // Mantiene todo pegado abajo como el original
+          zIndex: 10,
+          cursor: "grab",
+          "&:active": { cursor: "grabbing" },
+          boxSizing: "border-box",
+          border: isSelected ? "2px solid #3b82f6" : "2px solid transparent",
+          borderRadius: "4px"
+        }}
+      >
+        <FooterUploader flyer={flyer} flyerId={flyer?.id} footerUrl={flyer?.footer_url} onUpdate={(url) => onFlyerUpdate("footer_url", url)} />
+        <LegalEditable flyer={flyer} flyerId={flyer?.id} legal={flyer?.legal} onUpdate={(val) => onFlyerUpdate("legal", val)} IMPREC={IMPREC} />
+      </Box>
+    );
+  }
+
+  // --- RENDERIZADO REGULAR DEL PRODUCTO ---
   const size = TAMANO_SIZE[modulo.tamano] || TAMANO_SIZE["S"];
   const bgColor = FONDO_COLORS[modulo.fondo_modulo] ?? FONDO_COLORS.empty;
   const borderStyle = BORDER_STYLES[modulo.estilo_borde] || "1px solid #e2e8f0";
@@ -69,16 +111,6 @@ export default function SortableModuloCard({
   const isBgRed = modulo.fondo_modulo === "rojo";
   const textColor = isBgRed ? "#ffffff" : "#000000";
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.3 : 1,
-    gridColumn: `span ${colSpan}`,
-    gridRow: `span ${rowSpan}`,
-    width: "100%",
-    height: "100%",
-  };
-
   const handleUpdateField = (field, value, index = 0) => {
     if (onUpdateModulo) {
       const keySuffix = index > 0 ? `_${index + 1}` : "";
@@ -108,27 +140,39 @@ export default function SortableModuloCard({
         boxSizing: "border-box"
       }}
     >
-      {!esMulti && todosLosProductos[0] && (
-        <Box sx={{ flex: 1, display: "flex", flexDirection: "column", position: "relative", p: 0.3 }}>
-          <MiniProducto
-            producto={todosLosProductos[0].producto}
-            imgOverride={todosLosProductos[0].imgOverride}
-            nombreOverride={todosLosProductos[0].nombreOverride}
-            descripcionOverride={todosLosProductos[0].descripcionOverride}
-            precioRegularOverride={todosLosProductos[0].precioRegularOverride}
-            stockOverride={todosLosProductos[0].stockOverride}
-            textColor={textColor}
-            showPrice={false}
-            size={size}
-            isBgRed={isBgRed}
-            isModuloSelected={isSelected}
-            IMPREC={IMPREC}
-            TARJETA_LOGO={TARJETA_LOGO}
-            flyer={flyer}
-            onUpdateField={(field, value) => handleUpdateField(field, value, 0)}
-          />
-        </Box>
-      )}
+     {!esMulti && todosLosProductos[0] && (
+  <Box 
+    sx={{ 
+      flex: 1, 
+      display: "flex", 
+      flexDirection: colSpan > 1 ? "row" : "column", 
+      alignItems: "center",
+      position: "relative", 
+      p: 0.8,
+      gap: 1
+    }}
+  >
+    <MiniProducto
+      producto={todosLosProductos[0].producto}
+      imgOverride={todosLosProductos[0].imgOverride}
+      nombreOverride={todosLosProductos[0].nombreOverride}
+      descripcionOverride={todosLosProductos[0].descripcionOverride}
+      precioRegularOverride={todosLosProductos[0].precioRegularOverride}
+      stockOverride={todosLosProductos[0].stockOverride}
+      textColor={textColor}
+      showPrice={false}
+      size={size}
+      isBgRed={isBgRed}
+      isModuloSelected={isSelected}
+      IMPREC={IMPREC}
+      TARJETA_LOGO={TARJETA_LOGO}
+      flyer={flyer}
+      colSpan={colSpan} 
+      rowSpan={rowSpan}
+      onUpdateField={(field, value) => handleUpdateField(field, value, 0)}
+    />
+  </Box>
+)}
 
       {esMulti && (
         <Box sx={{ display: "grid", gridTemplateColumns: `repeat(${gridCols},1fr)`, flex: 1, p: 0.3 }}>
@@ -144,6 +188,8 @@ export default function SortableModuloCard({
               textColor={textColor} 
               showPrice={false} 
               size={size} 
+             colSpan={colSpan}
+             rowSpan={rowSpan}
               isBgRed={isBgRed} 
               isModuloSelected={isSelected} 
               IMPREC={IMPREC} 
@@ -159,6 +205,8 @@ export default function SortableModuloCard({
         precio={modulo.precio} 
         tipoPrecio={modulo.tipo_precio} 
         size={size} 
+        colSpan={colSpan}
+        rowSpan={rowSpan}
         isBgRed={isBgRed} 
         isModuloSelected={isSelected} 
         IMPREC={IMPREC} 

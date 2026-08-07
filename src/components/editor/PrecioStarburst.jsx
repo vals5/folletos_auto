@@ -7,18 +7,23 @@ export default function PrecioStarburst({
   precio,
   tipoPrecio,
   size = { width: 100, height: 100 },
+  colSpan = 1,
+  rowSpan = 1,
   isBgRed = false,
   isModuloSelected = false,
   IMPREC = { colors: { red: "#ef4444", white: "#ffffff", black: "#000000" }, price: {}, subtPrice: {} },
   TARJETA_LOGO = {},
 }) {
-  const visualWidth = (size?.width || 100) * 0.5;
-  const visualHeight = (size?.height || 100) * 0.5;
+  const baseWidth = (size?.width || 100) * 0.5;
+  const baseHeight = (size?.height || 100) * 0.5;
 
-  const starSize = visualWidth > 100 ? 52 : visualWidth > 70 ? 44 : 36;
+  const visualWidth = baseWidth * (colSpan || 1);
+  const visualHeight = baseHeight * (rowSpan || 1);
 
-  const priceFontSize = visualWidth > 100 ? "11pt" : visualWidth > 70 ? "9pt" : "7.5pt";
-  const subtFontSize = visualWidth > 100 ? "5pt" : "4.5pt";
+  const starSize = baseWidth > 100 ? 52 : baseWidth > 70 ? 44 : 36;
+
+  const priceFontSize = baseWidth > 100 ? "11pt" : baseWidth > 70 ? "9pt" : "7.5pt";
+  const subtFontSize = baseWidth > 100 ? "5pt" : "4.5pt";
 
   const tarjetaLogo = TARJETA_LOGO[tipoPrecio];
   const isLlevando = tipoPrecio === "llevando3";
@@ -31,9 +36,10 @@ export default function PrecioStarburst({
 
   const [pos, setPos] = useState({ x: visualWidth - starSize - 1, y: 1 });
 
+  // Reubica la cucarda en la esquina superior derecha cada vez que cambia el colSpan/rowSpan
   useEffect(() => {
-    setPos({ x: visualWidth - starSize - 1, y: 1 });
-  }, [visualWidth, visualHeight, starSize]);
+    setPos({ x: Math.max(0, visualWidth - starSize - 1), y: 1 });
+  }, [colSpan, rowSpan, visualWidth, visualHeight, starSize]);
 
   const dragging = useRef(false);
   const startMouse = useRef({ x: 0, y: 0 });
@@ -47,11 +53,20 @@ export default function PrecioStarburst({
     startMouse.current = { x: e.clientX, y: e.clientY };
     startPos.current = { ...pos };
 
+    const parent = e.currentTarget.parentElement;
+    const currentParentWidth = parent?.clientWidth || visualWidth;
+    const currentParentHeight = parent?.clientHeight || visualHeight;
+
+    const maxLeft = Math.max(0, currentParentWidth - starSize);
+    const maxTop = Math.max(0, currentParentHeight - starSize);
+
     const onMove = (ev) => {
       if (!dragging.current) return;
       ev.stopPropagation();
-      const newX = Math.min(Math.max(startPos.current.x + ev.clientX - startMouse.current.x, -5), visualWidth - starSize + 5);
-      const newY = Math.min(Math.max(startPos.current.y + ev.clientY - startMouse.current.y, -5), visualHeight - starSize + 5);
+      
+      const newX = Math.min(Math.max(startPos.current.x + ev.clientX - startMouse.current.x, -5), maxLeft + 5);
+      const newY = Math.min(Math.max(startPos.current.y + ev.clientY - startMouse.current.y, -5), maxTop + 5);
+      
       setPos({ x: newX, y: newY });
     };
 

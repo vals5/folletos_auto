@@ -5,8 +5,7 @@ import { SortableContext, rectSortingStrategy, arrayMove } from "@dnd-kit/sortab
 import { supabase } from "../../services/supabase";
 import HeaderImprecionante from "./HeaderImprecionante";
 import SortableModuloCard from "./SortableModuloCard";
-import FooterUploader from "./FooterUploader";
-import LegalEditable from "./Legal";
+import LegalEditable from "./Legal"; // Importamos el Legal si lo quieres fijo al pie de página
 
 import FondoTextura from "../../assets/img/Fondo-Imprec.jpg";
 
@@ -53,16 +52,17 @@ export default function PaginaCanvas({ flyer, pag, pagIdx, modulos, selectedModu
           position: "relative" 
         }}
       >
+        {/* 1. HEADER (FIJO ARRIBA) */}
         <HeaderImprecionante flyer={flyer} onFlyerUpdate={onFlyerUpdate} IMPREC={IMPREC} DEFAULT_LOGOS={DEFAULT_LOGOS} />
 
+        {/* 2. GRILLA CENTRAL (3 columnas x 4 filas exactas) */}
         <Box sx={{ flex: 1, overflow: "hidden", px: 0.8, py: 0.5, display: "flex", flexDirection: "column" }}>
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             
-            {/* INICIO GRILLA 3x4 */}
             <Box sx={{ 
               display: "grid", 
               gridTemplateColumns: "repeat(3, 1fr)", 
-              gridTemplateRows: "repeat(4, 1fr)", // Grilla exacta de 3 columnas x 4 filas
+              gridTemplateRows: "repeat(4, 1fr)", // SINTAXIS CSS CORREGIDA
               gap: 0.5, 
               flex: 1,
               height: "100%"
@@ -91,32 +91,30 @@ export default function PaginaCanvas({ flyer, pag, pagIdx, modulos, selectedModu
                     TAMANOS={TAMANOS} 
                     IMPREC={IMPREC} 
                     TARJETA_LOGO={TARJETA_LOGO}
-                    // Le enviamos a la tarjeta cuánto espacio debe ocupar en la grilla
                     colSpan={modulo.colSpan || 1}
                     rowSpan={modulo.rowSpan || 1}
+                    onFlyerUpdate={onFlyerUpdate} 
                   />
                 ))}
               </SortableContext>
-
-              {/* Pie de página INCLUIDO en la grilla (Ocupa la Fila 4 completa) */}
-              {esPrimera && (
-                <Box sx={{ 
-                  gridColumn: "1 / -1", // Ocupa las 3 columnas
-                  gridRow: "4",         // Fijado en la cuarta fila
-                  display: "flex", 
-                  flexDirection: "column", 
-                  justifyContent: "flex-end",
-                  zIndex: 10 
-                }}>
-                  <FooterUploader flyer={flyer} flyerId={flyer?.id} footerUrl={flyer?.footer_url} onUpdate={(url) => onFlyerUpdate("footer_url", url)} />
-                  <LegalEditable flyer={flyer} flyerId={flyer?.id} legal={flyer?.legal} onUpdate={(val) => onFlyerUpdate("legal", val)} IMPREC={IMPREC} />
-                </Box>
-              )}
             </Box>
-            {/* FIN GRILLA */}
 
           </DndContext>
         </Box>
+
+        {/* 3. LEGAL (FIJO ABAJO CON FUENTE 9pt) */}
+        {LegalEditable && (
+          <Box sx={{ px: 0.8, pb: 0.5, flexShrink: 0, zIndex: 10 }}>
+            <LegalEditable 
+              flyer={flyer} 
+              flyerId={flyer?.id} 
+              legal={flyer?.legal} 
+              onUpdate={(val) => onFlyerUpdate("legal", val)} 
+              IMPREC={IMPREC} 
+            />
+          </Box>
+        )}
+
       </Box>
     </Box>
   );

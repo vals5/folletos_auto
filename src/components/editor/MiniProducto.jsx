@@ -18,6 +18,8 @@ export default function MiniProducto({
   IMPREC,
   TARJETA_LOGO,
   flyer,
+  colSpan = 1,
+  rowSpan = 1,
   onUpdateField, 
 }) {
   const imgSrc = imgOverride || producto?.imagen_url || producto?.imagen;
@@ -28,30 +30,38 @@ export default function MiniProducto({
   
   const precioRegular = precioRegularOverride || producto?.precio_regular || "";
 
+  const esHorizontal = colSpan > 1;
+
+  // Tamaños adaptativos
+  const nameFontSize = colSpan >= 3 ? "1.1rem" : colSpan >= 2 ? "0.85rem" : rowSpan >= 2 ? "0.85rem" : "0.62rem";
+  const descFontSize = colSpan >= 3 ? "0.8rem" : colSpan >= 2 ? "0.68rem" : rowSpan >= 2 ? "0.68rem" : "0.5rem";
+  const priceFontSize = colSpan >= 3 ? "0.7rem" : colSpan >= 2 ? "0.58rem" : "0.45rem";
+
   return (
     <Box
       sx={{
         width: "100%",
         height: "100%",
         display: "flex",
-        flexDirection: "column",
-        justifyContent: "space-between", 
+        flexDirection: esHorizontal ? "row" : "column",
+        justifyContent: esHorizontal ? "space-between" : "center", // Mantiene los elementos agrupados en 1x1
+        alignItems: "center",
         position: "relative",
         boxSizing: "border-box",
-        p: 0.4,
-        overflow: "visible",
+        p: esHorizontal ? 1 : 0.5,
+        gap: esHorizontal ? 1.5 : 0.4,
+        overflow: "hidden",
       }}
     >
-      {/* 1. SECCIÓN SUPERIOR: IMAGEN DEL PRODUCTO (Alineada a la izquierda para dejar espacio a la cucarda) */}
+      {/* 1. IMAGEN DEL PRODUCTO */}
       <Box
         sx={{
-          height: "45%", 
-          width: "55%", 
+          height: esHorizontal ? "100%" : "48%", 
+          width: esHorizontal ? "45%" : "100%", 
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          pt: 0.2,
-          pl: 0.2,
+          flexShrink: 0,
         }}
       >
         {imgSrc ? (
@@ -70,7 +80,7 @@ export default function MiniProducto({
         ) : (
           <Box
             sx={{
-              width: "100%",
+              width: "80%",
               height: "80%",
               bgcolor: "rgba(0,0,0,0.04)",
               borderRadius: 1,
@@ -80,35 +90,33 @@ export default function MiniProducto({
               justifyContent: "center",
             }}
           >
-            <Typography fontSize={8} color="#9ca3af" fontWeight={600}>IMG</Typography>
+            <Typography fontSize={10} color="#9ca3af" fontWeight={600}>IMG</Typography>
           </Box>
         )}
       </Box>
 
-      {/* 2. SECCIÓN INFERIOR: TEXTOS Y BLOQUE DE PRECIO REGULAR (MODELO IMAGEN 1) */}
+      {/* 2. TEXTOS Y PRECIO REGULAR */}
       <Box
         data-no-dnd="true"
         onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => e.stopPropagation()}
         sx={{
-          width: "100%",
+          width: esHorizontal ? "55%" : "100%",
+          height: esHorizontal ? "100%" : "auto",
           display: "flex",
           flexDirection: "column",
+          justifyContent: "center", 
           alignItems: "flex-start", 
           textAlign: "left",
           zIndex: 10,
-          mt: "auto",
+          mt: 0, // Se elimina el margin-top auto para evitar caídas al fondo
         }}
       >
-        {/* NOMBRE DEL PRODUCTO */}
-        <InlineText
-          value={nombre}
-          placeholder="NOMBRE PRODUCTO"
-          onSave={(newVal) => onUpdateField && onUpdateField("nombre", newVal)}
-          style={{
+        <Typography
+          sx={{
             fontFamily: IMPREC?.productName?.fontFamily || "'Imprec-Name', 'Arial Narrow', sans-serif",
             color: textColor || "#000000",
-            fontSize: "0.62rem",
+            fontSize: nameFontSize,
             fontWeight: 900,
             lineHeight: 1.05,
             textTransform: "uppercase",
@@ -117,19 +125,18 @@ export default function MiniProducto({
             display: "block",
             wordBreak: "break-word",
             boxSizing: "border-box",
-            marginBottom: "1px"
+            marginBottom: "2px",
+            userSelect: "none"
           }}
-        />
+        >
+          {nombre || "NOMBRE PRODUCTO"}
+        </Typography>
 
-        {/* DESCRIPCIÓN DEL PRODUCTO */}
-        <InlineText
-          value={desc}
-          placeholder="DESCRIPCIÓN / PRESENTACIÓN"
-          onSave={(newVal) => onUpdateField && onUpdateField("descripcion", newVal)}
-          style={{
+        <Typography
+          sx={{
             fontFamily: IMPREC?.productDesc?.fontFamily || "'Imprec-Desc', sans-serif",
             color: textColor === "#ffffff" ? "rgba(255,255,255,0.9)" : "#333333",
-            fontSize: "0.5rem",
+            fontSize: descFontSize,
             fontWeight: 600,
             lineHeight: 1.05,
             textTransform: "uppercase",
@@ -138,14 +145,17 @@ export default function MiniProducto({
             display: "block",
             wordBreak: "break-word",
             boxSizing: "border-box",
-            marginBottom: "3px"
+            marginBottom: "3px",
+            userSelect: "none"
           }}
-        />
+        >
+          {desc || "DESCRIPCIÓN / PRESENTACIÓN"}
+        </Typography>
 
         <Box
           sx={{
-            px: 0.4,
-            py: 0.2,
+            px: 0.2,
+            py: 0.1,
             borderRadius: "2px",
             width: "fit-content",
             maxWidth: "100%",
@@ -158,10 +168,11 @@ export default function MiniProducto({
             <Typography
               sx={{ 
                 ...(IMPREC?.regPrice || {}),
-                fontSize: "0.42rem", 
-                color: "#000000", 
+                fontSize: priceFontSize, 
+                color: textColor === "#ffffff" ? "rgba(255,255,255,0.8)" : "#000000", 
                 whiteSpace: "nowrap", 
-                lineHeight: 1 
+                lineHeight: 1,
+                userSelect: "none"
               }}
             >
               PRECIO REGULAR:
@@ -169,11 +180,14 @@ export default function MiniProducto({
             <InlineText
               value={precioRegular ? `$ ${precioRegular}` : ""}
               placeholder="$ 0"
-              onSave={(newVal) => onUpdateField && onUpdateField("precio_regular", newVal.replace("$", "").trim())}
+              onSave={(newVal) => {
+                const soloNumeros = newVal.replace(/[^0-9]/g, "").trim();
+                onUpdateField && onUpdateField("precio_regular", soloNumeros);
+              }}
               style={{
                 ...(IMPREC?.regPrice || {}),
-                color: "#000000",
-                fontSize: "0.45rem",
+                color: textColor === "#ffffff" ? "#ffffff" : "#000000",
+                fontSize: priceFontSize,
                 lineHeight: 1,
                 display: "inline-block"
               }}
@@ -187,6 +201,8 @@ export default function MiniProducto({
           precio={precio}
           tipoPrecio={tipoPrecio}
           size={size}
+          colSpan={colSpan}
+          rowSpan={rowSpan}
           isBgRed={isBgRed}
           isModuloSelected={isModuloSelected}
           IMPREC={IMPREC}

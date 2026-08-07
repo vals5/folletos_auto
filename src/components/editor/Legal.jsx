@@ -13,7 +13,7 @@ export default function LegalEditable({ flyer, flyerId, legal, onUpdate, IMPREC 
   };
 
   return (
-    <Box sx={{ bgcolor: "rgba(0,0,0,0.05)", borderRadius: 1, p: 0.8, mt: 0.5 }}>
+    <Box sx={{ bgcolor: "rgba(0,0,0,0.03)", borderRadius: "2px", p: 0.3, mt: "auto", width: "100%", boxSizing: "border-box" }}>
       {editing ? (
         <textarea
           value={draft}
@@ -21,17 +21,37 @@ export default function LegalEditable({ flyer, flyerId, legal, onUpdate, IMPREC 
           onBlur={save}
           autoFocus
           rows={2}
-          style={{ width: (flyer?.width || 420) * 0.5, minHeight: (flyer?.height || 600) * 0.5, background: "transparent", border: "1px dashed rgba(0,0,0,0.25)", borderRadius: 4,
+          style={{ 
+            width: "100%", 
+            minHeight: "35px", 
+            maxHeight: "60px",
+            background: "transparent", 
+            border: "1px dashed rgba(0,0,0,0.25)", 
+            borderRadius: "2px",
             resize: "none", 
             outline: "none",
             padding: "2px 4px",
-            fontFamily: "'Imprec-Legal',sans-serif",
-            fontSize: "9pt",
-            color: "#333",
+            fontFamily: IMPREC?.legal?.fontFamily || "'Imprec-Legal', sans-serif",
+            fontSize: "5.5pt",
+            lineHeight: 1,
+            color: "#000",
+            boxSizing: "border-box"
           }}
         />
       ) : (
-        <Typography onClick={() => setEditing(true)} sx={{ ...IMPREC.legal, cursor: "text", "&:hover": { color: "rgba(0,0,0,0.6)" } }}>
+        <Typography 
+          onClick={() => setEditing(true)} 
+          sx={{ 
+            ...(IMPREC?.legal || {}), 
+            fontSize: "9pt", 
+            lineHeight: 1, 
+            cursor: "text", 
+            textAlign: "center",
+            width: "100%",
+            wordBreak: "break-word",
+            "&:hover": { opacity: 0.7 } 
+          }}
+        >
           {legal || <em style={{ fontStyle: "italic", opacity: 0.35 }}>Editar legal</em>}
         </Typography>
       )}

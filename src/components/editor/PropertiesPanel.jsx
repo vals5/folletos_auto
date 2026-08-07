@@ -4,7 +4,6 @@ import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
 
-const TAMANOS = ["XS", "S", "M", "L", "XL"];
 const TIPOS_PRECIO = [
   { value: "regular", label: "Precio regular" },
   { value: "llevando3", label: "Llevando 2" },
@@ -45,7 +44,6 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
   return (
     <Box width={290} bgcolor="white" display="flex" flexDirection="column" sx={{ borderLeft: "1px solid #e5e7eb", p: 2, overflowY: "auto", flexShrink: 0 }}>
       
-      {/* 1. DESPLEGABLE GLOBAL */}
       <Box mb={2}>
         <FormControl size="small" fullWidth>
           <InputLabel id="select-view-label">Propiedades de:</InputLabel>
@@ -65,7 +63,7 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
 
       <Divider sx={{ mb: 2 }} />
 
-      {/* --- VISTA: PRODUCTO (Sin Tocar) --- */}
+      {/* --- VISTA: PRODUCTO --- */}
       {panelView === "producto" && (
         <>
           {!modulo ? (
@@ -126,7 +124,7 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
         </>
       )}
 
-      {/* --- VISTA: MÓDULO (Para definir el tamaño de la grilla 3x4) --- */}
+      {/* --- VISTA: MÓDULO --- */}
       {panelView === "modulo" && (
         <>
           {!modulo ? (
@@ -142,12 +140,23 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
               <FormControl size="small" fullWidth>
                 <InputLabel>Tamaño del Bloque</InputLabel>
                 <Select
-                  value={`${modulo.colSpan || 1}x${modulo.rowSpan || 1}`}
+                  value={modulo.formato === "footer" ? "footer" : `${modulo.colSpan || 1}x${modulo.rowSpan || 1}`}
                   label="Tamaño del Bloque"
                   onChange={(e) => {
-                    const [c, r] = e.target.value.split("x").map(Number);
-                    // Actualizamos ambos valores en la base simultáneamente
-                    onUpdate(modulo.id, { colSpan: c, rowSpan: r });
+                    const val = e.target.value;
+                    if (val === "footer") {
+                      // Usamos la columna formato (que ya existe) para evadir el error de Supabase
+                      onUpdate(modulo.id, { colSpan: 3, rowSpan: 1, formato: "footer" });
+                    } else {
+                      const [c, r] = val.split("x").map(Number);
+                      if (modulo.formato === "footer") {
+                        // Si estaba en footer y lo sacan, reseteamos a producto normal
+                        onUpdate(modulo.id, { colSpan: c, rowSpan: r, formato: "1_producto" });
+                      } else {
+                        // Si era normal, solo cambiamos tamaño sin pisar el formato (por si era un combo de 2 productos)
+                        onUpdate(modulo.id, { colSpan: c, rowSpan: r });
+                      }
+                    }
                   }}
                 >
                   <MenuItem value="1x1">1x1 (Normal - 1 Col, 1 Fila)</MenuItem>
@@ -155,18 +164,20 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
                   <MenuItem value="1x2">1x2 (Vertical - 1 Col, 2 Filas)</MenuItem>
                   <MenuItem value="2x2">2x2 (Cuadrado - 2 Cols, 2 Filas)</MenuItem>
                   <MenuItem value="3x1">3x1 (Fila Completa - 3 Cols, 1 Fila)</MenuItem>
+                  <Divider />
+                  <MenuItem value="footer">Pie de página (3x1 Especial)</MenuItem>
                 </Select>
               </FormControl>
 
               <Typography fontSize={11} color="text.secondary" sx={{ mt: -1 }}>
-                El canvas está dividido en 3 columnas y 4 filas. Ajustá el formato para que este módulo ocupe más espacio horizontal o vertical.
+                Ajustá el formato para que este módulo ocupe más espacio horizontal o vertical.
               </Typography>
             </Box>
           )}
         </>
       )}
 
-      {/* --- VISTA: PÁGINA (Vacía como solicitaste) --- */}
+      {/* --- VISTA: PÁGINA --- */}
       {panelView === "pagina" && (
         <Box textAlign="center" py={4} color="text.secondary">
           <Typography variant="subtitle2" fontWeight={600} mb={1}>Configuración de la Página</Typography>
