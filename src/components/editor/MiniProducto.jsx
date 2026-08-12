@@ -30,12 +30,14 @@ export default function MiniProducto({
   
   const precioRegular = precioRegularOverride || producto?.precio_regular || "";
 
-  const esHorizontal = colSpan > 1;
+  // Tipos de Layout
+  const esHorizontal = colSpan > 1; // 2x1 Horizontal
+  const esVertical2x1 = colSpan === 1 && rowSpan > 1; // 2x1 Vertical
 
   // Tamaños adaptativos
-  const nameFontSize = colSpan >= 3 ? "1.1rem" : colSpan >= 2 ? "0.85rem" : rowSpan >= 2 ? "0.85rem" : "0.62rem";
-  const descFontSize = colSpan >= 3 ? "0.8rem" : colSpan >= 2 ? "0.68rem" : rowSpan >= 2 ? "0.68rem" : "0.5rem";
-  const priceFontSize = colSpan >= 3 ? "0.7rem" : colSpan >= 2 ? "0.58rem" : "0.45rem";
+  const nameFontSize = colSpan >= 2 ? "0.85rem" : esVertical2x1 ? "0.68rem" : "0.52rem";
+  const descFontSize = colSpan >= 2 ? "0.65rem" : esVertical2x1 ? "0.55rem" : "0.44rem";
+  const priceFontSize = colSpan >= 2 ? "0.58rem" : esVertical2x1 ? "0.50rem" : "0.42rem";
 
   return (
     <Box
@@ -44,24 +46,28 @@ export default function MiniProducto({
         height: "100%",
         display: "flex",
         flexDirection: esHorizontal ? "row" : "column",
-        justifyContent: esHorizontal ? "space-between" : "center", // Mantiene los elementos agrupados en 1x1
+        justifyContent: esVertical2x1 ? "flex-end" : "space-between", // Empuja al fondo en 2x1 Vertical
         alignItems: "center",
         position: "relative",
         boxSizing: "border-box",
-        p: esHorizontal ? 1 : 0.5,
-        gap: esHorizontal ? 1.5 : 0.4,
+        p: esHorizontal ? 0.8 : 0.4,
+        gap: 0.3,
         overflow: "hidden",
       }}
     >
-      {/* 1. IMAGEN DEL PRODUCTO */}
+      {/* 1. ESPACIADOR (Solo Vertical): Empuja la imagen y textos hacia abajo para dejar el top libre */}
+      {esVertical2x1 && <Box sx={{ flex: 1.2 }} />}
+
+      {/* 2. IMAGEN DEL PRODUCTO */}
       <Box
         sx={{
-          height: esHorizontal ? "100%" : "48%", 
-          width: esHorizontal ? "45%" : "100%", 
+          height: esHorizontal ? "100%" : esVertical2x1 ? "35%" : "36%", 
+          width: esHorizontal ? "42%" : "100%", 
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           flexShrink: 0,
+          mb: esVertical2x1 ? 0.5 : 0, // Separación suave entre imagen y texto en vertical
         }}
       >
         {imgSrc ? (
@@ -80,8 +86,8 @@ export default function MiniProducto({
         ) : (
           <Box
             sx={{
-              width: "80%",
-              height: "80%",
+              width: "70%",
+              height: "70%",
               bgcolor: "rgba(0,0,0,0.04)",
               borderRadius: 1,
               border: "1px dashed #cbd5e1",
@@ -90,68 +96,76 @@ export default function MiniProducto({
               justifyContent: "center",
             }}
           >
-            <Typography fontSize={10} color="#9ca3af" fontWeight={600}>IMG</Typography>
+            <Typography fontSize={9} color="#9ca3af" fontWeight={600}>IMG</Typography>
           </Box>
         )}
       </Box>
 
-      {/* 2. TEXTOS Y PRECIO REGULAR */}
+      {/* 3. BLOQUE DE TEXTO Y PRECIO REGULAR */}
       <Box
         data-no-dnd="true"
         onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => e.stopPropagation()}
         sx={{
-          width: esHorizontal ? "55%" : "100%",
-          height: esHorizontal ? "100%" : "auto",
+          width: esHorizontal ? "58%" : "100%",
+          flex: esVertical2x1 ? "none" : 1, // En vertical toma solo su espacio real
           display: "flex",
           flexDirection: "column",
-          justifyContent: "center", 
-          alignItems: "flex-start", 
-          textAlign: "left",
+          justifyContent: esHorizontal ? "center" : "flex-start", 
+          alignItems: esVertical2x1 ? "center" : "flex-start", 
+          textAlign: esVertical2x1 ? "center" : "left",
           zIndex: 10,
-          mt: 0, // Se elimina el margin-top auto para evitar caídas al fondo
+          overflow: "hidden",
+          pb: esVertical2x1 ? 1 : 0, // Padding inferior para que no roce el final de la grilla
         }}
       >
+        {/* NOMBRE */}
         <Typography
           sx={{
             fontFamily: IMPREC?.productName?.fontFamily || "'Imprec-Name', 'Arial Narrow', sans-serif",
             color: textColor || "#000000",
             fontSize: nameFontSize,
             fontWeight: 900,
-            lineHeight: 1.05,
+            lineHeight: 0.98,
             textTransform: "uppercase",
             width: "100%",
-            textAlign: "left",
-            display: "block",
-            wordBreak: "break-word",
+            display: "-webkit-box",
+            WebkitLineClamp: esVertical2x1 ? 3 : 2,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
             boxSizing: "border-box",
-            marginBottom: "2px",
+            marginBottom: "1px",
             userSelect: "none"
           }}
         >
           {nombre || "NOMBRE PRODUCTO"}
         </Typography>
 
+        {/* DESCRIPCIÓN */}
         <Typography
           sx={{
             fontFamily: IMPREC?.productDesc?.fontFamily || "'Imprec-Desc', sans-serif",
             color: textColor === "#ffffff" ? "rgba(255,255,255,0.9)" : "#333333",
             fontSize: descFontSize,
             fontWeight: 600,
-            lineHeight: 1.05,
+            lineHeight: 0.98,
             textTransform: "uppercase",
             width: "100%",
-            textAlign: "left",
-            display: "block",
-            wordBreak: "break-word",
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
             boxSizing: "border-box",
-            marginBottom: "3px",
+            marginBottom: "2px",
             userSelect: "none"
           }}
         >
           {desc || "DESCRIPCIÓN / PRESENTACIÓN"}
         </Typography>
 
+        {/* PRECIO REGULAR */}
         <Box
           sx={{
             px: 0.2,
@@ -162,6 +176,7 @@ export default function MiniProducto({
             display: "flex",
             flexDirection: "column",
             gap: 0.1,
+            mt: esVertical2x1 ? 0.5 : "auto", // Se acerca a la descripción en vertical
           }}
         >
           <Box display="flex" alignItems="center" gap={0.3}>
@@ -196,6 +211,7 @@ export default function MiniProducto({
         </Box>
       </Box>
 
+      {/* 4. PRECIO STARBURST (Siempre absoluto) */}
       {showPrice && precio && (
         <PrecioStarburst
           precio={precio}

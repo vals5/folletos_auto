@@ -34,12 +34,16 @@ export default function PrecioStarburst({
   const precioValido = Number(precio) || 0;
   const precioDisplay = `$${precioValido.toLocaleString("es-AR", { maximumFractionDigits: 0 })}`;
 
-  const [pos, setPos] = useState({ x: visualWidth - starSize - 1, y: 1 });
+  const esVertical = colSpan === 1 && rowSpan > 1;
 
-  // Reubica la cucarda en la esquina superior derecha cada vez que cambia el colSpan/rowSpan
+  const [pos, setPos] = useState({ x: 0, y: 1 });
+
+  // Reubica la cucarda dinámicamente según el formato de la grilla
   useEffect(() => {
-    setPos({ x: Math.max(0, visualWidth - starSize - 1), y: 1 });
-  }, [colSpan, rowSpan, visualWidth, visualHeight, starSize]);
+    // Si es vertical, la centramos calculando la mitad del ancho. Si es estándar, a la derecha.
+    const posicionX = esVertical ? (visualWidth - starSize) / 2 : visualWidth - starSize - 1;
+    setPos({ x: Math.max(0, posicionX), y: 1 });
+  }, [colSpan, rowSpan, visualWidth, visualHeight, starSize, esVertical]);
 
   const dragging = useRef(false);
   const startMouse = useRef({ x: 0, y: 0 });

@@ -159,13 +159,10 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
                     }
                   }}
                 >
-                  <MenuItem value="1x1">1x1 (Normal - 1 Col, 1 Fila)</MenuItem>
-                  <MenuItem value="2x1">2x1 (Horizontal - 2 Cols, 1 Fila)</MenuItem>
-                  <MenuItem value="1x2">1x2 (Vertical - 1 Col, 2 Filas)</MenuItem>
-                  <MenuItem value="2x2">2x2 (Cuadrado - 2 Cols, 2 Filas)</MenuItem>
-                  <MenuItem value="3x1">3x1 (Fila Completa - 3 Cols, 1 Fila)</MenuItem>
-                  <Divider />
-                  <MenuItem value="footer">Pie de página (3x1 Especial)</MenuItem>
+                  <MenuItem value="1x1">1x1 (Normal)</MenuItem>
+                  <MenuItem value="2x1">2x1 (Horizontal)</MenuItem>
+                  <MenuItem value="1x2">1x2 (Vertical)</MenuItem>
+                  <MenuItem value="3x1">3x1 (Pie de página)</MenuItem>
                 </Select>
               </FormControl>
 
