@@ -46,28 +46,29 @@ export default function MiniProducto({
         height: "100%",
         display: "flex",
         flexDirection: esHorizontal ? "row" : "column",
-        justifyContent: esVertical2x1 ? "flex-end" : "space-between", // Empuja al fondo en 2x1 Vertical
+        justifyContent: esVertical2x1 ? "flex-end" : "space-between", 
         alignItems: "center",
         position: "relative",
         boxSizing: "border-box",
         p: esHorizontal ? 0.8 : 0.4,
-        gap: 0.3,
+        gap: esHorizontal ? 0.5 : 0.3,
         overflow: "hidden",
       }}
     >
-      {/* 1. ESPACIADOR (Solo Vertical): Empuja la imagen y textos hacia abajo para dejar el top libre */}
+      {/* 1. ESPACIADOR (Solo Vertical) */}
       {esVertical2x1 && <Box sx={{ flex: 1.2 }} />}
 
       {/* 2. IMAGEN DEL PRODUCTO */}
       <Box
         sx={{
+          order: esHorizontal ? 2 : 1, // En horizontal pasa a la derecha (orden 2)
           height: esHorizontal ? "100%" : esVertical2x1 ? "35%" : "36%", 
           width: esHorizontal ? "42%" : "100%", 
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           flexShrink: 0,
-          mb: esVertical2x1 ? 0.5 : 0, // Separación suave entre imagen y texto en vertical
+          mb: esVertical2x1 ? 0.5 : 0, 
         }}
       >
         {imgSrc ? (
@@ -107,8 +108,9 @@ export default function MiniProducto({
         onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => e.stopPropagation()}
         sx={{
+          order: esHorizontal ? 1 : 2, // En horizontal pasa a la izquierda (orden 1)
           width: esHorizontal ? "58%" : "100%",
-          flex: esVertical2x1 ? "none" : 1, // En vertical toma solo su espacio real
+          flex: esVertical2x1 ? "none" : 1, 
           display: "flex",
           flexDirection: "column",
           justifyContent: esHorizontal ? "center" : "flex-start", 
@@ -116,7 +118,7 @@ export default function MiniProducto({
           textAlign: esVertical2x1 ? "center" : "left",
           zIndex: 10,
           overflow: "hidden",
-          pb: esVertical2x1 ? 1 : 0, // Padding inferior para que no roce el final de la grilla
+          pb: esVertical2x1 ? 1 : 0, 
         }}
       >
         {/* NOMBRE */}
@@ -176,7 +178,7 @@ export default function MiniProducto({
             display: "flex",
             flexDirection: "column",
             gap: 0.1,
-            mt: esVertical2x1 ? 0.5 : "auto", // Se acerca a la descripción en vertical
+            mt: esVertical2x1 ? 0.5 : "auto", 
           }}
         >
           <Box display="flex" alignItems="center" gap={0.3}>

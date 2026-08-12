@@ -20,10 +20,12 @@ export default function PrecioStarburst({
   const visualWidth = baseWidth * (colSpan || 1);
   const visualHeight = baseHeight * (rowSpan || 1);
 
-  const starSize = baseWidth > 100 ? 52 : baseWidth > 70 ? 44 : 36;
+  // TAMAÑO REDUCIDO EN UN 12-15%
+  const starSize = baseWidth > 100 ? 46 : baseWidth > 70 ? 38 : 31;
 
-  const priceFontSize = baseWidth > 100 ? "11pt" : baseWidth > 70 ? "9pt" : "7.5pt";
-  const subtFontSize = baseWidth > 100 ? "5pt" : "4.5pt";
+  // FUENTES AJUSTADAS AL NUEVO TAMAÑO
+  const priceFontSize = baseWidth > 100 ? "9.5pt" : baseWidth > 70 ? "8pt" : "6.5pt";
+  const subtFontSize = baseWidth > 100 ? "4.5pt" : "4pt";
 
   const tarjetaLogo = TARJETA_LOGO[tipoPrecio];
   const isLlevando = tipoPrecio === "llevando3";
@@ -38,9 +40,7 @@ export default function PrecioStarburst({
 
   const [pos, setPos] = useState({ x: 0, y: 1 });
 
-  // Reubica la cucarda dinámicamente según el formato de la grilla
   useEffect(() => {
-    // Si es vertical, la centramos calculando la mitad del ancho. Si es estándar, a la derecha.
     const posicionX = esVertical ? (visualWidth - starSize) / 2 : visualWidth - starSize - 1;
     setPos({ x: Math.max(0, posicionX), y: 1 });
   }, [colSpan, rowSpan, visualWidth, visualHeight, starSize, esVertical]);
