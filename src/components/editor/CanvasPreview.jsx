@@ -53,7 +53,7 @@ const BTN_ROUND = { borderRadius: "20px", textTransform: "none", fontSize: 12 };
 
 export default function CanvasPreview({ flyer, plantilla, paginas = [], modulosPorPagina = {}, paginaActual, setPaginaActual, selectedModulo, onSelectModulo, onFlyerUpdate, onReorderModulos, onAddPagina, onDeletePagina, onMenuAction, onResize }) {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
-  const [zoom, setZoom] = useState(150);
+  const [zoom, setZoom] = useState(180);
 
   const canvasRefs = useRef([]);
   if (canvasRefs.current.length !== paginas.length) {
@@ -74,9 +74,9 @@ export default function CanvasPreview({ flyer, plantilla, paginas = [], modulosP
               <ZoomOutIcon fontSize="small" />
             </IconButton>
           </Tooltip>
-          <Slider value={zoom} min={50} max={200} step={5} onChange={(_, v) => setZoom(v)} size="small" sx={{ flex: 1, color: "#1a1a2e", "& .MuiSlider-thumb": { width: 14, height: 14 } }} />
+          <Slider value={zoom} min={50} max={250} step={5} onChange={(_, v) => setZoom(v)} size="small" sx={{ flex: 1, color: "#1a1a2e", "& .MuiSlider-thumb": { width: 14, height: 14 } }} />
           <Tooltip title="Acercar">
-            <IconButton size="small" onClick={() => setZoom(z => Math.min(200, z + 10))}>
+            <IconButton size="small" onClick={() => setZoom(z => Math.min(250, z + 10))}>
               <ZoomInIcon fontSize="small" />
             </IconButton>
           </Tooltip>
