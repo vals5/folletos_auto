@@ -114,7 +114,11 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
 
                 <FormControl size="small" fullWidth>
                   <InputLabel>Color de Fondo</InputLabel>
-                  <Select value={modulo.fondo_modulo || "white"} label="Color de Fondo" onChange={(e) => handleUpdateField("fondo_modulo", e.target.value)}>
+                  <Select 
+                    value={modulo.fondo_modulo === "rojo" ? "red" : (modulo.fondo_modulo || "empty")} 
+                    label="Color de Fondo" 
+                    onChange={(e) => handleUpdateField("fondo_modulo", e.target.value)}
+                  >
                     {FONDOS_MODULO.map((f) => <MenuItem key={f.value} value={f.value}>{f.label}</MenuItem>)}
                   </Select>
                 </FormControl>
@@ -145,15 +149,12 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
                   onChange={(e) => {
                     const val = e.target.value;
                     if (val === "footer") {
-                      // Usamos la columna formato (que ya existe) para evadir el error de Supabase
                       onUpdate(modulo.id, { colSpan: 3, rowSpan: 1, formato: "footer" });
                     } else {
                       const [c, r] = val.split("x").map(Number);
                       if (modulo.formato === "footer") {
-                        // Si estaba en footer y lo sacan, reseteamos a producto normal
                         onUpdate(modulo.id, { colSpan: c, rowSpan: r, formato: "1_producto" });
                       } else {
-                        // Si era normal, solo cambiamos tamaño sin pisar el formato (por si era un combo de 2 productos)
                         onUpdate(modulo.id, { colSpan: c, rowSpan: r });
                       }
                     }

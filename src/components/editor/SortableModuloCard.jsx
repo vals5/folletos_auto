@@ -52,7 +52,7 @@ export default function SortableModuloCard({
         sx={{
           display: "flex",
           flexDirection: "column",
-          justifyContent: "flex-end", // Mantiene todo pegado abajo como el original
+          justifyContent: "flex-end",
           zIndex: 10,
           cursor: "grab",
           "&:active": { cursor: "grabbing" },
@@ -69,8 +69,13 @@ export default function SortableModuloCard({
 
   // --- RENDERIZADO REGULAR DEL PRODUCTO ---
   const size = TAMANO_SIZE[modulo.tamano] || TAMANO_SIZE["S"];
-  const bgColor = FONDO_COLORS[modulo.fondo_modulo] ?? FONDO_COLORS.empty;
+  
+  // Soporta tanto "red" como "rojo"
+  const isBgRed = modulo.fondo_modulo === "rojo" || modulo.fondo_modulo === "red";
+  const bgColor = FONDO_COLORS[modulo.fondo_modulo] ?? (isBgRed ? (FONDO_COLORS["red"] || FONDO_COLORS["rojo"] || "#dc2626") : (FONDO_COLORS["empty"] || "transparent"));
   const borderStyle = BORDER_STYLES[modulo.estilo_borde] || "1px solid #e2e8f0";
+
+  const textColor = isBgRed ? "#ffffff" : "#000000";
 
   const esMulti = ["2_productos", "3_productos", "4_productos"].includes(modulo.formato);
 
@@ -108,8 +113,6 @@ export default function SortableModuloCard({
   }
 
   const gridCols = modulo.formato === "3_productos" ? 3 : modulo.formato === "4_productos" ? 2 : modulo.formato === "2_productos" ? 2 : 1;
-  const isBgRed = modulo.fondo_modulo === "rojo";
-  const textColor = isBgRed ? "#ffffff" : "#000000";
 
   const handleUpdateField = (field, value, index = 0) => {
     if (onUpdateModulo) {
@@ -140,39 +143,39 @@ export default function SortableModuloCard({
         boxSizing: "border-box"
       }}
     >
-     {!esMulti && todosLosProductos[0] && (
-  <Box 
-    sx={{ 
-      flex: 1, 
-      display: "flex", 
-      flexDirection: colSpan > 1 ? "row" : "column", 
-      alignItems: "center",
-      position: "relative", 
-      p: 0.8,
-      gap: 1
-    }}
-  >
-    <MiniProducto
-      producto={todosLosProductos[0].producto}
-      imgOverride={todosLosProductos[0].imgOverride}
-      nombreOverride={todosLosProductos[0].nombreOverride}
-      descripcionOverride={todosLosProductos[0].descripcionOverride}
-      precioRegularOverride={todosLosProductos[0].precioRegularOverride}
-      stockOverride={todosLosProductos[0].stockOverride}
-      textColor={textColor}
-      showPrice={false}
-      size={size}
-      isBgRed={isBgRed}
-      isModuloSelected={isSelected}
-      IMPREC={IMPREC}
-      TARJETA_LOGO={TARJETA_LOGO}
-      flyer={flyer}
-      colSpan={colSpan} 
-      rowSpan={rowSpan}
-      onUpdateField={(field, value) => handleUpdateField(field, value, 0)}
-    />
-  </Box>
-)}
+      {!esMulti && todosLosProductos[0] && (
+        <Box 
+          sx={{ 
+            flex: 1, 
+            display: "flex", 
+            flexDirection: colSpan > 1 ? "row" : "column", 
+            alignItems: "center",
+            position: "relative", 
+            p: 0.8,
+            gap: 1
+          }}
+        >
+          <MiniProducto
+            producto={todosLosProductos[0].producto}
+            imgOverride={todosLosProductos[0].imgOverride}
+            nombreOverride={todosLosProductos[0].nombreOverride}
+            descripcionOverride={todosLosProductos[0].descripcionOverride}
+            precioRegularOverride={todosLosProductos[0].precioRegularOverride}
+            stockOverride={todosLosProductos[0].stockOverride}
+            textColor={textColor}
+            showPrice={false}
+            size={size}
+            isBgRed={isBgRed}
+            isModuloSelected={isSelected}
+            IMPREC={IMPREC}
+            TARJETA_LOGO={TARJETA_LOGO}
+            flyer={flyer}
+            colSpan={colSpan} 
+            rowSpan={rowSpan}
+            onUpdateField={(field, value) => handleUpdateField(field, value, 0)}
+          />
+        </Box>
+      )}
 
       {esMulti && (
         <Box sx={{ display: "grid", gridTemplateColumns: `repeat(${gridCols},1fr)`, flex: 1, p: 0.3 }}>
@@ -188,8 +191,8 @@ export default function SortableModuloCard({
               textColor={textColor} 
               showPrice={false} 
               size={size} 
-             colSpan={colSpan}
-             rowSpan={rowSpan}
+              colSpan={colSpan}
+              rowSpan={rowSpan}
               isBgRed={isBgRed} 
               isModuloSelected={isSelected} 
               IMPREC={IMPREC} 

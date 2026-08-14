@@ -11,7 +11,7 @@ export default function PrecioStarburst({
   rowSpan = 1,
   isBgRed = false,
   isModuloSelected = false,
-  IMPREC = { colors: { red: "#ef4444", white: "#ffffff", black: "#000000" }, price: {}, subtPrice: {} },
+  IMPREC = { colors: { red: "#dc2626", white: "#ffffff", black: "#000000" }, price: {}, subtPrice: {} },
   TARJETA_LOGO = {},
 }) {
   const baseWidth = (size?.width || 100) * 0.5;
@@ -20,18 +20,20 @@ export default function PrecioStarburst({
   const visualWidth = baseWidth * (colSpan || 1);
   const visualHeight = baseHeight * (rowSpan || 1);
 
-  // TAMAÑO REDUCIDO EN UN 12-15%
+  // Tamaño adaptativo
   const starSize = baseWidth > 100 ? 46 : baseWidth > 70 ? 38 : 31;
 
-  // FUENTES AJUSTADAS AL NUEVO TAMAÑO
+  // Fuentes proporcionales
   const priceFontSize = baseWidth > 100 ? "9.5pt" : baseWidth > 70 ? "8pt" : "6.5pt";
   const subtFontSize = baseWidth > 100 ? "4.5pt" : "4pt";
 
   const tarjetaLogo = TARJETA_LOGO[tipoPrecio];
   const isLlevando = tipoPrecio === "llevando3";
 
-  const subtColor = isBgRed ? IMPREC?.colors?.red : IMPREC?.colors?.white;
-  const priceColor = isBgRed ? IMPREC?.colors?.red : IMPREC?.colors?.black;
+  // COLOR DEL PRECIO Y SUBTÍTULO
+  const redColor = IMPREC?.colors?.red || "#dc2626";
+  const priceColor = isBgRed ? redColor : (IMPREC?.colors?.black || "#000000");
+  const subtColor = isBgRed ? redColor : (IMPREC?.colors?.white || "#ffffff");
 
   const precioValido = Number(precio) || 0;
   const precioDisplay = `$${precioValido.toLocaleString("es-AR", { maximumFractionDigits: 0 })}`;
@@ -107,6 +109,7 @@ export default function PrecioStarburst({
         "&:active": { cursor: "grabbing" },
       }}
     >
+      {/* FONDO CUCARDA: Si isBgRed es true, el filtro convierte las formas del SVG a blanco puro */}
       <Box
         component="img"
         src={StarburstSvg}
@@ -118,9 +121,11 @@ export default function PrecioStarburst({
           top: 0,
           left: 0,
           pointerEvents: "none",
+          filter: isBgRed ? "brightness(0) invert(1)" : "none",
         }}
       />
 
+      {/* CONTENIDO INTERNO */}
       <Box sx={{ position: "relative", zIndex: 52, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", width: "85%" }}>
         {tarjetaLogo && (
           <Box
@@ -132,11 +137,34 @@ export default function PrecioStarburst({
             }}
           />
         )}
-        <Typography sx={{ ...(IMPREC?.price || {}), fontSize: priceFontSize, fontWeight: 900, px: 0.1, whiteSpace: "nowrap", lineHeight: 0.95, color: priceColor, pointerEvents: "none" }}>
+        
+        <Typography 
+          sx={{ 
+            ...(IMPREC?.price || {}), 
+            fontSize: priceFontSize, 
+            fontWeight: 900, 
+            px: 0.1, 
+            whiteSpace: "nowrap", 
+            lineHeight: 0.95, 
+            color: priceColor,
+            pointerEvents: "none" 
+          }}
+        >
           {precioDisplay}
         </Typography>
+
         {isLlevando && (
-          <Typography sx={{ ...(IMPREC?.subtPrice || {}), fontSize: subtFontSize, fontWeight: 700, letterSpacing: 0.2, color: subtColor, pointerEvents: "none", mt: 0.1 }}>
+          <Typography 
+            sx={{ 
+              ...(IMPREC?.subtPrice || {}), 
+              fontSize: subtFontSize, 
+              fontWeight: 700, 
+              letterSpacing: 0.2, 
+              color: subtColor, 
+              pointerEvents: "none", 
+              mt: 0.1 
+            }}
+          >
             X UNIDAD
           </Typography>
         )}
