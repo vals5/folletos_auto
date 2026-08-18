@@ -70,7 +70,6 @@ export default function SortableModuloCard({
   // --- RENDERIZADO REGULAR DEL PRODUCTO ---
   const size = TAMANO_SIZE[modulo.tamano] || TAMANO_SIZE["S"];
   
-  // Soporta tanto "red" como "rojo"
   const isBgRed = modulo.fondo_modulo === "rojo" || modulo.fondo_modulo === "red";
   const bgColor = FONDO_COLORS[modulo.fondo_modulo] ?? (isBgRed ? (FONDO_COLORS["red"] || FONDO_COLORS["rojo"] || "#dc2626") : (FONDO_COLORS["empty"] || "transparent"));
   const borderStyle = BORDER_STYLES[modulo.estilo_borde] || "1px solid #e2e8f0";
@@ -85,10 +84,10 @@ export default function SortableModuloCard({
       todosLosProductos = [
         { 
           producto: modulo.productos, 
-          imgOverride: modulo.imagen_url, 
-          nombreOverride: modulo.nombre, 
-          descripcionOverride: modulo.descripcion,
-          precioRegularOverride: modulo.precio_regular,
+          imgOverride: modulo.imagen_url || modulo.imagen_url_override || modulo.imagen, 
+          nombreOverride: modulo.nombre_override || modulo.nombre, 
+          descripcionOverride: modulo.descripcion_override || modulo.descripcion,
+          precioRegularOverride: modulo.precio_regular_override || modulo.precio_regular,
           stockOverride: modulo.stock
         },
         { 
@@ -104,10 +103,10 @@ export default function SortableModuloCard({
   } else {
     todosLosProductos = [{ 
       producto: modulo.productos, 
-      imgOverride: modulo.imagen_url, 
-      nombreOverride: modulo.nombre, 
-      descripcionOverride: modulo.descripcion,
-      precioRegularOverride: modulo.precio_regular,
+      imgOverride: modulo.imagen_url || modulo.imagen_url_override || modulo.imagen, 
+      nombreOverride: modulo.nombre_override || modulo.nombre, 
+      descripcionOverride: modulo.descripcion_override || modulo.descripcion,
+      precioRegularOverride: modulo.precio_regular_override || modulo.precio_regular,
       stockOverride: modulo.stock
     }];
   }
@@ -147,12 +146,15 @@ export default function SortableModuloCard({
         <Box 
           sx={{ 
             flex: 1, 
+            width: "100%",
+            height: "100%",
             display: "flex", 
             flexDirection: colSpan > 1 ? "row" : "column", 
             alignItems: "center",
             position: "relative", 
             p: 0.8,
-            gap: 1
+            gap: 1,
+            boxSizing: "border-box"
           }}
         >
           <MiniProducto
@@ -178,7 +180,7 @@ export default function SortableModuloCard({
       )}
 
       {esMulti && (
-        <Box sx={{ display: "grid", gridTemplateColumns: `repeat(${gridCols},1fr)`, flex: 1, p: 0.3 }}>
+        <Box sx={{ display: "grid", gridTemplateColumns: `repeat(${gridCols},1fr)`, flex: 1, width: "100%", height: "100%", p: 0.3, boxSizing: "border-box" }}>
           {todosLosProductos.map((item, i) => (
             <MiniProducto 
               key={i} 

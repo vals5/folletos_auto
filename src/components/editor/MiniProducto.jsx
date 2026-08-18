@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Box, Typography } from "@mui/material";
 import PrecioStarburst from "./PrecioStarburst";
 import InlineText from "../ui/InlineText"; 
@@ -22,7 +23,7 @@ export default function MiniProducto({
   rowSpan = 1,
   onUpdateField, 
 }) {
-  const imgSrc = imgOverride || producto?.imagen_url || producto?.imagen;
+  const imgSrc = imgOverride || producto?.imagen_url || producto?.imagen || producto?.imagen_src;
   const nombre = nombreOverride || producto?.nombre || "";
   const desc = descripcionOverride !== undefined && descripcionOverride !== null 
     ? descripcionOverride 
@@ -30,9 +31,15 @@ export default function MiniProducto({
   
   const precioRegular = precioRegularOverride || producto?.precio_regular || "";
 
+  const [imgError, setImgError] = useState(false);
+
+  useEffect(() => {
+    setImgError(false);
+  }, [imgSrc]);
+
   // Tipos de Layout
-  const esHorizontal = colSpan > 1; // 2x1 Horizontal
-  const esVertical2x1 = colSpan === 1 && rowSpan > 1; // 2x1 Vertical
+  const esHorizontal = colSpan > 1; 
+  const esVertical2x1 = colSpan === 1 && rowSpan > 1; 
 
   // Tamaños adaptativos
   const nameFontSize = colSpan >= 2 ? "0.85rem" : esVertical2x1 ? "0.68rem" : "0.52rem";
@@ -61,9 +68,10 @@ export default function MiniProducto({
       {/* 2. IMAGEN DEL PRODUCTO */}
       <Box
         sx={{
-          order: esHorizontal ? 2 : 1, // En horizontal pasa a la derecha (orden 2)
-          height: esHorizontal ? "100%" : esVertical2x1 ? "35%" : "36%", 
+          order: esHorizontal ? 2 : 1,
+          height: esHorizontal ? "100%" : esVertical2x1 ? "42%" : "40%", 
           width: esHorizontal ? "42%" : "100%", 
+          minHeight: esHorizontal ? "auto" : "35px",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -71,18 +79,18 @@ export default function MiniProducto({
           mb: esVertical2x1 ? 0.5 : 0, 
         }}
       >
-        {imgSrc ? (
+        {imgSrc && !imgError ? (
           <Box
             component="img"
             src={imgSrc}
             alt={nombre || "Producto"}
+            onError={() => setImgError(true)}
             sx={{
               maxHeight: "100%",
               maxWidth: "100%",
               objectFit: "contain",
               pointerEvents: "none",
             }}
-            onError={(e) => { e.target.style.display = "none"; }}
           />
         ) : (
           <Box
@@ -108,7 +116,7 @@ export default function MiniProducto({
         onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => e.stopPropagation()}
         sx={{
-          order: esHorizontal ? 1 : 2, // En horizontal pasa a la izquierda (orden 1)
+          order: esHorizontal ? 1 : 2,
           width: esHorizontal ? "58%" : "100%",
           flex: esVertical2x1 ? "none" : 1, 
           display: "flex",
@@ -213,7 +221,7 @@ export default function MiniProducto({
         </Box>
       </Box>
 
-      {/* 4. PRECIO STARBURST (Siempre absoluto) */}
+      {/* 4. PRECIO STARBURST */}
       {showPrice && precio && (
         <PrecioStarburst
           precio={precio}

@@ -5,11 +5,37 @@ import { SortableContext, rectSortingStrategy, arrayMove } from "@dnd-kit/sortab
 import { supabase } from "../../services/supabase";
 import HeaderImprecionante from "./HeaderImprecionante";
 import SortableModuloCard from "./SortableModuloCard";
-import LegalEditable from "./Legal"; // Importamos el Legal si lo quieres fijo al pie de página
+import LegalEditable from "./Legal";
 
 import FondoTextura from "../../assets/img/Fondo-Imprec.jpg";
 
-export default function PaginaCanvas({ flyer, pag, pagIdx, modulos, selectedModulo, onSelectModulo, onMenuAction, onResize, onDeletePagina, canvasRef, totalPaginas, sensors, onReorderModulos, onFlyerUpdate, esPrimera, TAMANO_SIZE, TIPO_PRECIO_LABEL, FONDO_COLORS, BORDER_STYLES, TAMANOS, IMPREC, TARJETA_LOGO, DEFAULT_LOGOS }) {
+export default function PaginaCanvas({ 
+  flyer, 
+  pag, 
+  pagIdx, 
+  isPaginaActiva,
+  onSelectPagina,
+  modulos, 
+  selectedModulo, 
+  onSelectModulo, 
+  onMenuAction, 
+  onResize, 
+  onDeletePagina, 
+  canvasRef, 
+  totalPaginas, 
+  sensors, 
+  onReorderModulos, 
+  onFlyerUpdate, 
+  esPrimera, 
+  TAMANO_SIZE, 
+  TIPO_PRECIO_LABEL, 
+  FONDO_COLORS, 
+  BORDER_STYLES, 
+  TAMANOS, 
+  IMPREC, 
+  TARJETA_LOGO, 
+  DEFAULT_LOGOS 
+}) {
   
   const handleDragEnd = async ({ active, over }) => {
     if (!over || active.id === over.id) return;
@@ -20,19 +46,48 @@ export default function PaginaCanvas({ flyer, pag, pagIdx, modulos, selectedModu
     await Promise.all(reordered.map((m, i) => supabase.from("modulos").update({ posicion: i }).eq("id", m.id)));
   };
 
+  const handleActivarPagina = () => {
+    if (onSelectPagina) {
+      onSelectPagina(pagIdx);
+    }
+  };
+
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", mb: 4 }}>
+    <Box 
+      onClick={handleActivarPagina}
+      sx={{ display: "flex", flexDirection: "column", alignItems: "center", mb: 4, cursor: "pointer" }}
+    >
+      {/* HEADER CON INDICADOR DE PÁGINA Y ELIMINAR */}
       <Box display="flex" alignItems="center" gap={1} mb={1}>
-        <Chip label={`Página ${pag.numero}`} size="small" sx={{ borderRadius: "20px", fontWeight: 600, fontSize: 12, bgcolor: "#1a1a2e", color: "white", px: 1 }} />
+        <Chip 
+          label={`Página ${pag.numero}`} 
+          size="small" 
+          sx={{ 
+            borderRadius: "20px", 
+            fontWeight: 700, 
+            fontSize: 12, 
+            bgcolor: isPaginaActiva ? "#2563eb" : "#1a1a2e", 
+            color: "white", 
+            px: 1,
+            transition: "all 0.2s"
+          }} 
+        />
         {totalPaginas > 1 && (
           <Tooltip title="Eliminar página">
-            <Box onClick={() => onDeletePagina(pagIdx, pag)} sx={{ display: "flex", alignItems: "center", gap: 0.4, cursor: "pointer", bgcolor: "#ef4444", color: "white", borderRadius: "20px", px: 1.2, height: 24, "&:hover": { bgcolor: "#dc2626" } }}>
+            <Box 
+              onClick={(e) => {
+                e.stopPropagation();
+                onDeletePagina(pagIdx, pag);
+              }} 
+              sx={{ display: "flex", alignItems: "center", gap: 0.4, cursor: "pointer", bgcolor: "#ef4444", color: "white", borderRadius: "20px", px: 1.2, height: 24, "&:hover": { bgcolor: "#dc2626" } }}
+            >
               <CloseIcon sx={{ fontSize: 13 }} />
             </Box>
           </Tooltip>
         )}
       </Box>
 
+      {/* MARCO DE LA PÁGINA */}
       <Box 
         ref={canvasRef} 
         style={{
@@ -45,32 +100,35 @@ export default function PaginaCanvas({ flyer, pag, pagIdx, modulos, selectedModu
           width: (flyer?.width || 595) * 0.5, 
           height: (flyer?.height || 841) * 0.5, 
           borderRadius: "6px", 
-          boxShadow: "0 8px 32px rgba(0,0,0,0.25)", 
+          boxShadow: isPaginaActiva ? "0 0 0 4px #2563eb, 0 8px 32px rgba(0,0,0,0.35)" : "0 8px 32px rgba(0,0,0,0.25)", 
           display: "flex", 
           flexDirection: "column", 
           overflow: "hidden", 
-          position: "relative" 
+          position: "relative",
+          transition: "box-shadow 0.2s ease"
         }}
       >
         {/* 1. HEADER (FIJO ARRIBA) */}
         <HeaderImprecionante flyer={flyer} onFlyerUpdate={onFlyerUpdate} IMPREC={IMPREC} DEFAULT_LOGOS={DEFAULT_LOGOS} />
 
-        {/* 2. GRILLA CENTRAL (3 columnas x 4 filas exactas) */}
+        {/* 2. GRILLA CENTRAL */}
         <Box sx={{ flex: 1, overflow: "hidden", px: 0.8, py: 0.5, display: "flex", flexDirection: "column" }}>
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             
             <Box sx={{ 
               display: "grid", 
               gridTemplateColumns: "repeat(3, 1fr)", 
-              gridTemplateRows: "repeat(4, 1fr)", // SINTAXIS CSS CORREGIDA
+              gridTemplateRows: "repeat(4, 1fr)", 
               gap: 0.5, 
               flex: 1,
               height: "100%"
             }}>
               
-              {modulos.length === 0 && !esPrimera && (
+              {modulos.length === 0 && (
                 <Box sx={{ gridColumn: "1 / -1", gridRow: "1 / -1", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <Typography fontSize={13} color="#92400e" textAlign="center">Agregá productos desde el panel izquierdo</Typography>
+                  <Typography fontSize={13} color="#92400e" textAlign="center" fontWeight={600}>
+                    Hacé clic en esta página para seleccionar productos desde el panel izquierdo
+                  </Typography>
                 </Box>
               )}
 
@@ -80,7 +138,10 @@ export default function PaginaCanvas({ flyer, pag, pagIdx, modulos, selectedModu
                     key={modulo.id} 
                     modulo={modulo} 
                     isSelected={selectedModulo?.id === modulo.id} 
-                    onClick={() => onSelectModulo(modulo)} 
+                    onClick={() => {
+                      handleActivarPagina();
+                      onSelectModulo(modulo);
+                    }} 
                     onMenuAction={onMenuAction} 
                     onResize={onResize} 
                     flyer={flyer} 
@@ -102,7 +163,7 @@ export default function PaginaCanvas({ flyer, pag, pagIdx, modulos, selectedModu
           </DndContext>
         </Box>
 
-        {/* 3. LEGAL (FIJO ABAJO CON FUENTE 9pt) */}
+        {/* 3. LEGAL (FIJO ABAJO) */}
         {LegalEditable && (
           <Box sx={{ px: 0.8, pb: 0.5, flexShrink: 0, zIndex: 10 }}>
             <LegalEditable 

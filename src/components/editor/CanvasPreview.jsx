@@ -93,7 +93,7 @@ export default function CanvasPreview({ flyer, plantilla, paginas = [], modulosP
         </Typography>
       )}
 
-      {/* CONTENEDOR SEGURO CONTRA SCROLL HORIZONTAL */}
+      {/* CONTENEDOR DE PÁGINAS */}
       <Box sx={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", overflow: "visible" }}>
         <Box 
           sx={{ 
@@ -116,10 +116,32 @@ export default function CanvasPreview({ flyer, plantilla, paginas = [], modulosP
               if (!canvasRefs.current[idx]) canvasRefs.current[idx] = { current: null };
               return (
                 <PaginaCanvas 
-                  key={pag.id} flyer={flyer} pag={pag} pagIdx={idx} modulos={modulosPorPagina[idx] || []} selectedModulo={selectedModulo} onSelectModulo={onSelectModulo}
-                  onMenuAction={onMenuAction} onResize={onResize} onDeletePagina={onDeletePagina} canvasRef={(el) => { canvasRefs.current[idx] = { current: el }; }} totalPaginas={paginas.length}
-                  sensors={sensors} onReorderModulos={onReorderModulos} onFlyerUpdate={onFlyerUpdate} esPrimera={idx === 0} TAMANO_SIZE={TAMANO_SIZE} TIPO_PRECIO_LABEL={TIPO_PRECIO_LABEL}
-                  FONDO_COLORS={FONDO_COLORS} BORDER_STYLES={BORDER_STYLES} TAMANOS={TAMANOS} IMPREC={IMPREC} TARJETA_LOGO={TARJETA_LOGO} DEFAULT_LOGOS={DEFAULT_LOGOS} 
+                  key={pag.id} 
+                  flyer={flyer} 
+                  pag={pag} 
+                  pagIdx={idx} 
+                  isPaginaActiva={paginaActual === idx}
+                  onSelectPagina={(pIndex) => setPaginaActual(pIndex)}
+                  modulos={modulosPorPagina[idx] || []} 
+                  selectedModulo={selectedModulo} 
+                  onSelectModulo={onSelectModulo}
+                  onMenuAction={onMenuAction} 
+                  onResize={onResize} 
+                  onDeletePagina={onDeletePagina} 
+                  canvasRef={(el) => { canvasRefs.current[idx] = { current: el }; }} 
+                  totalPaginas={paginas.length}
+                  sensors={sensors} 
+                  onReorderModulos={onReorderModulos} 
+                  onFlyerUpdate={onFlyerUpdate} 
+                  esPrimera={idx === 0} 
+                  TAMANO_SIZE={TAMANO_SIZE} 
+                  TIPO_PRECIO_LABEL={TIPO_PRECIO_LABEL}
+                  FONDO_COLORS={FONDO_COLORS} 
+                  BORDER_STYLES={BORDER_STYLES} 
+                  TAMANOS={TAMANOS} 
+                  IMPREC={IMPREC} 
+                  TARJETA_LOGO={TARJETA_LOGO} 
+                  DEFAULT_LOGOS={DEFAULT_LOGOS} 
                 />
               );
             })
