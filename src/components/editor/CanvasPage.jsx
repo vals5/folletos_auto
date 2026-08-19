@@ -1,5 +1,7 @@
-import { Box, Typography, Chip, Tooltip } from "@mui/material";
+import { useState, useEffect } from "react";
+import { Box, Typography, Chip, Tooltip, InputBase } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import EditIcon from "@mui/icons-material/Edit";
 import { DndContext, closestCenter } from "@dnd-kit/core";
 import { SortableContext, rectSortingStrategy, arrayMove } from "@dnd-kit/sortable";
 import { supabase } from "../../services/supabase";
@@ -15,6 +17,7 @@ export default function PaginaCanvas({
   pagIdx, 
   isPaginaActiva,
   onSelectPagina,
+  onUpdatePaginaName,
   modulos, 
   selectedModulo, 
   onSelectModulo, 
@@ -36,7 +39,27 @@ export default function PaginaCanvas({
   TARJETA_LOGO, 
   DEFAULT_LOGOS 
 }) {
-  
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [nombreLocal, setNombreLocal] = useState(pag?.nombre || `Página ${pag?.numero || pagIdx + 1}`);
+
+  useEffect(() => {
+    setNombreLocal(pag?.nombre || `Página ${pag?.numero || pagIdx + 1}`);
+  }, [pag?.nombre, pag?.numero, pagIdx]);
+
+  const handleSaveNombre = async () => {
+    setIsEditingName(false);
+    const nuevoNombre = nombreLocal.trim() || `Página ${pag?.numero || pagIdx + 1}`;
+    
+    if (onUpdatePaginaName) {
+      onUpdatePaginaName(pagIdx, pag.id, nuevoNombre);
+    }
+
+    // Guardado directo en Supabase si existe el ID
+    if (pag?.id) {
+      await supabase.from("paginas").update({ nombre: nuevoNombre }).eq("id", pag.id);
+    }
+  };
+
   const handleDragEnd = async ({ active, over }) => {
     if (!over || active.id === over.id) return;
     const oldIdx = modulos.findIndex((m) => m.id === active.id);
@@ -57,21 +80,53 @@ export default function PaginaCanvas({
       onClick={handleActivarPagina}
       sx={{ display: "flex", flexDirection: "column", alignItems: "center", mb: 4, cursor: "pointer" }}
     >
-      {/* HEADER CON INDICADOR DE PÁGINA Y ELIMINAR */}
+      {/* HEADER CON NOMBRE EDITABLE Y ELIMINAR */}
       <Box display="flex" alignItems="center" gap={1} mb={1}>
-        <Chip 
-          label={`Página ${pag.numero}`} 
-          size="small" 
-          sx={{ 
-            borderRadius: "20px", 
-            fontWeight: 700, 
-            fontSize: 12, 
-            bgcolor: isPaginaActiva ? "#2563eb" : "#1a1a2e", 
-            color: "white", 
-            px: 1,
-            transition: "all 0.2s"
-          }} 
-        />
+        {isEditingName ? (
+          <InputBase
+            value={nombreLocal}
+            onChange={(e) => setNombreLocal(e.target.value)}
+            onBlur={handleSaveNombre}
+            onKeyDown={(e) => e.key === "Enter" && handleSaveNombre()}
+            autoFocus
+            onClick={(e) => e.stopPropagation()}
+            sx={{
+              bgcolor: "#1a1a2e",
+              color: "white",
+              borderRadius: "20px",
+              px: 1.5,
+              py: 0.1,
+              fontSize: 12,
+              fontWeight: 700,
+              border: "2px solid #2563eb",
+              input: { textAlign: "center" }
+            }}
+          />
+        ) : (
+          <Tooltip title="Haz clic para cambiar el nombre de esta página">
+            <Chip 
+              label={nombreLocal} 
+              size="small" 
+              icon={<EditIcon sx={{ fontSize: "12px !important", color: "white !important" }} />}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsEditingName(true);
+              }}
+              sx={{ 
+                borderRadius: "20px", 
+                fontWeight: 700, 
+                fontSize: 12, 
+                bgcolor: isPaginaActiva ? "#2563eb" : "#1a1a2e", 
+                color: "white", 
+                px: 1,
+                cursor: "pointer",
+                transition: "all 0.2s",
+                "&:hover": { bgcolor: "#3b82f6" }
+              }} 
+            />
+          </Tooltip>
+        )}
+
         {totalPaginas > 1 && (
           <Tooltip title="Eliminar página">
             <Box 
