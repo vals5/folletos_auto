@@ -1,4 +1,3 @@
-// src/pages/Dashboard.jsx o donde lo tengas ubicado
 import { useState, useEffect } from "react";
 import { Box, Typography, Button, Card, CardContent, CardActions, Grid, Skeleton, Chip } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
@@ -13,13 +12,12 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  useEffect(() => { fetchFlyers(); }, []);
+  useEffect(() => {
+    fetchFlyers();
+  }, []);
 
   const fetchFlyers = async () => {
-    const { data, error } = await supabase
-      .from("flyers")
-      .select("*")
-      .order("created_at", { ascending: false });
+    const { data, error } = await supabase.from("flyers").select("*").order("created_at", { ascending: false });
     if (!error) setFlyers(data);
     setIsLoading(false);
   };
@@ -44,7 +42,9 @@ export default function Dashboard() {
   return (
     <Box p={2} sx={{ width: "100%", minHeight: "100vh", bgcolor: "#f4f6f8" }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={4} mt={2} px={2}>
-        <Typography variant="h4" fontWeight={900} color="#1a1a2e">Folletos</Typography>
+        <Typography variant="h4" fontWeight={900} color="#1a1a2e">
+          Folletos
+        </Typography>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
@@ -64,28 +64,71 @@ export default function Dashboard() {
             ))
           : flyers.map((flyer) => (
               <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={flyer.id}>
+                {/* TARJETA DEL DASHBOARD */}
                 <Card sx={{ borderRadius: 4, transition: "0.3s", "&:hover": { boxShadow: 10 } }}>
-                  <Box sx={{ height: 160, bgcolor: flyer.bg_color || "#fff800", display: "flex", flexDirection: "column", borderBottom: "1px solid #eee" }}>
-                    <Box sx={{ height: 36, bgcolor: flyer.header_color || "#ff0000", display: "flex", alignItems: "center", px: 1.5, gap: 1 }}>
-                      {flyer.logo_izq_url && (
-                        <Box component="img" src={flyer.logo_izq_url} alt="logo" sx={{ height: 22, maxWidth: 70, objectFit: "contain" }} />
-                      )}
-                    </Box>
+                  {/* Fondo y Logo de la vista previa */}
+                  <Box
+                    sx={{
+                      height: 160,
+                      bgcolor: flyer.bg_color || "#fff800",
+                      display: "flex",
+                      flexDirection: "column",
+                      borderBottom: "1px solid #eee",
+                      p: 1.5,
+                      position: "relative",
+                    }}
+                  >
+                    {flyer.logo_izq_url ? (
+                      <Box
+                        component="img"
+                        src={flyer.logo_izq_url}
+                        alt="logo"
+                        onError={(e) => (e.target.style.display = "none")}
+                        sx={{ height: 26, maxWidth: 90, objectFit: "contain", alignSelf: "flex-start" }}
+                      />
+                    ) : (
+                      <Box
+                        component="img"
+                        src="/src/assets/img/Imprecionante.svg"
+                        alt="logo"
+                        onError={(e) => (e.target.style.display = "none")}
+                        sx={{ height: 26, maxWidth: 90, objectFit: "contain", alignSelf: "flex-start" }}
+                      />
+                    )}
                   </Box>
 
+                  {/* Contenido (Títulos, chips, etc) */}
                   <CardContent sx={{ p: 2 }}>
-                    <Typography variant="subtitle1" fontWeight={800} noWrap>{flyer.name}</Typography>
+                    <Typography variant="subtitle1" fontWeight={800} noWrap>
+                      {flyer.name}
+                    </Typography>
                     <Box display="flex" gap={0.5} flexWrap="wrap" mt={0.5}>
                       <Chip label={`${flyer.width}×${flyer.height}px`} size="small" sx={{ fontSize: 10 }} />
-                      <Chip label="IMPRECIONANTE" size="small" sx={{ fontSize: 10, bgcolor: "#fff8e1", color: "#b45309" }} />
+                      <Chip
+                        label="IMPRECIONANTE"
+                        size="small"
+                        sx={{ fontSize: 10, bgcolor: "#fff8e1", color: "#b45309" }}
+                      />
                     </Box>
                   </CardContent>
 
                   <CardActions sx={{ p: 2, pt: 0, gap: 1 }}>
-                    <Button fullWidth variant="contained" size="small" onClick={() => navigate(`/editor/${flyer.id}`)} sx={{ borderRadius: 2, bgcolor: "#025BA9" }}>
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      size="small"
+                      onClick={() => navigate(`/editor/${flyer.id}`)}
+                      sx={{ borderRadius: 2, bgcolor: "#025BA9" }}
+                    >
                       Editar
                     </Button>
-                    <Button size="small" color="error" variant="outlined" onClick={(e) => handleDelete(e, flyer.id)} sx={{ borderRadius: 2, minWidth: 36, px: 0 }}>
+                    <Button
+                      size="small"
+                      color="error"
+                      variant="outlined"
+                      onClick={(e) => handleDelete(e, flyer.id)}
+                      sx={{ borderRadius: 2, minWidth: 36, px: 0 }}
+                    >
                       ✕
                     </Button>
                   </CardActions>
@@ -95,11 +138,7 @@ export default function Dashboard() {
       </Grid>
 
       {/* Modal externalizado */}
-      <NewFlyerModal
-        open={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onCreate={handleCreate}
-      />
+      <NewFlyerModal open={isModalOpen} onClose={() => setIsModalOpen(false)} onCreate={handleCreate} />
     </Box>
   );
 }

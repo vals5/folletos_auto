@@ -5,7 +5,9 @@ import ZoomOutIcon from "@mui/icons-material/ZoomOut";
 import AddIcon from "@mui/icons-material/Add";
 import { useSensors, useSensor, PointerSensor } from "@dnd-kit/core";
 
-import PaginaCanvas from "./CanvasPage";
+// Asegurate de que la ruta de tu componente hijo sea correcta.
+// Si se llama PaginaCanvas.jsx, cambialo acá.
+import PaginaCanvas from "./CanvasPage"; 
 import ExportButtons from "./ExportButtons"; 
 
 import ImprecLogo from "../../assets/img/Imprecionante.svg";
@@ -17,24 +19,62 @@ const DEFAULT_LOGOS = { izq: ImprecLogo, der: VeaLogo };
 const TARJETA_LOGO = { vea_ahorro: TarjetaVea, regular_cencosud: TarjetaCencosud };
 
 const GlobalFonts = () => (
-  <style>{/* ... (Mismos estilos de fuentes que antes) ... */}</style>
+  <style>{`
+    @font-face { font-family:'Imprec-Vigency';  src:url('/src/assets/fonts/imprecionante/GothamCondensed-Bold.otf') format('opentype'); }
+    @font-face { font-family:'Imprec-Legal';    src:url('/src/assets/fonts/imprecionante/Zuume-Light.otf')          format('opentype'); }
+    @font-face { font-family:'Imprec-Price';    src:url('/src/assets/fonts/imprecionante/GothamCondensed-Bold.otf') format('opentype'); }
+    @font-face { font-family:'Imprec-SubtPrice';src:url('/src/assets/fonts/imprecionante/GothamCondensed-Bold.otf') format('opentype'); }
+    @font-face { font-family:'Imprec-RegPrice'; src:url('/src/assets/fonts/imprecionante/Zuume-Bold.otf')           format('opentype'); }
+    @font-face { font-family:'Imprec-kgPrice';  src:url('/src/assets/fonts/imprecionante/Zuume-Light.otf')          format('opentype'); }
+    @font-face { font-family:'Imprec-Name';     src:url('/src/assets/fonts/imprecionante/Zuume-SemiBold.otf')       format('opentype'); }
+    @font-face { font-family:'Imprec-Desc';     src:url('/src/assets/fonts/imprecionante/Zuume-Light.otf')          format('opentype'); }
+  `}</style>
 );
 
 const IMPREC = {
-  // ... (Mismo objeto IMPREC)
+  colors: { red: "#ff0000", yellow: "#fff800", black: "#000000", white: "#ffffff" },
+  vigency: { fontFamily: "'Imprec-Vigency',sans-serif", fontSize: "13pt", textTransform: "uppercase", color: "#ff0000", lineHeight: 1.15 },
+  legal: { fontFamily: "'Imprec-Legal',sans-serif", fontSize: "9pt", textTransform: "uppercase", color: "#000000" },
+  price: { fontFamily: "'Imprec-Price',sans-serif", textTransform: "uppercase", lineHeight: 1 },
+  subtPrice: { fontFamily: "'Imprec-SubtPrice',sans-serif", textTransform: "uppercase", lineHeight: 1 },
+  regPrice: { fontFamily: "'Imprec-RegPrice',sans-serif", textTransform: "uppercase", lineHeight: 1 },
+  productName: { fontFamily: "'Imprec-Name',sans-serif", fontSize: "9pt", lineHeight: 1.05, textTransform: "uppercase", color: "#000000" },
+  productDesc: { fontFamily: "'Imprec-Desc',sans-serif", fontSize: "7pt", lineHeight: 1.05, textTransform: "uppercase", color: "#555555" },
 };
 
 const TAMANOS = ["XS", "S", "M", "L", "XL"];
-const TAMANO_SIZE = { /* ... (Mismos tamaños) ... */ };
-const TIPO_PRECIO_LABEL = { /* ... */ };
-const FONDO_COLORS = { /* ... */ };
-const BORDER_STYLES = { /* ... */ };
+const TAMANO_SIZE = {
+  XS: { width: 90, height: 100 }, S: { width: 130, height: 120 },
+  M: { width: 185, height: 140 }, L: { width: 250, height: 160 }, XL: { width: 350, height: 185 },
+};
+
+const TIPO_PRECIO_LABEL = { regular: null, llevando3: "LLEVANDO 2", vea_ahorro: "VEA AHORRO", regular_cencosud: "CENCOSUD" };
+const FONDO_COLORS = { white: "#ffffff", red: "#ff0000", yellow: "#fff800", empty: "transparent" };
+const BORDER_STYLES = { none: "none", solid: "2px solid #ff0000", dashed: "2px dashed #ff0000", thick: "3px solid #ff0000" };
 const BTN_ROUND = { borderRadius: "20px", textTransform: "none", fontSize: 12 };
 
-export default function CanvasPreview({ flyer, plantilla, paginas = [], modulosPorPagina = {}, paginaActual, setPaginaActual, onUpdatePaginaName, selectedModulo, onSelectModulo, onFlyerUpdate, onReorderModulos, onAddPagina, onDeletePagina, onMenuAction, onResize }) {
+export default function CanvasPreview({ 
+  flyer, 
+  plantilla, 
+  paginas = [], 
+  modulosPorPagina = {}, 
+  paginaActual, 
+  setPaginaActual, 
+  onUpdatePaginaName,
+  selectedModulo, 
+  onSelectModulo, 
+  onFlyerUpdate, 
+  onReorderModulos, 
+  onAddPagina, 
+  onDeletePagina, 
+  onMenuAction, 
+  onResize 
+}) {
+  // Configuración de sensores para el Drag & Drop
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
   const [zoom, setZoom] = useState(180);
 
+  // Referencias para las páginas (para la exportación a imagen/PDF)
   const canvasRefs = useRef([]);
   if (canvasRefs.current.length !== paginas.length) {
     canvasRefs.current = paginas.map((_, i) => canvasRefs.current[i] || { current: null });
@@ -46,48 +86,17 @@ export default function CanvasPreview({ flyer, plantilla, paginas = [], modulosP
     <Box flex={1} bgcolor="#e5e7eb" display="flex" flexDirection="column" alignItems="center" overflow="auto" py={3} sx={{ width: "100%" }}>
       <GlobalFonts />
 
-      {/* TOP TOOLBAR */}
-      <Box display="flex" alignItems="center" justifyContent="space-between" gap={2} mb={3} px={4} flexWrap="wrap" sx={{ width: "100%", zIndex: 20 }}>
+      {/* TOP TOOLBAR: La versión original limpia que pediste */}
+      <Box display="flex" alignItems="center" gap={2} mb={3} px={2} flexWrap="wrap" justifyContent="center" sx={{ width: "100%", zIndex: 20 }}>
         
-        {/* 1. MINI PREVIEW DEL FOLLETO */}
-        <Box display="flex" alignItems="center" gap={1.5} bgcolor="white" px={1.5} py={0.8} borderRadius="8px" sx={{ boxShadow: "0 1px 4px rgba(0,0,0,0.12)", minWidth: 200 }}>
-          <Box 
-            sx={{ 
-              width: 32, 
-              height: 32, 
-              borderRadius: "4px", 
-              bgcolor: "#f3f4f6", 
-              border: "1px solid #e5e7eb", 
-              display: "flex", 
-              alignItems: "center", 
-              justifyContent: "center",
-              overflow: "hidden"
-            }}
-          >
-            {flyer?.imagen_url || flyer?.thumbnail || flyer?.portada ? (
-              <img src={flyer.imagen_url || flyer.thumbnail || flyer.portada} alt="preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-            ) : (
-              <Typography fontSize={8} fontWeight={700} color="#9ca3af">FLYER</Typography>
-            )}
-          </Box>
-          <Box>
-            <Typography fontSize={13} fontWeight={700} color="#1f2937" lineHeight={1.2}>
-              {flyer?.name || flyer?.nombre || "Folleto sin título"}
-            </Typography>
-            <Typography fontSize={10} color={flyer?.estado === "publicado" ? "#16a34a" : "#6b7280"} textTransform="uppercase" fontWeight={600}>
-              {flyer?.estado || "BORRADOR"}
-            </Typography>
-          </Box>
-        </Box>
-
-        {/* 2. ZOOM CONTROLS */}
-        <Box display="flex" alignItems="center" gap={1} bgcolor="white" borderRadius="20px" px={1.5} py={0.5} sx={{ boxShadow: "0 1px 4px rgba(0,0,0,0.12)", width: 220 }}>
+        {/* Controles de Zoom */}
+        <Box display="flex" alignItems="center" gap={1} bgcolor="white" borderRadius="20px" px={1.5} py={0.5} sx={{ boxShadow: "0 1px 4px rgba(0,0,0,0.12)", minWidth: 180 }}>
           <Tooltip title="Alejar">
             <IconButton size="small" onClick={() => setZoom(z => Math.max(50, z - 10))}>
               <ZoomOutIcon fontSize="small" />
             </IconButton>
           </Tooltip>
-          <Slider value={zoom} min={50} max={250} step={5} onChange={(_, v) => setZoom(v)} size="small" sx={{ flex: 1, color: "#1a1a2e" }} />
+          <Slider value={zoom} min={50} max={250} step={5} onChange={(_, v) => setZoom(v)} size="small" sx={{ flex: 1, color: "#1a1a2e", "& .MuiSlider-thumb": { width: 14, height: 14 } }} />
           <Tooltip title="Acercar">
             <IconButton size="small" onClick={() => setZoom(z => Math.min(250, z + 10))}>
               <ZoomInIcon fontSize="small" />
@@ -96,14 +105,24 @@ export default function CanvasPreview({ flyer, plantilla, paginas = [], modulosP
           <Typography fontSize={11} color="#6b7280" sx={{ minWidth: 32, textAlign: "right" }}>{zoom}%</Typography>
         </Box>
 
-        {/* 3. EXPORT BUTTONS */}
-        <Box display="flex" alignItems="center" gap={2}>
-          <Typography fontSize={11} color="#6b7280" fontWeight={600}>
-            {flyer?.width || 595}×{flyer?.height || 841}px
-          </Typography>
-          <ExportButtons canvasRefs={canvasRefs.current} flyerName={flyer?.name || flyer?.nombre} paginas={paginas} />
-        </Box>
+        {/* Estado del folleto */}
+        <Chip 
+          label={flyer?.estado || "borrador"} 
+          size="small" 
+          color={flyer?.estado === "publicado" ? "success" : "default"} 
+          sx={{ borderRadius: "20px", fontWeight: 700, fontSize: 11, textTransform: "uppercase" }} 
+        />
+        
+        {/* Botones de Exportación */}
+        <ExportButtons canvasRefs={canvasRefs.current} flyerName={flyer?.name || flyer?.nombre} paginas={paginas} />
       </Box>
+
+      {/* Indicador de dimensiones (opcional, útil para saber la resolución base) */}
+      {flyer?.width && (
+        <Typography fontSize={11} color="#6b7280" mb={2} fontWeight={600}>
+          {flyer.width}×{flyer.height}px · {zoom}%
+        </Typography>
+      )}
 
       {/* CONTENEDOR DE PÁGINAS */}
       <Box sx={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", overflow: "visible" }}>
@@ -132,9 +151,12 @@ export default function CanvasPreview({ flyer, plantilla, paginas = [], modulosP
                   flyer={flyer} 
                   pag={pag} 
                   pagIdx={idx} 
+                  
+                  // Nuevas props conectadas:
                   isPaginaActiva={paginaActual === idx}
                   onSelectPagina={(pIndex) => setPaginaActual(pIndex)}
                   onUpdatePaginaName={onUpdatePaginaName}
+                  
                   modulos={modulosPorPagina[idx] || []} 
                   selectedModulo={selectedModulo} 
                   onSelectModulo={onSelectModulo}
@@ -160,8 +182,21 @@ export default function CanvasPreview({ flyer, plantilla, paginas = [], modulosP
             })
           )}
 
+          {/* BOTÓN AGREGAR PÁGINA */}
           <Box display="flex" justifyContent="center" mt={1} mb={4}>
-            <Button variant="outlined" startIcon={<AddIcon />} onClick={onAddPagina} sx={{ ...BTN_ROUND, borderColor: "#9ca3af", color: "#374151", bgcolor: "white", "&:hover": { bgcolor: "#f9fafb" }, px: 3 }}>
+            <Button 
+              variant="outlined" 
+              startIcon={<AddIcon />} 
+              onClick={onAddPagina} 
+              sx={{ 
+                ...BTN_ROUND, 
+                borderColor: "#9ca3af", 
+                color: "#374151", 
+                bgcolor: "white", 
+                "&:hover": { bgcolor: "#f9fafb" }, 
+                px: 3 
+              }}
+            >
               Agregar página
             </Button>
           </Box>
