@@ -6,7 +6,6 @@ import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import InventoryIcon from "@mui/icons-material/Inventory";
 import { supabase } from "../../services/supabase";
 
-const tamanoColor = { XS: "#9e9e9e", S: "#f59e0b", M: "#3b82f6", L: "#10b981", XL: "#8b5cf6" };
 
 export default function ProductsSidebar({ modulos = [], selectedModulo, onSelectModulo, onAddProducto, onDeleteModulo }) {
   const [tab, setTab] = useState(0);
@@ -123,7 +122,6 @@ export default function ProductsSidebar({ modulos = [], selectedModulo, onSelect
                             <Typography fontSize={12} fontWeight={esSeleccionado ? 600 : 400} color="white" noWrap flex={1}>
                               {modulo.nombre_override ?? modulo.productos?.nombre ?? "Sin nombre"}
                             </Typography>
-                            <Chip label={modulo.tamano} size="small" sx={{ height: 16, fontSize: 9, fontWeight: 700, bgcolor: tamanoColor[modulo.tamano], color: "white" }} />
                           </Box>
                         }
                         secondary={

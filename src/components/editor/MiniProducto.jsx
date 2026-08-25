@@ -24,12 +24,11 @@ export default function MiniProducto({
 }) {
   const [imgError, setImgError] = useState(false);
 
-  // Extracción simple de la URL de la imagen
   const getImageUrl = () => {
-    let url = imgOverride || producto?.imagen_url || producto?.imagen || producto?.imagen_src;
+    let url = imgOverride || producto?.imagen_url || producto?.imagen || producto?.img || producto?.image || producto?.imagen_src || producto?.img_url;
     if (typeof url === "string") return url.trim();
     if (Array.isArray(url) && typeof url[0] === "string") return url[0];
-    if (typeof url === "object" && url !== null) return url.url || url.src || "";
+    if (typeof url === "object" && url !== null) return url.url || url.src || url.imagen || "";
     return "";
   };
   
@@ -40,12 +39,12 @@ export default function MiniProducto({
 
   useEffect(() => { setImgError(false); }, [imgSrc]);
 
-  // CRÍTICO: Forzamos a que sean NÚMEROS para evitar que Flexbox se rompa y lo tire a la derecha
   const spanC = Number(colSpan) || 1;
   const spanR = Number(rowSpan) || 1;
   
   const esHorizontal = spanC > 1; 
   const esVertical2x1 = spanC === 1 && spanR > 1; 
+  const esNormal1x1 = spanC === 1 && spanR === 1;
 
   const nameFontSize = spanC >= 2 ? "0.85rem" : esVertical2x1 ? "0.68rem" : "0.52rem";
   const descFontSize = spanC >= 2 ? "0.65rem" : esVertical2x1 ? "0.55rem" : "0.44rem";
@@ -60,20 +59,21 @@ export default function MiniProducto({
         overflow: "hidden"
       }}
     >
-      {/* 1. ESPACIADOR (Para acomodar la variante larga vertical) */}
       {esVertical2x1 && <Box sx={{ flex: "0 0 5%" }} />}
 
-      {/* 2. IMAGEN DEL PRODUCTO (Estructura limpia, siempre al centro) */}
+      {/* 2. IMAGEN DEL PRODUCTO*/}
       <Box
         sx={{
           order: esHorizontal ? 2 : 1,
           flex: 1, 
           minHeight: 0, 
-          width: esHorizontal ? "45%" : "100%", 
+          width: esNormal1x1 ? "60%" : esHorizontal ? "45%" : "100%", 
+          alignSelf: esNormal1x1 ? "flex-start" : "center",
           display: "flex", 
           alignItems: "center", 
-          justifyContent: "center",
+          justifyContent: "center", 
           mb: esVertical2x1 ? 0.5 : 0, 
+          p: 0.2
         }}
       >
         {imgSrc && !imgError ? (
@@ -82,11 +82,12 @@ export default function MiniProducto({
             alt={nombre || "Producto"}
             onError={() => setImgError(true)}
             style={{ 
-              // Usa casi todo su espacio pero se mantiene a raya
-              maxWidth: "95%", 
-              maxHeight: "95%", 
+              width: "100%",
+              height: "100%",
+              maxWidth: "100%", 
+              maxHeight: "100%", 
               objectFit: "contain", 
-              pointerEvents: "none" 
+              pointerEvents: "none"
             }}
           />
         ) : (

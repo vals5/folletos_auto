@@ -88,8 +88,8 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
                 </Box>
               </Box>
 
-              <TextField label="Nombre Comercial" value={nombre} onChange={(e) => setNombre(e.target.value)} onBlur={() => handleUpdateField("nombre_override", nombre.trim() || null)} size="small" fullWidth multiline rows={2} />
-              <TextField label="Descripción / Contenido" value={descripcion} onChange={(e) => setDescripcion(e.target.value)} onBlur={() => handleUpdateField("descripcion_override", descripcion.trim() || null)} size="small" fullWidth multiline rows={2} />
+              <TextField label="Nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} onBlur={() => handleUpdateField("nombre_override", nombre.trim() || null)} size="small" fullWidth multiline rows={2} />
+              <TextField label="Descripción" value={descripcion} onChange={(e) => setDescripcion(e.target.value)} onBlur={() => handleUpdateField("descripcion_override", descripcion.trim() || null)} size="small" fullWidth multiline rows={2} />
 
               <Box display="flex" flexDirection="column" gap={2} bgcolor="#f9fafb" p={1.5} borderRadius="8px" sx={{ border: "1px solid #f3f4f6" }}>
                 <FormControl size="small" fullWidth>
@@ -106,14 +106,14 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
 
               <Box display="flex" flexDirection="column" gap={2} mb={2}>
                 <FormControl size="small" fullWidth>
-                  <InputLabel>Estilo del Borde</InputLabel>
+                  <InputLabel>Borde</InputLabel>
                   <Select value={modulo.estilo_borde || "none"} label="Estilo del Borde" onChange={(e) => handleUpdateField("estilo_borde", e.target.value)}>
                     {ESTILOS_BORDE.map((b) => <MenuItem key={b.value} value={b.value}>{b.label}</MenuItem>)}
                   </Select>
                 </FormControl>
 
                 <FormControl size="small" fullWidth>
-                  <InputLabel>Color de Fondo</InputLabel>
+                  <InputLabel>Fondo</InputLabel>
                   <Select 
                     value={modulo.fondo_modulo === "rojo" ? "red" : (modulo.fondo_modulo || "empty")} 
                     label="Color de Fondo" 
@@ -133,16 +133,16 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
         <>
           {!modulo ? (
             <Box display="flex" alignItems="center" justifyContent="center" height="60%" color="text.secondary" p={2} textAlign="center">
-              <Typography variant="body2">Seleccioná un producto en el canvas para configurar su tamaño.</Typography>
+              <Typography variant="body2">Seleccioná un producto para configurar su tamaño.</Typography>
             </Box>
           ) : (
             <Box display="flex" flexDirection="column" gap={2.5}>
               <Box display="flex" alignItems="center" justifyContent="space-between">
-                <Typography variant="subtitle2" fontWeight={700} color="#1a1a2e">Formato en Grilla (3x4)</Typography>
+                <Typography variant="subtitle2" fontWeight={700} color="#1a1a2e">Formato en grilla (3x4)</Typography>
               </Box>
 
               <FormControl size="small" fullWidth>
-                <InputLabel>Tamaño del Bloque</InputLabel>
+                <InputLabel>Tamaño del bloque</InputLabel>
                 <Select
                   value={modulo.formato === "footer" ? "footer" : `${modulo.colSpan || 1}x${modulo.rowSpan || 1}`}
                   label="Tamaño del Bloque"
@@ -178,7 +178,7 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
       {/* --- VISTA: PÁGINA --- */}
       {panelView === "pagina" && (
         <Box textAlign="center" py={4} color="text.secondary">
-          <Typography variant="subtitle2" fontWeight={600} mb={1}>Configuración de la Página</Typography>
+          <Typography variant="subtitle2" fontWeight={600} mb={1}>Configuración de la página</Typography>
           <Typography fontSize={12}>Por ahora vacío.</Typography>
         </Box>
       )}

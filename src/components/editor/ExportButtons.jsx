@@ -1,50 +1,148 @@
 import React, { useState } from "react";
-import { Box, Button, Tooltip, CircularProgress } from "@mui/material";
+import { 
+  Box, Button, Tooltip, CircularProgress, Dialog, DialogTitle, 
+  DialogContent, DialogActions, Checkbox, FormControlLabel, FormGroup, Alert 
+} from "@mui/material";
 import { Image, PictureAsPdf } from "@mui/icons-material";
 import { exportToJPG, exportToPDF } from "../utils/ExportFlyer";
 
-export default function ExportButtons({ canvasRefs, flyerName, btnStyle = {} }) {
-  const [exporting, setExporting] = useState(null);
+export default function ExportButtons({ canvasRefs, flyerName, paginas = [], btnStyle = {} }) {
+  const [exporting, setExporting] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
+  const [exportType, setExportType] = useState(null); // 'jpg' | 'pdf'
+  const [selectedIndices, setSelectedIndices] = useState([]);
+  const [errorMsg, setErrorMsg] = useState(null);
 
-  const handleExport = async (type) => {
-    setExporting(type);
-    setTimeout(async () => {
-      if (type === "jpg") {
-        await exportToJPG(canvasRefs, flyerName);
-      } else if (type === "pdf") {
-        await exportToPDF(canvasRefs, flyerName);
+  const handleOpenModal = (type) => {
+    setExportType(type);
+    setErrorMsg(null);
+    // Por defecto marcamos todas las páginas disponibles
+    const allIndices = canvasRefs.map((_, idx) => idx);
+    setSelectedIndices(allIndices);
+    setOpenModal(true);
+  };
+
+  const handleToggleAll = (e) => {
+    if (e.target.checked) {
+      setSelectedIndices(canvasRefs.map((_, idx) => idx));
+    } else {
+      setSelectedIndices([]);
+    }
+  };
+
+  const handleTogglePage = (index) => {
+    setSelectedIndices((prev) =>
+      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
+    );
+  };
+
+  const handleConfirmExport = async () => {
+    if (selectedIndices.length === 0) return;
+    setExporting(true);
+    setErrorMsg(null);
+
+    // Filtramos solo las referencias de páginas elegidas
+    const filteredRefs = selectedIndices.map((i) => canvasRefs[i]);
+
+    try {
+      if (exportType === "jpg") {
+        await exportToJPG(filteredRefs, flyerName);
+      } else if (exportType === "pdf") {
+        await exportToPDF(filteredRefs, flyerName);
       }
-      setExporting(null);
-    }, 300);
+      setOpenModal(false);
+    } catch (err) {
+      console.error("Error al exportar:", err);
+      setErrorMsg("Ocurrió un error al generar los archivos. Revisá la consola.");
+    } finally {
+      setExporting(false);
+    }
   };
 
   return (
-    <Box display="flex" gap={1}>
-      <Tooltip title="Exportar JPG (una por página)">
-        <Button 
-          size="small" 
-          variant="outlined"
-          startIcon={exporting === "jpg" ? <CircularProgress size={14} /> : <Image />}
-          onClick={() => handleExport("jpg")} 
-          disabled={!!exporting}
-          sx={{ ...btnStyle, borderColor: "#d1d5db", color: "#374151" }}
-        >
-          JPG
-        </Button>
-      </Tooltip>
-      
-      <Tooltip title="Exportar PDF (todas las páginas)">
-        <Button 
-          size="small" 
-          variant="outlined"
-          startIcon={exporting === "pdf" ? <CircularProgress size={14} /> : <PictureAsPdf />}
-          onClick={() => handleExport("pdf")} 
-          disabled={!!exporting}
-          sx={{ ...btnStyle, borderColor: "#d1d5db", color: "#374151" }}
-        >
-          PDF
-        </Button>
-      </Tooltip>
-    </Box>
+    <>
+      <Box display="flex" gap={1}>
+        <Tooltip title="Exportar como imagen JPG">
+          <Button 
+            size="small" 
+            variant="outlined"
+            startIcon={exporting && exportType === "jpg" ? <CircularProgress size={14} /> : <Image />}
+            onClick={() => handleOpenModal("jpg")} 
+            disabled={exporting}
+            sx={{ ...btnStyle, borderColor: "#d1d5db", color: "#374151" }}
+          >
+            JPG
+          </Button>
+        </Tooltip>
+        
+        <Tooltip title="Exportar como PDF">
+          <Button 
+            size="small" 
+            variant="outlined"
+            startIcon={exporting && exportType === "pdf" ? <CircularProgress size={14} /> : <PictureAsPdf />}
+            onClick={() => handleOpenModal("pdf")} 
+            disabled={exporting}
+            sx={{ ...btnStyle, borderColor: "#d1d5db", color: "#374151" }}
+          >
+            PDF
+          </Button>
+        </Tooltip>
+      </Box>
+
+      {/* MODAL SELECCIÓN DE PÁGINAS */}
+      <Dialog open={openModal} onClose={() => !exporting && setOpenModal(false)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontWeight: "bold", fontSize: 16 }}>
+          Exportar {exportType?.toUpperCase()} - Seleccionar Páginas
+        </DialogTitle>
+        
+        <DialogContent dividers>
+          {errorMsg && <Alert severity="error" sx={{ mb: 2 }}>{errorMsg}</Alert>}
+
+          <FormControlLabel
+            control={
+              <Checkbox 
+                checked={selectedIndices.length === canvasRefs.length} 
+                indeterminate={selectedIndices.length > 0 && selectedIndices.length < canvasRefs.length}
+                onChange={handleToggleAll} 
+              />
+            }
+            label={<b>Todas las páginas ({canvasRefs.length})</b>}
+          />
+
+          <FormGroup sx={{ ml: 2, mt: 1 }}>
+            {canvasRefs.map((_, idx) => {
+              const pageLabel = paginas[idx]?.nombre || `Página ${idx + 1}`;
+              return (
+                <FormControlLabel
+                  key={idx}
+                  control={
+                    <Checkbox 
+                      checked={selectedIndices.includes(idx)} 
+                      onChange={() => handleTogglePage(idx)} 
+                      size="small"
+                    />
+                  }
+                  label={pageLabel}
+                />
+              );
+            })}
+          </FormGroup>
+        </DialogContent>
+
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setOpenModal(false)} disabled={exporting} color="inherit">
+            Cancelar
+          </Button>
+          <Button 
+            onClick={handleConfirmExport} 
+            variant="contained" 
+            disabled={selectedIndices.length === 0 || exporting}
+            startIcon={exporting && <CircularProgress size={14} color="inherit" />}
+          >
+            {exporting ? "Generando..." : "Descargar"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 }
