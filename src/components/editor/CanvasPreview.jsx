@@ -5,8 +5,6 @@ import ZoomOutIcon from "@mui/icons-material/ZoomOut";
 import AddIcon from "@mui/icons-material/Add";
 import { useSensors, useSensor, PointerSensor } from "@dnd-kit/core";
 
-// Asegurate de que la ruta de tu componente hijo sea correcta.
-// Si se llama PaginaCanvas.jsx, cambialo acá.
 import PaginaCanvas from "./CanvasPage"; 
 import ExportButtons from "./ExportButtons"; 
 
@@ -20,14 +18,14 @@ const TARJETA_LOGO = { vea_ahorro: TarjetaVea, regular_cencosud: TarjetaCencosud
 
 const GlobalFonts = () => (
   <style>{`
-    @font-face { font-family:'Imprec-Vigency';  src:url('/src/assets/fonts/imprecionante/GothamCondensed-Bold.otf') format('opentype'); }
-    @font-face { font-family:'Imprec-Legal';    src:url('/src/assets/fonts/imprecionante/Zuume-Light.otf')          format('opentype'); }
-    @font-face { font-family:'Imprec-Price';    src:url('/src/assets/fonts/imprecionante/GothamCondensed-Bold.otf') format('opentype'); }
-    @font-face { font-family:'Imprec-SubtPrice';src:url('/src/assets/fonts/imprecionante/GothamCondensed-Bold.otf') format('opentype'); }
-    @font-face { font-family:'Imprec-RegPrice'; src:url('/src/assets/fonts/imprecionante/Zuume-Bold.otf')           format('opentype'); }
-    @font-face { font-family:'Imprec-kgPrice';  src:url('/src/assets/fonts/imprecionante/Zuume-Light.otf')          format('opentype'); }
-    @font-face { font-family:'Imprec-Name';     src:url('/src/assets/fonts/imprecionante/Zuume-SemiBold.otf')       format('opentype'); }
-    @font-face { font-family:'Imprec-Desc';     src:url('/src/assets/fonts/imprecionante/Zuume-Light.otf')          format('opentype'); }
+    @font-face { font-family:'Imprec-Vigency';   src:url('/fonts/imprecionante/GothamCondensed-Bold.otf') format('opentype'); }
+    @font-face { font-family:'Imprec-Legal';     src:url('/fonts/imprecionante/Zuume-Light.otf')          format('opentype'); }
+    @font-face { font-family:'Imprec-Price';     src:url('/fonts/imprecionante/GothamCondensed-Bold.otf') format('opentype'); }
+    @font-face { font-family:'Imprec-SubtPrice'; src:url('/fonts/imprecionante/GothamCondensed-Bold.otf') format('opentype'); }
+    @font-face { font-family:'Imprec-RegPrice';  src:url('/fonts/imprecionante/Zuume-Bold.otf')           format('opentype'); }
+    @font-face { font-family:'Imprec-kgPrice';   src:url('/fonts/imprecionante/Zuume-Light.otf')          format('opentype'); }
+    @font-face { font-family:'Imprec-Name';      src:url('/fonts/imprecionante/Zuume-SemiBold.otf')       format('opentype'); }
+    @font-face { font-family:'Imprec-Desc';      src:url('/fonts/imprecionante/Zuume-Light.otf')          format('opentype'); }
   `}</style>
 );
 
