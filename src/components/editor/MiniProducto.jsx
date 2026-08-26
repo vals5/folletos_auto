@@ -61,13 +61,13 @@ export default function MiniProducto({
     >
       {esVertical2x1 && <Box sx={{ flex: "0 0 5%" }} />}
 
-      {/* 2. IMAGEN DEL PRODUCTO*/}
+      {/* IMG */}
       <Box
         sx={{
           order: esHorizontal ? 2 : 1,
           flex: 1, 
           minHeight: 0, 
-          width: esNormal1x1 ? "60%" : esHorizontal ? "45%" : "100%", 
+          width: esNormal1x1 ? "75%" : esHorizontal ? "45%" : "100%", 
           alignSelf: esNormal1x1 ? "flex-start" : "center",
           display: "flex", 
           alignItems: "center", 
