@@ -1,6 +1,5 @@
 import { toCanvas } from "html-to-image";
 
-// Imagen transparente fallback para evitar que un error de red cancele la exportación
 const TRANSPARENT_PLACEHOLDER = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 
 const captureAll = async (canvasRefs) => {
@@ -27,9 +26,8 @@ const captureAll = async (canvasRefs) => {
       const canvas = await toCanvas(targetElement, {
         pixelRatio: 2,
         backgroundColor: "#ffffff",
-        cacheBust: false, // Evita hacer peticiones duplicadas a los servidores de imágenes
-        skipFonts: true,
-        imagePlaceholder: TRANSPARENT_PLACEHOLDER, // Si una imagen de Google da error 429, se reemplaza en silencio sin romper la descarga
+        cacheBust: false, 
+        imagePlaceholder: TRANSPARENT_PLACEHOLDER, 
       });
       canvases.push(canvas);
     } catch (error) {
