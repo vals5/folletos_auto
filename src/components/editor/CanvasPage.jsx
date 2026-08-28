@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Box, Typography, Chip, Tooltip, InputBase } from "@mui/material";
+import { Box, Typography, Tooltip, InputBase } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import EditIcon from "@mui/icons-material/Edit";
 import { DndContext, closestCenter } from "@dnd-kit/core";
@@ -54,7 +54,6 @@ export default function PaginaCanvas({
       onUpdatePaginaName(pagIdx, pag.id, nuevoNombre);
     }
 
-    // Guardado directo en Supabase si existe el ID
     if (pag?.id) {
       await supabase.from("paginas").update({ nombre: nuevoNombre }).eq("id", pag.id);
     }
@@ -80,7 +79,7 @@ export default function PaginaCanvas({
       onClick={handleActivarPagina}
       sx={{ display: "flex", flexDirection: "column", alignItems: "center", mb: 4, cursor: "pointer" }}
     >
-      {/* HEADER CON NOMBRE EDITABLE Y ELIMINAR */}
+      {/* HEADER DE LA PÁGINA */}
       <Box display="flex" alignItems="center" gap={1} mb={1}>
         {isEditingName ? (
           <InputBase
@@ -91,39 +90,42 @@ export default function PaginaCanvas({
             autoFocus
             onClick={(e) => e.stopPropagation()}
             sx={{
-              bgcolor: "#1a1a2e",
-              color: "white",
-              borderRadius: "20px",
-              px: 1.5,
-              py: 0.1,
-              fontSize: 12,
-              fontWeight: 700,
-              border: "2px solid #2563eb",
+              color: "#4b5563",
+              fontSize: 13,
+              fontWeight: 600,
+              px: 1,
+              py: 0.2,
               input: { textAlign: "center" }
             }}
           />
         ) : (
-          <Tooltip title="Haz clic para cambiar el nombre de esta página">
-            <Chip 
-              label={nombreLocal} 
-              size="small" 
-              icon={<EditIcon sx={{ fontSize: "12px !important", color: "white !important" }} />}
+          <Tooltip title="Cambiar el nombre de esta página">
+            <Box
               onClick={(e) => {
                 e.stopPropagation();
                 setIsEditingName(true);
               }}
-              sx={{ 
-                borderRadius: "20px", 
-                fontWeight: 700, 
-                fontSize: 12, 
-                bgcolor: isPaginaActiva ? "#2563eb" : "#1a1a2e", 
-                color: "white", 
-                px: 1,
+              sx={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 0.6,
                 cursor: "pointer",
+                color: "#4b5563",
+                fontWeight: 600,
+                fontSize: 13,
+                px: 1,
+                py: 0.3,
+                borderRadius: "4px",
                 transition: "all 0.2s",
-                "&:hover": { bgcolor: "#3b82f6" }
-              }} 
-            />
+                "&:hover": {
+                  bgcolor: "#e5e7eb",
+                  color: "#1f2937"
+                }
+              }}
+            >
+              <span>{nombreLocal}</span>
+              <EditIcon sx={{ fontSize: 14, color: "#6b7280" }} />
+            </Box>
           </Tooltip>
         )}
 
@@ -134,7 +136,18 @@ export default function PaginaCanvas({
                 e.stopPropagation();
                 onDeletePagina(pagIdx, pag);
               }} 
-              sx={{ display: "flex", alignItems: "center", gap: 0.4, cursor: "pointer", bgcolor: "#ef4444", color: "white", borderRadius: "20px", px: 1.2, height: 24, "&:hover": { bgcolor: "#dc2626" } }}
+              sx={{ 
+                display: "flex", 
+                alignItems: "center", 
+                justifyContent: "center",
+                cursor: "pointer", 
+                bgcolor: "#ef4444", 
+                color: "white", 
+                borderRadius: "20px", 
+                px: 1, 
+                height: 22, 
+                "&:hover": { bgcolor: "#dc2626" } 
+              }}
             >
               <CloseIcon sx={{ fontSize: 13 }} />
             </Box>
@@ -142,7 +155,7 @@ export default function PaginaCanvas({
         )}
       </Box>
 
-      {/* MARCO DE LA PÁGINA */}
+      {/* MARCO DE LA PÁGINA (BORDE FINO DE 2PX OUTLINE) */}
       <Box 
         ref={canvasRef} 
         style={{
@@ -155,15 +168,17 @@ export default function PaginaCanvas({
           width: (flyer?.width || 595) * 0.5, 
           height: (flyer?.height || 841) * 0.5, 
           borderRadius: "6px", 
-          boxShadow: isPaginaActiva ? "0 0 0 4px #2563eb, 0 8px 32px rgba(0,0,0,0.35)" : "0 8px 32px rgba(0,0,0,0.25)", 
+          outline: isPaginaActiva ? "2px solid #2563eb" : "none",
+          outlineOffset: "2px",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.20)", 
           display: "flex", 
           flexDirection: "column", 
           overflow: "hidden", 
           position: "relative",
-          transition: "box-shadow 0.2s ease"
+          transition: "outline 0.2s ease, box-shadow 0.2s ease"
         }}
       >
-        {/* 1. HEADER (FIJO ARRIBA) */}
+        {/* 1. HEADER */}
         <HeaderImprecionante flyer={flyer} onFlyerUpdate={onFlyerUpdate} IMPREC={IMPREC} DEFAULT_LOGOS={DEFAULT_LOGOS} />
 
         {/* 2. GRILLA CENTRAL */}
@@ -218,7 +233,7 @@ export default function PaginaCanvas({
           </DndContext>
         </Box>
 
-        {/* 3. LEGAL (FIJO ABAJO) */}
+        {/* 3. LEGAL */}
         {LegalEditable && (
           <Box sx={{ px: 0.8, pb: 0.5, flexShrink: 0, zIndex: 10 }}>
             <LegalEditable 

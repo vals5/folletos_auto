@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
-import { Box, Typography, TextField, Select, MenuItem, FormControl, InputLabel, Divider, InputAdornment, Tooltip, IconButton } from "@mui/material";
+import { Box, Typography, TextField, Select, MenuItem, FormControl, InputLabel, Divider, InputAdornment, Tooltip, IconButton, Button } from "@mui/material";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 const TIPOS_PRECIO = [
   { value: "regular", label: "Precio regular" },
@@ -36,10 +38,36 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
     onUpdate(modulo.id, {
       nombre_override: null,
       descripcion_override: null,
+      img_override: null,
+      es_promo_3x1: false,
     });
     setNombre(modulo.productos?.nombre ?? "");
     setDescripcion(modulo.productos?.descripcion ?? "");
   };
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !modulo) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      onUpdate(modulo.id, {
+        img_override: event.target.result,
+        es_promo_3x1: true,
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemovePromoImage = () => {
+    if (!modulo) return;
+    onUpdate(modulo.id, {
+      img_override: null,
+      es_promo_3x1: false,
+    });
+  };
+
+  const es3x1 = modulo?.colSpan === 3 || modulo?.formato === "footer";
 
   return (
     <Box width={290} bgcolor="white" display="flex" flexDirection="column" sx={{ borderLeft: "1px solid #e5e7eb", p: 2, overflowY: "auto", flexShrink: 0 }}>
@@ -63,7 +91,7 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
 
       <Divider sx={{ mb: 2 }} />
 
-      {/* --- VISTA: PRODUCTO --- */}
+      {/* PROD */}
       {panelView === "producto" && (
         <>
           {!modulo ? (
@@ -87,6 +115,39 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
                   </Tooltip>
                 </Box>
               </Box>
+
+              {/* SECCIÓN ESPECIAL 3x1: SUBIR PROMO BANCARIA / BANNER */}
+              {es3x1 && (
+                <Box bgcolor="#f0f9ff" border="1px dashed #0284c7" p={1.5} borderRadius="8px" display="flex" flexDirection="column" gap={1}>
+                  <Typography fontSize={12} fontWeight={700} color="#0369a1">
+                    🖼️ Banner / Promo 3x1
+                  </Typography>
+
+                  <Button
+                    variant="contained"
+                    component="label"
+                    size="small"
+                    startIcon={<CloudUploadIcon />}
+                    sx={{ bgcolor: "#0284c7", "&:hover": { bgcolor: "#075985" }, textTransform: "none", fontSize: 11 }}
+                  >
+                    Subir Imagen Completa
+                    <input type="file" hidden accept="image/*" onChange={handleImageUpload} />
+                  </Button>
+
+                  {modulo.img_override && (
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      size="small"
+                      startIcon={<DeleteIcon />}
+                      onClick={handleRemovePromoImage}
+                      sx={{ textTransform: "none", fontSize: 11 }}
+                    >
+                      Quitar Banner Promo
+                    </Button>
+                  )}
+                </Box>
+              )}
 
               <TextField label="Nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} onBlur={() => handleUpdateField("nombre_override", nombre.trim() || null)} size="small" fullWidth multiline rows={2} />
               <TextField label="Descripción" value={descripcion} onChange={(e) => setDescripcion(e.target.value)} onBlur={() => handleUpdateField("descripcion_override", descripcion.trim() || null)} size="small" fullWidth multiline rows={2} />
@@ -128,7 +189,7 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
         </>
       )}
 
-      {/* --- VISTA: MÓDULO --- */}
+      {/* MOD */}
       {panelView === "modulo" && (
         <>
           {!modulo ? (
@@ -175,7 +236,7 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
         </>
       )}
 
-      {/* --- VISTA: PÁGINA --- */}
+      {/* PAG */}
       {panelView === "pagina" && (
         <Box textAlign="center" py={4} color="text.secondary">
           <Typography variant="subtitle2" fontWeight={600} mb={1}>Configuración de la página</Typography>

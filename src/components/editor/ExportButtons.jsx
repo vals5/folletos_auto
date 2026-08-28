@@ -9,14 +9,13 @@ import { exportToJPG, exportToPDF } from "../utils/ExportFlyer";
 export default function ExportButtons({ canvasRefs, flyerName, paginas = [], btnStyle = {} }) {
   const [exporting, setExporting] = useState(false);
   const [openModal, setOpenModal] = useState(false);
-  const [exportType, setExportType] = useState(null); // 'jpg' | 'pdf'
+  const [exportType, setExportType] = useState(null); 
   const [selectedIndices, setSelectedIndices] = useState([]);
   const [errorMsg, setErrorMsg] = useState(null);
 
   const handleOpenModal = (type) => {
     setExportType(type);
     setErrorMsg(null);
-    // Por defecto marcamos todas las páginas disponibles
     const allIndices = canvasRefs.map((_, idx) => idx);
     setSelectedIndices(allIndices);
     setOpenModal(true);
@@ -41,7 +40,6 @@ export default function ExportButtons({ canvasRefs, flyerName, paginas = [], btn
     setExporting(true);
     setErrorMsg(null);
 
-    // Filtramos solo las referencias de páginas elegidas
     const filteredRefs = selectedIndices.map((i) => canvasRefs[i]);
 
     try {
@@ -62,27 +60,27 @@ export default function ExportButtons({ canvasRefs, flyerName, paginas = [], btn
   return (
     <>
       <Box display="flex" gap={1}>
-        <Tooltip title="Exportar como imagen JPG">
+        <Tooltip title="Exportar">
           <Button 
             size="small" 
             variant="outlined"
             startIcon={exporting && exportType === "jpg" ? <CircularProgress size={14} /> : <Image />}
             onClick={() => handleOpenModal("jpg")} 
             disabled={exporting}
-            sx={{ ...btnStyle, borderColor: "#d1d5db", color: "#374151" }}
+            sx={{ ...btnStyle, borderRadius: "20px", bgcolor: "#0284c7", color: "white" }}
           >
             JPG
           </Button>
         </Tooltip>
         
-        <Tooltip title="Exportar como PDF">
+        <Tooltip title="Exportar">
           <Button 
             size="small" 
             variant="outlined"
             startIcon={exporting && exportType === "pdf" ? <CircularProgress size={14} /> : <PictureAsPdf />}
             onClick={() => handleOpenModal("pdf")} 
             disabled={exporting}
-            sx={{ ...btnStyle, borderColor: "#d1d5db", color: "#374151" }}
+            sx={{ ...btnStyle, borderRadius: "20px", bgcolor: "#0284c7", color: "white" }}
           >
             PDF
           </Button>

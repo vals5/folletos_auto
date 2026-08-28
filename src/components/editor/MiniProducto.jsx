@@ -58,6 +58,36 @@ export default function MiniProducto({
   const esVertical2x1 = spanC === 1 && spanR > 1;
   const esNormal1x1 = spanC === 1 && spanR === 1;
 
+  const es3x1 = spanC === 3 || producto?.formato === "footer";
+  const esPromo3x1 = es3x1 && (producto?.es_promo_3x1 || imgOverride);
+
+  if (esPromo3x1) {
+    return (
+      <Box
+        sx={{
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          overflow: "hidden",
+          p: 0,
+        }}
+      >
+        <img
+          src={imgSrc}
+          alt="Promo Bancaria"
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "contain",
+            pointerEvents: "none",
+          }}
+        />
+      </Box>
+    );
+  }
+
   const nameFontSize = spanC >= 2 ? "0.85rem" : esVertical2x1 ? "0.68rem" : "0.52rem";
   const descFontSize = spanC >= 2 ? "0.65rem" : esVertical2x1 ? "0.55rem" : "0.44rem";
   const priceFontSize = spanC >= 2 ? "0.58rem" : esVertical2x1 ? "0.50rem" : "0.42rem";
@@ -80,19 +110,45 @@ export default function MiniProducto({
     >
       {esVertical2x1 && <Box sx={{ flex: "0 0 5%" }} />}
 
-      {/* IMG */}
+      {/* IMG DRAG */}
       <Box
+        data-no-dnd="true"
+        onPointerDown={(e) => {
+          e.stopPropagation();
+          const startX = e.clientX - (producto?.img_x || 0);
+          const startY = e.clientY - (producto?.img_y || 0);
+
+          const handlePointerMove = (moveEvent) => {
+            const newX = moveEvent.clientX - startX;
+            const newY = moveEvent.clientY - startY;
+            onUpdateField && onUpdateField("img_x", newX);
+            onUpdateField && onUpdateField("img_y", newY);
+          };
+
+          const handlePointerUp = () => {
+            window.removeEventListener("pointermove", handlePointerMove);
+            window.removeEventListener("pointerup", handlePointerUp);
+          };
+
+          window.addEventListener("pointermove", handlePointerMove);
+          window.addEventListener("pointerup", handlePointerUp);
+        }}
         sx={{
           order: esHorizontal ? 2 : 1,
           flex: 1,
           minHeight: 0,
-          width: esNormal1x1 ? "75%" : esHorizontal ? "45%" : "100%",
+          width: esNormal1x1 ? "85%" : esHorizontal ? "45%" : "100%",
           alignSelf: esNormal1x1 ? "flex-start" : "center",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           mb: esVertical2x1 ? 0.5 : 0,
           p: 0.2,
+          cursor: "grab",
+          zIndex: 5,
+          position: "relative",
+          transform: `translate(${producto?.img_x || 0}px, ${producto?.img_y || 0}px)`,
+          "&:active": { cursor: "grabbing" },
         }}
       >
         {imgSrc && !imgError ? (
@@ -107,6 +163,7 @@ export default function MiniProducto({
               maxHeight: "100%",
               objectFit: "contain",
               pointerEvents: "none",
+              userSelect: "none", 
             }}
           />
         ) : (
@@ -129,7 +186,7 @@ export default function MiniProducto({
         )}
       </Box>
 
-      {/* 3. BLOQUE DE TEXTO */}
+      {/* TEXT */}
       <Box
         data-no-dnd="true"
         onPointerDown={(e) => e.stopPropagation()}
@@ -233,7 +290,7 @@ export default function MiniProducto({
         </Box>
       </Box>
 
-      {/* 4. PRECIO STARBURST */}
+      {/* PRICE */}
       {showPrice && precio && (
         <PrecioStarburst
           precio={precio}
