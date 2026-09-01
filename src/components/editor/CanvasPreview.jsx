@@ -10,6 +10,7 @@ import { useSensors, useSensor, PointerSensor } from "@dnd-kit/core";
 
 import PaginaCanvas from "./CanvasPage"; 
 import ExportButtons from "./ExportButtons"; 
+import { useShortcuts } from "../../hooks/useShortcuts";
 
 import ImprecLogo from "../../assets/img/Imprecionante.svg";
 import VeaLogo from "../../assets/img/Vea.svg";
@@ -61,20 +62,38 @@ export default function CanvasPreview({
   modulosPorPagina = {}, 
   paginaActual, 
   setPaginaActual, 
-  onUpdatePaginaName,
+  onUpdatePaginaName, 
   selectedModulo, 
   onSelectModulo, 
   onFlyerUpdate, 
   onReorderModulos, 
   onAddPagina, 
   onDeletePagina, 
+  onDeleteModulo,
   onMenuAction, 
-  onResize,
+  onResize, 
   onBack 
 }) {
   const navigate = useNavigate();
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
   const [zoom, setZoom] = useState(180);
+
+  useShortcuts({
+    DELETE: () => {
+      if (selectedModulo?.id && onDeleteModulo) {
+        onDeleteModulo(selectedModulo.id);
+      }
+    },
+    ZOOM_IN: () => setZoom((z) => Math.min(250, z + 10)),
+    ZOOM_OUT: () => setZoom((z) => Math.max(50, z - 10)),
+    ZOOM_RESET: () => setZoom(100),
+    ZOOM_TO_FIT: () => setZoom(180),
+    DESELECT: () => {
+      if (onSelectModulo) {
+        onSelectModulo(null);
+      }
+    },
+  });
 
   const getInitialTitle = (f) => {
     const val = f?.nombre || f?.name;
