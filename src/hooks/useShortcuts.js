@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { SHORTCUTS } from './shortcuts.config';
+import { SHORTCUTS } from '../config/shortcuts.config'
 
 export const useShortcuts = (handlers) => {
   useEffect(() => {

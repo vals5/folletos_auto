@@ -6,7 +6,7 @@ import AddIcon from "@mui/icons-material/Add";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import EditIcon from "@mui/icons-material/Edit";
 import { useNavigate } from "react-router-dom";
-import { useSensors, useSensor, PointerSensor } from "@dnd-kit/core";
+import { useSensors, useSensor, PointerSensor, TouchSensor, MouseSensor } from "@dnd-kit/core";
 
 import PaginaCanvas from "./CanvasPage"; 
 import ExportButtons from "./ExportButtons"; 
@@ -75,7 +75,14 @@ export default function CanvasPreview({
   onBack 
 }) {
   const navigate = useNavigate();
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+  
+  // Sensores compatibles con Safari y dispositivos táctiles Apple
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 100, tolerance: 5 } }),
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+  );
+
   const [zoom, setZoom] = useState(180);
 
   useShortcuts({
@@ -150,7 +157,7 @@ export default function CanvasPreview({
         borderBottom="1px solid #e5e7eb"
         sx={{ width: "100%", zIndex: 20, flexShrink: 0 }}
       >
-        {/* IZQUIERDA: Flecha Volver + Título Editable con Ícono a la Derecha */}
+        {/* IZQUIERDA: Flecha Volver + Título Editable */}
         <Box display="flex" alignItems="center" gap={1.5}>
           <Tooltip title="Volver al dashboard">
             <IconButton size="small" onClick={handleGoBack} sx={{ color: "#0284c7", p: 0.5 }}>

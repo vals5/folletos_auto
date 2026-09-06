@@ -6,8 +6,8 @@ import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import SearchIcon from "@mui/icons-material/Search";
 import { supabase } from "../services/supabase";
 
-import ProductoModal from "../components/utils/ProductModal";
-import ConfirmarBorrarModal from "../components/utils/ConfirmarBorrarModal";
+import ProductoModal from "../components/modals/ProductModal";
+import ConfirmarBorrarModal from "../components/modals/ConfirmarBorrarModal";
 
 export default function Databases() {
   const [productos, setProductos] = useState([]);

@@ -1,13 +1,13 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { Box, CircularProgress, Typography, Button } from "@mui/material";
 
-import { useFlyerEditor } from "../components/utils/useFlyerEditor"; 
+import { useFlyerEditor } from "../hooks/useFlyerEditor"; 
 
 import ProductsSidebar from "../components/editor/ProductsSidebar";
 import CanvasPreview from "../components/editor/CanvasPreview";
 import PropertiesPanel from "../components/editor/PropertiesPanel";
-import DuplicarModal from "../components/utils/DuplicarModal";
-import ConfirmarEliminarPagina from "../components/utils/ConfirmarEliminarPagina";
+import DuplicarModal from "../components/modals/DuplicarModal";
+import ConfirmarEliminarPagina from "../components/modals/ConfirmarBorrarModal";
 
 export default function FlyerEditor() {
   const { id } = useParams();
@@ -82,16 +82,30 @@ export default function FlyerEditor() {
           onReorderModulos={handleReorderModulos}
           onAddPagina={handleAddPagina}
           onDeletePagina={(idx, pag) => setEliminarPagina({ idx, pag })}
+          onDeleteModulo={handleDeleteModulo}
           onMenuAction={handleMenuAction}
           onResize={handleResize}
           onAddProducto={handleOnAddProducto}
           onBack={() => navigate("/dashboard")}
         />
-        <PropertiesPanel modulo={selectedModulo} onUpdate={handleUpdateModulo} onDuplicate={(m) => setDuplicarModulo(m)} />
+        <PropertiesPanel 
+          modulo={selectedModulo} 
+          onUpdate={handleUpdateModulo} 
+          onDuplicate={(m) => setDuplicarModulo(m)} 
+        />
       </Box>
 
-      <DuplicarModal open={!!duplicarModulo} modulo={duplicarModulo} onClose={() => setDuplicarModulo(null)} onDuplicate={handleDuplicar} />
-      <ConfirmarEliminarPagina open={!!eliminarPagina} onClose={() => setEliminarPagina(null)} onConfirm={handleDeletePagina} />
+      <DuplicarModal 
+        open={!!duplicarModulo} 
+        modulo={duplicarModulo} 
+        onClose={() => setDuplicarModulo(null)} 
+        onDuplicate={handleDuplicar} 
+      />
+      <ConfirmarEliminarPagina 
+        open={!!eliminarPagina} 
+        onClose={() => setEliminarPagina(null)} 
+        onConfirm={handleDeletePagina} 
+      />
     </Box>
   );
 }

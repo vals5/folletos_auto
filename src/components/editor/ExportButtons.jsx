@@ -4,7 +4,7 @@ import {
   DialogContent, DialogActions, Checkbox, FormControlLabel, FormGroup, Alert 
 } from "@mui/material";
 import { Image, PictureAsPdf } from "@mui/icons-material";
-import { exportToJPG, exportToPDF } from "../utils/ExportFlyer";
+import { exportToJPG, exportToPDF } from "../../utils/ExportFlyer";
 
 export default function ExportButtons({ canvasRefs, flyerName, paginas = [], btnStyle = {} }) {
   const [exporting, setExporting] = useState(false);

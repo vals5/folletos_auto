@@ -4,7 +4,7 @@ import AddIcon from "@mui/icons-material/Add";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../services/supabase";
 
-import NewFlyerModal from "../components/utils/NewFlyerModal";
+import NewFlyerModal from "../components/modals/NewFlyerModal";
 
 export default function Dashboard() {
   const navigate = useNavigate();

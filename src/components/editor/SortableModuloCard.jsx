@@ -38,6 +38,7 @@ export default function SortableModuloCard({
     gridRow: `span ${rowSpan}`,
     width: "100%",
     height: "100%",
+    touchAction: "none", // CRÍTICO PARA DRAG & DROP EN MAC Y IOS
   };
 
   // --- RENDERIZADO DEL FOOTER ---

@@ -76,6 +76,8 @@ export default function MiniProducto({
       >
         <img
           src={imgSrc}
+          crossOrigin="anonymous"
+          decoding="sync"
           alt="Promo Bancaria"
           style={{
             width: "100%",
@@ -147,6 +149,7 @@ export default function MiniProducto({
           cursor: "grab",
           zIndex: 5,
           position: "relative",
+          touchAction: "none",
           transform: `translate(${producto?.img_x || 0}px, ${producto?.img_y || 0}px)`,
           "&:active": { cursor: "grabbing" },
         }}
@@ -154,6 +157,8 @@ export default function MiniProducto({
         {imgSrc && !imgError ? (
           <img
             src={imgSrc}
+            crossOrigin="anonymous"
+            decoding="sync"
             alt={nombre || "Producto"}
             onError={() => setImgError(true)}
             style={{

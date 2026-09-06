@@ -155,7 +155,7 @@ export default function PaginaCanvas({
         )}
       </Box>
 
-      {/* MARCO DE LA PÁGINA (BORDE FINO DE 2PX OUTLINE) */}
+      {/* MARCO DE LA PÁGINA */}
       <Box 
         ref={canvasRef} 
         style={{
