@@ -32,22 +32,31 @@ function SizePreviewCard({ preset, selected, onClick }) {
     <Box
       onClick={onClick}
       sx={{
-        display: "flex", flexDirection: "column", alignItems: "center",
-        gap: 0.5, cursor: "pointer", p: 0.5, borderRadius: 1,
-        border: selected ? "2px solid #025BA9" : "2px solid transparent",
-        "&:hover": { bgcolor: "rgba(2,91,169,0.06)" },
+        display: "flex", 
+        flexDirection: "column", 
+        alignItems: "center",
+        gap: 0.8, 
+        cursor: "pointer", 
+        p: 1, 
+        borderRadius: "14px",
+        bgcolor: selected ? "#f0f9ff" : "transparent",
+        border: selected ? "2px solid #0284c7" : "2px solid #f3f4f6",
+        transition: "all 0.2s ease",
+        "&:hover": { bgcolor: selected ? "#f0f9ff" : "#f9fafb", borderColor: selected ? "#0284c7" : "#d1d5db" },
       }}
     >
       <Box sx={{
-        width: w, height: h,
-        bgcolor: selected ? "#025BA9" : "#d1d5db",
-        borderRadius: "2px",
-        transition: "all 0.15s",
+        width: w, 
+        height: h,
+        bgcolor: selected ? "#0284c7" : "#cbd5e1",
+        borderRadius: "8px",
+        boxShadow: selected ? "0 4px 12px rgba(2, 132, 199, 0.25)" : "none",
+        transition: "all 0.2s ease",
       }} />
-      <Typography fontSize={9} fontWeight={selected ? 700 : 400} color={selected ? "#025BA9" : "text.secondary"} textAlign="center" lineHeight={1.2}>
+      <Typography fontSize={10} fontWeight={selected ? 700 : 500} color={selected ? "#0284c7" : "#4b5563"} textAlign="center" lineHeight={1.2}>
         {preset.label}
       </Typography>
-      <Typography fontSize={8} color="text.disabled">{preset.width}×{preset.height}</Typography>
+      <Typography fontSize={9} color="#9ca3af">{preset.width}×{preset.height}</Typography>
     </Box>
   );
 }
@@ -85,33 +94,66 @@ export default function NewFlyerModal({ open, onClose, onCreate }) {
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle sx={{ fontWeight: 800, pb: 0 }}>Nuevo Folleto</DialogTitle>
+    <Dialog 
+      open={open} 
+      onClose={onClose} 
+      maxWidth="md" 
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: "24px",
+          p: 1.5,
+          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.15)",
+        }
+      }}
+    >
+      <DialogTitle sx={{ fontWeight: 800, fontSize: 20, pb: 0, pt: 1, px: 3 }}>
+        Nuevo Folleto
+      </DialogTitle>
 
       <form onSubmit={handleCreate} style={{ display: 'contents' }}>
-        <DialogContent sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 4, pt: 2 }}>
+        <DialogContent sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 4, pt: 2.5, px: 3 }}>
           <Box flex={1} display="flex" flexDirection="column" gap={2.5}>
             <TextField
               label="Nombre del folleto"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              fullWidth variant="filled"
+              fullWidth 
+              variant="outlined"
               autoFocus
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "14px",
+                }
+              }}
             />
             <Box>
-              <Typography variant="caption" fontWeight={700} color="text.secondary" display="block" mb={0.5}>
+              <Typography variant="caption" fontWeight={700} color="text.secondary" display="block" mb={0.8} letterSpacing={0.5}>
                 PLANTILLA
               </Typography>
-              <Box display="flex" alignItems="center" gap={1} sx={{ bgcolor: "#fff8e1", border: "1px solid #ffe082", borderRadius: 1, px: 2, py: 1 }}>
+              <Box 
+                display="flex" 
+                alignItems="center" 
+                gap={1.2} 
+                sx={{ 
+                  bgcolor: "#fffde7", 
+                  border: "1px solid #fde047", 
+                  borderRadius: "14px", 
+                  px: 2, 
+                  py: 1.2 
+                }}
+              >
                 <Box sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: "#ff0000", flexShrink: 0 }} />
-                <Box sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: "#fff800", border: "1px solid #ccc", flexShrink: 0 }} />
-                <Typography fontWeight={800} fontSize={13} letterSpacing={1}>IMPRECIONANTE</Typography>
+                <Box sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: "#fff800", border: "1px solid #eab308", flexShrink: 0 }} />
+                <Typography fontWeight={800} fontSize={13} letterSpacing={1} color="#1e293b">
+                  IMPRECIONANTE
+                </Typography>
               </Box>
             </Box>
           </Box>
 
-          <Box flex={1} sx={{ borderLeft: { xs: "none", md: "1px solid #e2e8f0" }, pl: { xs: 0, md: 4 } }}>
-            <Typography variant="caption" fontWeight={700} color="text.secondary" display="block" mb={1}>
+          <Box flex={1} sx={{ borderLeft: { xs: "none", md: "1px solid #f1f5f9" }, pl: { xs: 0, md: 4 } }}>
+            <Typography variant="caption" fontWeight={700} color="text.secondary" display="block" mb={1.2} letterSpacing={0.5}>
               TAMAÑO
             </Typography>
             <Box display="flex" flexWrap="wrap" gap={1.5} justifyContent="flex-start">
@@ -122,9 +164,27 @@ export default function NewFlyerModal({ open, onClose, onCreate }) {
           </Box>
         </DialogContent>
 
-        <DialogActions sx={{ px: 3, pb: 3 }}>
-          <Button onClick={onClose} color="inherit">Cancelar</Button>
-          <Button type="submit" variant="contained" disabled={!name.trim() || isSubmitting} sx={{ bgcolor: "#025BA9", px: 4, fontWeight: 700 }}>
+        <DialogActions sx={{ px: 3, pb: 2, pt: 1, gap: 1 }}>
+          <Button 
+            onClick={onClose} 
+            sx={{ borderRadius: "20px", textTransform: "none", color: "#64748b", fontWeight: 600, px: 2.5 }}
+          >
+            Cancelar
+          </Button>
+          <Button 
+            type="submit" 
+            variant="contained" 
+            disabled={!name.trim() || isSubmitting} 
+            sx={{ 
+              bgcolor: "#0284c7", 
+              borderRadius: "20px", 
+              px: 4, 
+              fontWeight: 700, 
+              textTransform: "none",
+              boxShadow: "0 4px 12px rgba(2, 132, 199, 0.3)",
+              "&:hover": { bgcolor: "#0369a1" }
+            }}
+          >
             {isSubmitting ? "Creando…" : "Aceptar"}
           </Button>
         </DialogActions>

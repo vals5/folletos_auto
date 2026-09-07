@@ -60,41 +60,69 @@ export default function ExportButtons({ canvasRefs, flyerName, paginas = [], btn
   return (
     <>
       <Box display="flex" gap={1}>
-        <Tooltip title="Exportar">
+        <Tooltip title="Exportar JPG">
           <Button 
             size="small" 
-            variant="outlined"
-            startIcon={exporting && exportType === "jpg" ? <CircularProgress size={14} /> : <Image />}
+            variant="contained"
+            startIcon={exporting && exportType === "jpg" ? <CircularProgress size={14} color="inherit" /> : <Image />}
             onClick={() => handleOpenModal("jpg")} 
             disabled={exporting}
-            sx={{ ...btnStyle, borderRadius: "20px", bgcolor: "#0284c7", color: "white" }}
+            sx={{ 
+              ...btnStyle, 
+              borderRadius: "20px", 
+              bgcolor: "#0284c7", 
+              color: "white",
+              textTransform: "none",
+              px: 2,
+              "&:hover": { bgcolor: "#0369a1" }
+            }}
           >
             JPG
           </Button>
         </Tooltip>
         
-        <Tooltip title="Exportar">
+        <Tooltip title="Exportar PDF">
           <Button 
             size="small" 
-            variant="outlined"
-            startIcon={exporting && exportType === "pdf" ? <CircularProgress size={14} /> : <PictureAsPdf />}
+            variant="contained"
+            startIcon={exporting && exportType === "pdf" ? <CircularProgress size={14} color="inherit" /> : <PictureAsPdf />}
             onClick={() => handleOpenModal("pdf")} 
             disabled={exporting}
-            sx={{ ...btnStyle, borderRadius: "20px", bgcolor: "#0284c7", color: "white" }}
+            sx={{ 
+              ...btnStyle, 
+              borderRadius: "20px", 
+              bgcolor: "#0284c7", 
+              color: "white",
+              textTransform: "none",
+              px: 2,
+              "&:hover": { bgcolor: "#0369a1" }
+            }}
           >
             PDF
           </Button>
         </Tooltip>
       </Box>
 
-      {/* MODAL SELECCIÓN DE PÁGINAS */}
-      <Dialog open={openModal} onClose={() => !exporting && setOpenModal(false)} maxWidth="xs" fullWidth>
-        <DialogTitle sx={{ fontWeight: "bold", fontSize: 16 }}>
+      {/* MODAL SELECCIÓN DE PÁGINAS REDONDEADA */}
+      <Dialog 
+        open={openModal} 
+        onClose={() => !exporting && setOpenModal(false)} 
+        maxWidth="xs" 
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: "20px",
+            p: 1,
+            boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)",
+          }
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 700, fontSize: 17, pt: 2, pb: 1 }}>
           Exportar {exportType?.toUpperCase()} - Seleccionar Páginas
         </DialogTitle>
         
-        <DialogContent dividers>
-          {errorMsg && <Alert severity="error" sx={{ mb: 2 }}>{errorMsg}</Alert>}
+        <DialogContent dividers sx={{ borderBottom: "1px solid #f3f4f6", borderTop: "1px solid #f3f4f6", py: 1.5 }}>
+          {errorMsg && <Alert severity="error" sx={{ mb: 2, borderRadius: "12px" }}>{errorMsg}</Alert>}
 
           <FormControlLabel
             control={
@@ -102,12 +130,13 @@ export default function ExportButtons({ canvasRefs, flyerName, paginas = [], btn
                 checked={selectedIndices.length === canvasRefs.length} 
                 indeterminate={selectedIndices.length > 0 && selectedIndices.length < canvasRefs.length}
                 onChange={handleToggleAll} 
+                sx={{ "&.Mui-checked": { color: "#0284c7" } }}
               />
             }
-            label={<b>Todas las páginas ({canvasRefs.length})</b>}
+            label={<span style={{ fontWeight: 600, fontSize: 14 }}>Todas las páginas ({canvasRefs.length})</span>}
           />
 
-          <FormGroup sx={{ ml: 2, mt: 1 }}>
+          <FormGroup sx={{ ml: 1.5, mt: 0.5 }}>
             {canvasRefs.map((_, idx) => {
               const pageLabel = paginas[idx]?.nombre || `Página ${idx + 1}`;
               return (
@@ -118,17 +147,22 @@ export default function ExportButtons({ canvasRefs, flyerName, paginas = [], btn
                       checked={selectedIndices.includes(idx)} 
                       onChange={() => handleTogglePage(idx)} 
                       size="small"
+                      sx={{ "&.Mui-checked": { color: "#0284c7" } }}
                     />
                   }
-                  label={pageLabel}
+                  label={<span style={{ fontSize: 13, color: "#374151" }}>{pageLabel}</span>}
                 />
               );
             })}
           </FormGroup>
         </DialogContent>
 
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setOpenModal(false)} disabled={exporting} color="inherit">
+        <DialogActions sx={{ p: 2, gap: 1 }}>
+          <Button 
+            onClick={() => setOpenModal(false)} 
+            disabled={exporting} 
+            sx={{ borderRadius: "20px", textTransform: "none", color: "#4b5563", px: 2 }}
+          >
             Cancelar
           </Button>
           <Button 
@@ -136,6 +170,14 @@ export default function ExportButtons({ canvasRefs, flyerName, paginas = [], btn
             variant="contained" 
             disabled={selectedIndices.length === 0 || exporting}
             startIcon={exporting && <CircularProgress size={14} color="inherit" />}
+            sx={{ 
+              borderRadius: "20px", 
+              bgcolor: "#0284c7", 
+              textTransform: "none", 
+              fontWeight: 700,
+              px: 3,
+              "&:hover": { bgcolor: "#0369a1" } 
+            }}
           >
             {exporting ? "Generando..." : "Descargar"}
           </Button>
