@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Box } from "@mui/material";
-import { useSortable } from "@dnd-kit/sortable";
+import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import MiniProducto from "./MiniProducto";
 import PrecioStarburst from "./PrecioStarburst";
@@ -24,43 +24,48 @@ export default function SortableModuloCard({
   TARJETA_LOGO,
   onFlyerUpdate 
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: modulo.id });
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ 
+    id: modulo.id,
+    data: { modulo }
+  });
   const [hovered, setHovered] = useState(false);
 
   const colSpan = modulo.colSpan || 1;
   const rowSpan = modulo.rowSpan || 1;
 
+  const pos = modulo.posicion || 0;
+  const rowStart = Math.floor(pos / 3) + 1;
+  const colStart = (pos % 3) + 1;
+
   const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.3 : 1,
-    gridColumn: `span ${colSpan}`,
-    gridRow: `span ${rowSpan}`,
+    transform: CSS.Translate.toString(transform),
+    opacity: isDragging ? 0.8 : 1,
+    gridColumn: `${colStart} / span ${colSpan}`,
+    gridRow: `${rowStart} / span ${rowSpan}`,
+    zIndex: isDragging ? 50 : 10,
     width: "100%",
     height: "100%",
-    touchAction: "none", // CRÍTICO PARA DRAG & DROP EN MAC Y IOS
+    touchAction: "none",
+    boxSizing: "border-box"
   };
 
-  // --- RENDERIZADO DEL FOOTER ---
   if (modulo.formato === "footer") {
     return (
       <Box
         ref={setNodeRef}
-        style={style}
-        {...attributes}
-        {...listeners}
-        onClick={(e) => { e.stopPropagation(); onClick(); }}
-        sx={{
+        style={{
+          ...style,
           display: "flex",
           flexDirection: "column",
           justifyContent: "flex-end",
-          zIndex: 10,
           cursor: "grab",
-          "&:active": { cursor: "grabbing" },
-          boxSizing: "border-box",
-          border: isSelected ? "2px solid #3b82f6" : "2px solid transparent",
+          border: "2px solid transparent",
           borderRadius: "4px"
         }}
+        {...attributes}
+        {...listeners}
+        onClick={(e) => { e.stopPropagation(); onClick(); }}
+        sx={{ "&:active": { cursor: "grabbing" } }}
       >
         <FooterUploader flyer={flyer} flyerId={flyer?.id} footerUrl={flyer?.footer_url} onUpdate={(url) => onFlyerUpdate("footer_url", url)} />
         <LegalEditable flyer={flyer} flyerId={flyer?.id} legal={flyer?.legal} onUpdate={(val) => onFlyerUpdate("legal", val)} IMPREC={IMPREC} />
@@ -68,13 +73,11 @@ export default function SortableModuloCard({
     );
   }
 
-  // --- RENDERIZADO REGULAR DEL PRODUCTO ---
   const size = TAMANO_SIZE[modulo.tamano] || TAMANO_SIZE["S"];
   
   const isBgRed = modulo.fondo_modulo === "rojo" || modulo.fondo_modulo === "red";
   const bgColor = FONDO_COLORS[modulo.fondo_modulo] ?? (isBgRed ? (FONDO_COLORS["red"] || FONDO_COLORS["rojo"] || "#dc2626") : (FONDO_COLORS["empty"] || "transparent"));
   const borderStyle = BORDER_STYLES[modulo.estilo_borde] || "1px solid #e2e8f0";
-
   const textColor = isBgRed ? "#ffffff" : "#000000";
 
   const esMulti = ["2_productos", "3_productos", "4_productos"].includes(modulo.formato);
@@ -124,24 +127,23 @@ export default function SortableModuloCard({
   return (
     <Box
       ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      onClick={(e) => { e.stopPropagation(); onClick(); }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      sx={{
-        position: "relative",
-        bgcolor: bgColor,
+      style={{
+        ...style,
+        backgroundColor: bgColor,
         border: borderStyle,
         borderRadius: "4px",
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
         cursor: "grab",
-        "&:active": { cursor: "grabbing" },
-        boxSizing: "border-box"
+        position: "relative"
       }}
+      {...attributes}
+      {...listeners}
+      onClick={(e) => { e.stopPropagation(); onClick(); }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      sx={{ "&:active": { cursor: "grabbing" } }}
     >
       {!esMulti && todosLosProductos[0] && (
         <Box 
@@ -152,9 +154,10 @@ export default function SortableModuloCard({
             display: "flex", 
             flexDirection: colSpan > 1 ? "row" : "column", 
             alignItems: "center",
+            justifyContent: "center", // MANTIENE CENTRADOS LOS ELEMENTOS SIN EMPUJAR HACIA ABAJO
             position: "relative", 
-            p: 0.8,
-            gap: 1,
+            p: 0.5,
+            gap: 0.5,
             boxSizing: "border-box"
           }}
         >
@@ -181,7 +184,7 @@ export default function SortableModuloCard({
       )}
 
       {esMulti && (
-        <Box sx={{ display: "grid", gridTemplateColumns: `repeat(${gridCols},1fr)`, flex: 1, width: "100%", height: "100%", p: 0.3, boxSizing: "border-box" }}>
+        <Box sx={{ display: "grid", gridTemplateColumns: `repeat(${gridCols},1fr)`, flex: 1, width: "100%", height: "100%", p: 0.3, boxSizing: "border-box", alignItems: "center", alignContent: "center" }}>
           {todosLosProductos.map((item, i) => (
             <MiniProducto 
               key={i} 

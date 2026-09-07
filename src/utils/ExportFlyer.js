@@ -26,8 +26,12 @@ const captureAll = async (canvasRefs) => {
       const canvas = await toCanvas(targetElement, {
         pixelRatio: 2,
         backgroundColor: "#ffffff",
-        cacheBust: true, // CLAVE PARA SAFARI Y CORS
-        imagePlaceholder: TRANSPARENT_PLACEHOLDER, 
+        cacheBust: false, // Mantiene en caché estilos y recursos estables
+        imagePlaceholder: TRANSPARENT_PLACEHOLDER,
+        style: {
+          transform: "scale(1)",
+          transformOrigin: "top left",
+        },
       });
       canvases.push(canvas);
     } catch (error) {

@@ -73,6 +73,8 @@ export default function InlineText({ value, onSave, style = {}, placeholder = "E
         display: style.display || "inline-block",
         minHeight: "1em",
         verticalAlign: "middle",
+        lineHeight: style.lineHeight || 1.1, // CLAVE: Mantiene el texto compacto al exportar
+        letterSpacing: style.letterSpacing || "normal",
         "&:hover": { outline: "1px dashed rgba(0,0,0,0.3)", bgcolor: "rgba(0,0,0,0.06)" },
         ...style,
       }}
