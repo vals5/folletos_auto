@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Box, Typography } from "@mui/material";
 import PrecioStarburst from "./PrecioStarburst";
 import InlineText from "../ui/InlineText";
+import MovableElement from "./MovableElement";
 
 export default function MiniProducto({
   producto,
@@ -112,46 +113,19 @@ export default function MiniProducto({
     >
       {esVertical2x1 && <Box sx={{ flex: "0 0 5%" }} />}
 
-      {/* IMG DRAG */}
-      <Box
-        data-no-dnd="true"
-        onPointerDown={(e) => {
-          e.stopPropagation();
-          const startX = e.clientX - (producto?.img_x || 0);
-          const startY = e.clientY - (producto?.img_y || 0);
-
-          const handlePointerMove = (moveEvent) => {
-            const newX = moveEvent.clientX - startX;
-            const newY = moveEvent.clientY - startY;
-            onUpdateField && onUpdateField("img_x", newX);
-            onUpdateField && onUpdateField("img_y", newY);
-          };
-
-          const handlePointerUp = () => {
-            window.removeEventListener("pointermove", handlePointerMove);
-            window.removeEventListener("pointerup", handlePointerUp);
-          };
-
-          window.addEventListener("pointermove", handlePointerMove);
-          window.addEventListener("pointerup", handlePointerUp);
-        }}
+      {/* IMG DRAG AND SIZE*/}
+      <MovableElement
         sx={{
           order: esHorizontal ? 2 : 1,
           flex: 1,
           minHeight: 0,
-          width: esNormal1x1 ? "85%" : esHorizontal ? "45%" : "100%",
+          width: esNormal1x1 ? "60%" : esHorizontal ? "70%" : "100%",
           alignSelf: esNormal1x1 ? "flex-start" : "center",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           mb: esVertical2x1 ? 0.5 : 0,
           p: 0.2,
-          cursor: "grab",
-          zIndex: 5,
-          position: "relative",
-          touchAction: "none",
-          transform: `translate(${producto?.img_x || 0}px, ${producto?.img_y || 0}px)`,
-          "&:active": { cursor: "grabbing" },
         }}
       >
         {imgSrc && !imgError ? (
@@ -189,13 +163,10 @@ export default function MiniProducto({
             </Typography>
           </Box>
         )}
-      </Box>
+      </MovableElement>
 
-      {/* TEXT */}
-      <Box
-        data-no-dnd="true"
-        onPointerDown={(e) => e.stopPropagation()}
-        onClick={(e) => e.stopPropagation()}
+      {/* TEXT DRAG - Mantiene sus propiedades exactas pasadas por sx */}
+      <MovableElement
         sx={{
           order: esHorizontal ? 1 : 2,
           flex: "none",
@@ -206,8 +177,8 @@ export default function MiniProducto({
           alignItems: esVertical2x1 ? "center" : "flex-start",
           textAlign: esVertical2x1 ? "center" : "left",
           zIndex: 10,
-          overflow: "hidden",
           pb: esVertical2x1 ? 1 : 0,
+          overflow: "hidden", // Mantiene el corte de texto si es muy largo
         }}
       >
         <Typography
@@ -261,6 +232,7 @@ export default function MiniProducto({
             flexDirection: "column",
             gap: 0.1,
             mt: esVertical2x1 ? 0.5 : "auto",
+            pointerEvents: "none", // Evita robar el arrastre a la caja madre
           }}
         >
           <Box display="flex" alignItems="center" gap={0.3}>
@@ -279,10 +251,6 @@ export default function MiniProducto({
             <InlineText
               value={precioRegular ? `$ ${precioRegular}` : ""}
               placeholder="$ 0"
-              onSave={(newVal) => {
-                const soloNumeros = newVal.replace(/[^0-9]/g, "").trim();
-                onUpdateField && onUpdateField("precio_regular", soloNumeros);
-              }}
               style={{
                 ...(IMPREC?.regPrice || {}),
                 color: textColor === "#ffffff" ? "#ffffff" : "#000000",
@@ -293,7 +261,7 @@ export default function MiniProducto({
             />
           </Box>
         </Box>
-      </Box>
+      </MovableElement>
 
       {/* PRICE */}
       {showPrice && precio && (

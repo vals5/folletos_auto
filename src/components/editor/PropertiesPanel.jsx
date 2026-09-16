@@ -21,10 +21,18 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
   const [nombre, setNombre] = useState("");
   const [descripcion, setDescripcion] = useState("");
 
+  // AL SELECCIONAR UN MÓDULO: Actualiza los campos y cambia la vista a "producto" automáticamente
   useEffect(() => {
     if (modulo) {
-      setNombre(modulo.nombre_override ?? modulo.productos?.nombre ?? "");
-      setDescripcion(modulo.descripcion_override ?? modulo.productos?.descripcion ?? "");
+      const prodNombre = modulo.nombre_override ?? modulo.productos?.nombre ?? modulo.producto?.nombre ?? modulo.nombre ?? "";
+      const prodDesc = modulo.descripcion_override ?? modulo.productos?.descripcion ?? modulo.producto?.descripcion ?? modulo.descripcion ?? "";
+      
+      setNombre(prodNombre);
+      setDescripcion(prodDesc);
+      setPanelView("producto"); // <-- Hace que aparezcan las opciones inmediatamente al hacer clic
+    } else {
+      setNombre("");
+      setDescripcion("");
     }
   }, [modulo]);
 
@@ -41,8 +49,10 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
       img_override: null,
       es_promo_3x1: false,
     });
-    setNombre(modulo.productos?.nombre ?? "");
-    setDescripcion(modulo.productos?.descripcion ?? "");
+    const origNombre = modulo.productos?.nombre ?? modulo.producto?.nombre ?? "";
+    const origDesc = modulo.productos?.descripcion ?? modulo.producto?.descripcion ?? "";
+    setNombre(origNombre);
+    setDescripcion(origDesc);
   };
 
   const handleImageUpload = (e) => {
@@ -104,7 +114,7 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
                 <Typography variant="subtitle2" fontWeight={700} color="#1a1a2e">Datos del Producto</Typography>
                 <Box display="flex" gap={0.5}>
                   <Tooltip title="Duplicar">
-                    <IconButton size="small" onClick={() => onDuplicate(modulo)} sx={{ color: "#10b981" }}>
+                    <IconButton size="small" onClick={() => onDuplicate && onDuplicate(modulo)} sx={{ color: "#10b981" }}>
                       <ContentCopyIcon fontSize="small" />
                     </IconButton>
                   </Tooltip>
@@ -149,8 +159,27 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
                 </Box>
               )}
 
-              <TextField label="Nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} onBlur={() => handleUpdateField("nombre_override", nombre.trim() || null)} size="small" fullWidth multiline rows={2} />
-              <TextField label="Descripción" value={descripcion} onChange={(e) => setDescripcion(e.target.value)} onBlur={() => handleUpdateField("descripcion_override", descripcion.trim() || null)} size="small" fullWidth multiline rows={2} />
+              <TextField 
+                label="Nombre" 
+                value={nombre} 
+                onChange={(e) => setNombre(e.target.value)} 
+                onBlur={() => handleUpdateField("nombre_override", nombre.trim() || null)} 
+                size="small" 
+                fullWidth 
+                multiline 
+                rows={2} 
+              />
+              
+              <TextField 
+                label="Descripción" 
+                value={descripcion} 
+                onChange={(e) => setDescripcion(e.target.value)} 
+                onBlur={() => handleUpdateField("descripcion_override", descripcion.trim() || null)} 
+                size="small" 
+                fullWidth 
+                multiline 
+                rows={2} 
+              />
 
               <Box display="flex" flexDirection="column" gap={2} bgcolor="#f9fafb" p={1.5} borderRadius="8px" sx={{ border: "1px solid #f3f4f6" }}>
                 <FormControl size="small" fullWidth>
@@ -160,7 +189,15 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
                   </Select>
                 </FormControl>
 
-                <TextField label="Precio Público" type="number" value={modulo.precio ?? ""} onChange={(e) => handleUpdateField("precio", e.target.value ? Number(e.target.value) : null)} size="small" fullWidth InputProps={{ startAdornment: <InputAdornment position="start"><AttachMoneyIcon fontSize="small" /></InputAdornment> }} />
+                <TextField 
+                  label="Precio Público" 
+                  type="number" 
+                  value={modulo.precio ?? ""} 
+                  onChange={(e) => handleUpdateField("precio", e.target.value ? Number(e.target.value) : null)} 
+                  size="small" 
+                  fullWidth 
+                  InputProps={{ startAdornment: <InputAdornment position="start"><AttachMoneyIcon fontSize="small" /></InputAdornment> }} 
+                />
               </Box>
 
               <Divider />
