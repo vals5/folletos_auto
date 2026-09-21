@@ -20,7 +20,7 @@ function DropZone({ id, index, isHighlighted, isValidDrop }) {
   const bgColor = isHighlighted
     ? isValidDrop
       ? "rgba(59, 130, 246, 0.15)"
-      : "rgba(239, 68, 68, 0.15)" 
+      : "rgba(239, 68, 68, 0.15)"
     : "transparent";
 
   const borderColor = isHighlighted
@@ -42,39 +42,39 @@ function DropZone({ id, index, isHighlighted, isValidDrop }) {
         borderRadius: "4px",
         zIndex: 1,
         pointerEvents: "none", // Permite clics fluidos a través del fondo
-        transition: "all 0.1s ease"
+        transition: "all 0.1s ease",
       }}
     />
   );
 }
 
-export default function PaginaCanvas({ 
-  flyer, 
-  pag, 
-  pagIdx, 
+export default function PaginaCanvas({
+  flyer,
+  pag,
+  pagIdx,
   isPaginaActiva,
   onSelectPagina,
   onUpdatePaginaName,
-  modulos, 
-  selectedModulo, 
-  onSelectModulo, 
-  onMenuAction, 
-  onResize, 
-  onDeletePagina, 
-  canvasRef, 
-  totalPaginas, 
-  sensors, 
-  onReorderModulos, 
-  onFlyerUpdate, 
-  esPrimera, 
-  TAMANO_SIZE, 
-  TIPO_PRECIO_LABEL, 
-  FONDO_COLORS, 
-  BORDER_STYLES, 
-  TAMANOS, 
-  IMPREC, 
-  TARJETA_LOGO, 
-  DEFAULT_LOGOS 
+  modulos,
+  selectedModulo,
+  onSelectModulo,
+  onMenuAction,
+  onResize,
+  onDeletePagina,
+  canvasRef,
+  totalPaginas,
+  sensors,
+  onReorderModulos,
+  onFlyerUpdate,
+  esPrimera,
+  TAMANO_SIZE,
+  TIPO_PRECIO_LABEL,
+  FONDO_COLORS,
+  BORDER_STYLES,
+  TAMANOS,
+  IMPREC,
+  TARJETA_LOGO,
+  DEFAULT_LOGOS,
 }) {
   const [isEditingName, setIsEditingName] = useState(false);
   const [nombreLocal, setNombreLocal] = useState(pag?.nombre || `Página ${pag?.numero || pagIdx + 1}`);
@@ -90,7 +90,7 @@ export default function PaginaCanvas({
   const handleSaveNombre = async () => {
     setIsEditingName(false);
     const nuevoNombre = nombreLocal.trim() || `Página ${pag?.numero || pagIdx + 1}`;
-    
+
     if (onUpdatePaginaName) {
       onUpdatePaginaName(pagIdx, pag.id, nuevoNombre);
     }
@@ -102,8 +102,8 @@ export default function PaginaCanvas({
 
   // Lógica de cálculo en tiempo real
   const activeModulo = modulos.find((m) => m.id === activeDragId);
-  const cSpan = activeModulo ? (activeModulo.colSpan || 1) : 1;
-  const rSpan = activeModulo ? (activeModulo.rowSpan || 1) : 1;
+  const cSpan = activeModulo ? activeModulo.colSpan || 1 : 1;
+  const rSpan = activeModulo ? activeModulo.rowSpan || 1 : 1;
 
   // Calculadora de celdas resaltadas
   const getHighlightCells = () => {
@@ -143,19 +143,75 @@ export default function PaginaCanvas({
             mCells.push((mRow + r) * 3 + (mCol + c));
           }
         }
-        return desiredCells.some((cell) => mCells.includes(cell)); // Hay superposición
+        return desiredCells.some((cell) => mCells.includes(cell));
       });
       if (hasCollision) isValidDrop = false;
     }
   }
 
-  // Finalizar drag
+  // Función auxiliar para reubicar módulos
+  const reubicarSiColisiona = (modulosActuales, idMovido, posDestino) => {
+    const movido = modulosActuales.find((m) => m.id === idMovido);
+    if (!movido) return modulosActuales;
+
+    const cSpan = movido.colSpan || 1;
+    const rSpan = movido.rowSpan || 1;
+
+    // Celdas que va a ocupar el módulo movido
+    const celdasOcupadas = new Set();
+    const rStart = Math.floor(posDestino / 3);
+    const cStart = posDestino % 3;
+
+    for (let r = 0; r < rSpan; r++) {
+      for (let c = 0; c < cSpan; c++) {
+        celdasOcupadas.add((rStart + r) * 3 + (cStart + c));
+      }
+    }
+
+    return modulosActuales.map((m) => {
+      if (m.id === idMovido) return { ...m, posicion: posDestino };
+
+      const mPos = m.posicion || 0;
+      const mCSpan = m.colSpan || 1;
+      const mRSpan = m.rowSpan || 1;
+
+      // Verificar si este módulo choca con la nueva posición
+      const mRow = Math.floor(mPos / 3);
+      const mCol = mPos % 3;
+      let choca = false;
+
+      for (let r = 0; r < mRSpan; r++) {
+        for (let c = 0; c < mCSpan; c++) {
+          if (celdasOcupadas.has((mRow + r) * 3 + (mCol + c))) choca = true;
+        }
+      }
+
+      if (!choca) return m;
+
+      // Si choca, buscar el primer casillero libre (0 a 11)
+      for (let i = 0; i < 12; i++) {
+        const iRow = Math.floor(i / 3);
+        const iCol = i % 3;
+        if (iCol + mCSpan <= 3 && iRow + mRSpan <= 4 && !celdasOcupadas.has(i)) {
+          // Ocupar nueva celda
+          for (let r = 0; r < mRSpan; r++) {
+            for (let c = 0; c < mCSpan; c++) {
+              celdasOcupadas.add((iRow + r) * 3 + (iCol + c));
+            }
+          }
+          return { ...m, posicion: i };
+        }
+      }
+      return m;
+    });
+  };
+
   const handleDragEnd = async (event) => {
     setActiveDragId(null);
     setOverIndex(null);
 
     const { active, over } = event;
-    if (!over) return; 
+    if (!over) return;
 
     const targetIndex = over.data.current?.index;
     if (targetIndex === undefined) return;
@@ -169,37 +225,19 @@ export default function PaginaCanvas({
     const targetRow = Math.floor(targetIndex / 3);
     const targetCol = targetIndex % 3;
 
-    // 1. Verificación de bordes
-    if (targetCol + currentCSpan > 3 || targetRow + currentRSpan > 4) return; 
+    // Límite de bordes
+    if (targetCol + currentCSpan > 3 || targetRow + currentRSpan > 4) return;
 
-    // 2. Comprobar superposición
-    const getCells = (pos, cols, rows) => {
-      const cells = [];
-      const sRow = Math.floor(pos / 3);
-      const sCol = pos % 3;
-      for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-          cells.push((sRow + r) * 3 + (sCol + c));
-        }
-      }
-      return cells;
-    };
+    // Recalcular posiciones empujando a los que colisionan
+    const nuevosModulos = reubicarSiColisiona(modulos, draggedId, targetIndex);
+    const sorted = [...nuevosModulos].sort((a, b) => (a.posicion || 0) - (b.posicion || 0));
 
-    const desiredCells = getCells(targetIndex, currentCSpan, currentRSpan);
-    const hasCollision = modulos.some((m) => {
-      if (m.id === draggedId) return false;
-      const mCells = getCells(m.posicion || 0, m.colSpan || 1, m.rowSpan || 1);
-      return desiredCells.some((c) => mCells.includes(c)); 
-    });
-
-    if (hasCollision) return; 
-
-    // 3. Aplicar
-    const newModulos = modulos.map((m) => m.id === draggedId ? { ...m, posicion: targetIndex } : m);
-    const sorted = [...newModulos].sort((a, b) => (a.posicion || 0) - (b.posicion || 0));
     onReorderModulos(pagIdx, sorted);
 
-    await supabase.from("modulos").update({ posicion: targetIndex }).eq("id", draggedId);
+    // Guardar en Supabase las posiciones actualizadas
+    for (const mod of sorted) {
+      await supabase.from("modulos").update({ posicion: mod.posicion }).eq("id", mod.id);
+    }
   };
 
   const handleActivarPagina = () => {
@@ -209,7 +247,7 @@ export default function PaginaCanvas({
   };
 
   return (
-    <Box 
+    <Box
       onClick={handleActivarPagina}
       sx={{ display: "flex", flexDirection: "column", alignItems: "center", mb: 4, cursor: "pointer" }}
     >
@@ -229,7 +267,7 @@ export default function PaginaCanvas({
               fontWeight: 600,
               px: 1,
               py: 0.2,
-              input: { textAlign: "center" }
+              input: { textAlign: "center" },
             }}
           />
         ) : (
@@ -253,8 +291,8 @@ export default function PaginaCanvas({
                 transition: "all 0.2s",
                 "&:hover": {
                   bgcolor: "#e5e7eb",
-                  color: "#1f2937"
-                }
+                  color: "#1f2937",
+                },
               }}
             >
               <span>{nombreLocal}</span>
@@ -265,22 +303,22 @@ export default function PaginaCanvas({
 
         {totalPaginas > 1 && (
           <Tooltip title="Eliminar página">
-            <Box 
+            <Box
               onClick={(e) => {
                 e.stopPropagation();
                 onDeletePagina(pagIdx, pag);
-              }} 
-              sx={{ 
-                display: "flex", 
-                alignItems: "center", 
+              }}
+              sx={{
+                display: "flex",
+                alignItems: "center",
                 justifyContent: "center",
-                cursor: "pointer", 
-                bgcolor: "#ef4444", 
-                color: "white", 
-                borderRadius: "20px", 
-                px: 1, 
-                height: 22, 
-                "&:hover": { bgcolor: "#dc2626" } 
+                cursor: "pointer",
+                bgcolor: "#ef4444",
+                color: "white",
+                borderRadius: "20px",
+                px: 1,
+                height: 22,
+                "&:hover": { bgcolor: "#dc2626" },
               }}
             >
               <CloseIcon sx={{ fontSize: 13 }} />
@@ -290,54 +328,72 @@ export default function PaginaCanvas({
       </Box>
 
       {/* MARCO DE LA PÁGINA */}
-      <Box 
-        ref={canvasRef} 
+      <Box
+        ref={canvasRef}
         style={{
           backgroundImage: `url(${FondoTextura})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
-          backgroundRepeat: "no-repeat"
+          backgroundRepeat: "no-repeat",
         }}
-        sx={{ 
-          width: (flyer?.width || 595) * 0.5, 
-          height: (flyer?.height || 841) * 0.5, 
-          borderRadius: "6px", 
+        sx={{
+          width: (flyer?.width || 595) * 0.5,
+          height: (flyer?.height || 841) * 0.5,
+          borderRadius: "6px",
           outline: isPaginaActiva ? "2px solid #2563eb" : "none",
           outlineOffset: "2px",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.20)", 
-          display: "flex", 
-          flexDirection: "column", 
-          overflow: "hidden", 
+          boxShadow: "0 8px 32px rgba(0,0,0,0.20)",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
           position: "relative",
-          transition: "outline 0.2s ease, box-shadow 0.2s ease"
+          transition: "outline 0.2s ease, box-shadow 0.2s ease",
         }}
       >
         {/* 1. HEADER */}
-        <HeaderImprecionante flyer={flyer} onFlyerUpdate={onFlyerUpdate} IMPREC={IMPREC} DEFAULT_LOGOS={DEFAULT_LOGOS} />
+        <HeaderImprecionante
+          flyer={flyer}
+          onFlyerUpdate={onFlyerUpdate}
+          IMPREC={IMPREC}
+          DEFAULT_LOGOS={DEFAULT_LOGOS}
+        />
 
         {/* 2. GRILLA CENTRAL */}
         <Box sx={{ flex: 1, overflow: "hidden", px: 0.8, py: 0.5, display: "flex", flexDirection: "column" }}>
-          <DndContext 
-            sensors={sensors} 
-            collisionDetection={closestCenter} 
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
             onDragStart={(e) => setActiveDragId(e.active.id)}
             onDragOver={(e) => setOverIndex(e.over?.data?.current?.index ?? null)}
             onDragEnd={handleDragEnd}
-            onDragCancel={() => { setActiveDragId(null); setOverIndex(null); }}
+            onDragCancel={() => {
+              setActiveDragId(null);
+              setOverIndex(null);
+            }}
           >
-            
-            <Box sx={{ 
-              display: "grid", 
-              gridTemplateColumns: "repeat(3, 1fr)", 
-              gridTemplateRows: "repeat(4, 1fr)", 
-              gap: 0.5, 
-              flex: 1,
-              height: "100%",
-              position: "relative"
-            }}>
-              
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: "repeat(3, 1fr)",
+                gridTemplateRows: "repeat(4, 1fr)",
+                gap: 0.5,
+                flex: 1,
+                height: "100%",
+                position: "relative",
+              }}
+            >
               {modulos.length === 0 && (
-                <Box sx={{ gridColumn: "1 / -1", gridRow: "1 / -1", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none", zIndex: 0 }}>
+                <Box
+                  sx={{
+                    gridColumn: "1 / -1",
+                    gridRow: "1 / -1",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    pointerEvents: "none",
+                    zIndex: 0,
+                  }}
+                >
                   <Typography fontSize={13} color="#92400e" textAlign="center" fontWeight={600}>
                     Hacé clic en esta página para seleccionar productos desde el panel izquierdo
                   </Typography>
@@ -346,10 +402,10 @@ export default function PaginaCanvas({
 
               {/* 12 DROP ZONES INVISIBLES DE FONDO CON CÁLCULO DE MULTI-ESPACIO */}
               {Array.from({ length: 12 }).map((_, i) => (
-                <DropZone 
-                  key={`slot-${i}`} 
-                  id={`slot-${i}`} 
-                  index={i} 
+                <DropZone
+                  key={`slot-${i}`}
+                  id={`slot-${i}`}
+                  index={i}
                   isHighlighted={highlightedCells.includes(i)}
                   isValidDrop={isValidDrop}
                 />
@@ -357,28 +413,27 @@ export default function PaginaCanvas({
 
               {/* LOS MÓDULOS ACTIVOS DE ESTA PÁGINA */}
               {modulos.map((modulo) => (
-                <SortableModuloCard 
-                  key={modulo.id} 
-                  modulo={modulo} 
-                  isSelected={selectedModulo?.id === modulo.id} 
+                <SortableModuloCard
+                  key={modulo.id}
+                  modulo={modulo}
+                  isSelected={selectedModulo?.id === modulo.id}
                   onClick={() => {
                     handleActivarPagina();
                     onSelectModulo(modulo);
-                  }} 
-                  onMenuAction={onMenuAction} 
-                  onResize={onResize} 
-                  flyer={flyer} 
-                  TAMANO_SIZE={TAMANO_SIZE} 
-                  TIPO_PRECIO_LABEL={TIPO_PRECIO_LABEL} 
-                  FONDO_COLORS={FONDO_COLORS} 
-                  BORDER_STYLES={BORDER_STYLES} 
-                  TAMANOS={TAMANOS} 
-                  IMPREC={IMPREC} 
+                  }}
+                  onMenuAction={onMenuAction}
+                  onResize={onResize}
+                  flyer={flyer}
+                  TAMANO_SIZE={TAMANO_SIZE}
+                  TIPO_PRECIO_LABEL={TIPO_PRECIO_LABEL}
+                  FONDO_COLORS={FONDO_COLORS}
+                  BORDER_STYLES={BORDER_STYLES}
+                  TAMANOS={TAMANOS}
+                  IMPREC={IMPREC}
                   TARJETA_LOGO={TARJETA_LOGO}
-                  onFlyerUpdate={onFlyerUpdate} 
+                  onFlyerUpdate={onFlyerUpdate}
                 />
               ))}
-
             </Box>
           </DndContext>
         </Box>
@@ -386,16 +441,15 @@ export default function PaginaCanvas({
         {/* 3. LEGAL */}
         {LegalEditable && (
           <Box sx={{ px: 0.8, pb: 0.5, flexShrink: 0, zIndex: 10 }}>
-            <LegalEditable 
-              flyer={flyer} 
-              flyerId={flyer?.id} 
-              legal={flyer?.legal} 
-              onUpdate={(val) => onFlyerUpdate("legal", val)} 
-              IMPREC={IMPREC} 
+            <LegalEditable
+              flyer={flyer}
+              flyerId={flyer?.id}
+              legal={flyer?.legal}
+              onUpdate={(val) => onFlyerUpdate("legal", val)}
+              IMPREC={IMPREC}
             />
           </Box>
         )}
-
       </Box>
     </Box>
   );
