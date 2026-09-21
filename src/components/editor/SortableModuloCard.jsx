@@ -22,11 +22,11 @@ export default function SortableModuloCard({
   TAMANOS,
   IMPREC,
   TARJETA_LOGO,
-  onFlyerUpdate 
+  onFlyerUpdate,
 }) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ 
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: modulo.id,
-    data: { modulo }
+    data: { modulo },
   });
   const [hovered, setHovered] = useState(false);
 
@@ -46,7 +46,15 @@ export default function SortableModuloCard({
     width: "100%",
     height: "100%",
     touchAction: "none",
-    boxSizing: "border-box"
+    boxSizing: "border-box",
+  };
+
+  const handleCardClick = (e) => {
+    e.stopPropagation();
+    if (document.activeElement && typeof document.activeElement.blur === "function") {
+      document.activeElement.blur();
+    }
+    if (onClick) onClick();
   };
 
   if (modulo.formato === "footer") {
@@ -60,23 +68,36 @@ export default function SortableModuloCard({
           justifyContent: "flex-end",
           cursor: "grab",
           border: "2px solid transparent",
-          borderRadius: "4px"
+          borderRadius: "4px",
         }}
         {...attributes}
         {...listeners}
-        onClick={(e) => { e.stopPropagation(); onClick(); }}
+        onClick={handleCardClick}
         sx={{ "&:active": { cursor: "grabbing" } }}
       >
-        <FooterUploader flyer={flyer} flyerId={flyer?.id} footerUrl={flyer?.footer_url} onUpdate={(url) => onFlyerUpdate("footer_url", url)} />
-        <LegalEditable flyer={flyer} flyerId={flyer?.id} legal={flyer?.legal} onUpdate={(val) => onFlyerUpdate("legal", val)} IMPREC={IMPREC} />
+        <FooterUploader
+          flyer={flyer}
+          flyerId={flyer?.id}
+          footerUrl={flyer?.footer_url}
+          onUpdate={(url) => onFlyerUpdate("footer_url", url)}
+        />
+        <LegalEditable
+          flyer={flyer}
+          flyerId={flyer?.id}
+          legal={flyer?.legal}
+          onUpdate={(val) => onFlyerUpdate("legal", val)}
+          IMPREC={IMPREC}
+        />
       </Box>
     );
   }
 
   const size = TAMANO_SIZE[modulo.tamano] || TAMANO_SIZE["S"];
-  
+
   const isBgRed = modulo.fondo_modulo === "rojo" || modulo.fondo_modulo === "red";
-  const bgColor = FONDO_COLORS[modulo.fondo_modulo] ?? (isBgRed ? (FONDO_COLORS["red"] || FONDO_COLORS["rojo"] || "#dc2626") : (FONDO_COLORS["empty"] || "transparent"));
+  const bgColor =
+    FONDO_COLORS[modulo.fondo_modulo] ??
+    (isBgRed ? FONDO_COLORS["red"] || FONDO_COLORS["rojo"] || "#dc2626" : FONDO_COLORS["empty"] || "transparent");
   const borderStyle = BORDER_STYLES[modulo.estilo_borde] || "1px solid #e2e8f0";
   const textColor = isBgRed ? "#ffffff" : "#000000";
 
@@ -86,36 +107,45 @@ export default function SortableModuloCard({
   if (esMulti) {
     if (modulo.formato === "2_productos") {
       todosLosProductos = [
-        { 
-          producto: modulo.productos, 
-          imgOverride: modulo.imagen_url || modulo.imagen_url_override || modulo.imagen, 
-          nombreOverride: modulo.nombre_override || modulo.nombre, 
+        {
+          producto: modulo.productos,
+          imgOverride: modulo.imagen_url || modulo.imagen_url_override || modulo.imagen,
+          nombreOverride: modulo.nombre_override || modulo.nombre,
           descripcionOverride: modulo.descripcion_override || modulo.descripcion,
           precioRegularOverride: modulo.precio_regular_override || modulo.precio_regular,
-          stockOverride: modulo.stock
+          stockOverride: modulo.stock,
         },
-        { 
-          producto: modulo.productos_2, 
-          imgOverride: modulo.imagen_url_2, 
-          nombreOverride: modulo.nombre_2, 
+        {
+          producto: modulo.productos_2,
+          imgOverride: modulo.imagen_url_2,
+          nombreOverride: modulo.nombre_2,
           descripcionOverride: modulo.descripcion_2,
           precioRegularOverride: modulo.precio_regular_2,
-          stockOverride: modulo.stock_2
-        }
+          stockOverride: modulo.stock_2,
+        },
       ];
     }
   } else {
-    todosLosProductos = [{ 
-      producto: modulo.productos, 
-      imgOverride: modulo.imagen_url || modulo.imagen_url_override || modulo.imagen, 
-      nombreOverride: modulo.nombre_override || modulo.nombre, 
-      descripcionOverride: modulo.descripcion_override || modulo.descripcion,
-      precioRegularOverride: modulo.precio_regular_override || modulo.precio_regular,
-      stockOverride: modulo.stock
-    }];
+    todosLosProductos = [
+      {
+        producto: modulo.productos,
+        imgOverride: modulo.imagen_url || modulo.imagen_url_override || modulo.imagen,
+        nombreOverride: modulo.nombre_override || modulo.nombre,
+        descripcionOverride: modulo.descripcion_override || modulo.descripcion,
+        precioRegularOverride: modulo.precio_regular_override || modulo.precio_regular,
+        stockOverride: modulo.stock,
+      },
+    ];
   }
 
-  const gridCols = modulo.formato === "3_productos" ? 3 : modulo.formato === "4_productos" ? 2 : modulo.formato === "2_productos" ? 2 : 1;
+  const gridCols =
+    modulo.formato === "3_productos"
+      ? 3
+      : modulo.formato === "4_productos"
+        ? 2
+        : modulo.formato === "2_productos"
+          ? 2
+          : 1;
 
   const handleUpdateField = (field, value, index = 0) => {
     if (onUpdateModulo) {
@@ -130,35 +160,34 @@ export default function SortableModuloCard({
       style={{
         ...style,
         backgroundColor: bgColor,
-        border: borderStyle,
         borderRadius: "4px",
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
         cursor: "grab",
-        position: "relative"
+        position: "relative",
       }}
       {...attributes}
       {...listeners}
-      onClick={(e) => { e.stopPropagation(); onClick(); }}
+      onClick={handleCardClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      sx={{ "&:active": { cursor: "grabbing" } }}
+      sx={{ "&:active": { cursor: "grabbing" }, transition: "border 0.15s ease, box-shadow 0.15s ease" }}
     >
       {!esMulti && todosLosProductos[0] && (
-        <Box 
-          sx={{ 
-            flex: 1, 
+        <Box
+          sx={{
+            flex: 1,
             width: "100%",
             height: "100%",
-            display: "flex", 
-            flexDirection: colSpan > 1 ? "row" : "column", 
+            display: "flex",
+            flexDirection: colSpan > 1 ? "row" : "column",
             alignItems: "center",
-            justifyContent: "center", // MANTIENE CENTRADOS LOS ELEMENTOS SIN EMPUJAR HACIA ABAJO
-            position: "relative", 
+            justifyContent: "center",
+            position: "relative",
             p: 0.5,
             gap: 0.5,
-            boxSizing: "border-box"
+            boxSizing: "border-box",
           }}
         >
           <MiniProducto
@@ -176,7 +205,7 @@ export default function SortableModuloCard({
             IMPREC={IMPREC}
             TARJETA_LOGO={TARJETA_LOGO}
             flyer={flyer}
-            colSpan={colSpan} 
+            colSpan={colSpan}
             rowSpan={rowSpan}
             onUpdateField={(field, value) => handleUpdateField(field, value, 0)}
           />
@@ -184,42 +213,54 @@ export default function SortableModuloCard({
       )}
 
       {esMulti && (
-        <Box sx={{ display: "grid", gridTemplateColumns: `repeat(${gridCols},1fr)`, flex: 1, width: "100%", height: "100%", p: 0.3, boxSizing: "border-box", alignItems: "center", alignContent: "center" }}>
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: `repeat(${gridCols},1fr)`,
+            flex: 1,
+            width: "100%",
+            height: "100%",
+            p: 0.3,
+            boxSizing: "border-box",
+            alignItems: "center",
+            alignContent: "center",
+          }}
+        >
           {todosLosProductos.map((item, i) => (
-            <MiniProducto 
-              key={i} 
-              producto={item.producto} 
-              imgOverride={item.imgOverride} 
-              nombreOverride={item.nombreOverride} 
-              descripcionOverride={item.descripcionOverride} 
+            <MiniProducto
+              key={i}
+              producto={item.producto}
+              imgOverride={item.imgOverride}
+              nombreOverride={item.nombreOverride}
+              descripcionOverride={item.descripcionOverride}
               precioRegularOverride={item.precioRegularOverride}
               stockOverride={item.stockOverride}
-              textColor={textColor} 
-              showPrice={false} 
-              size={size} 
+              textColor={textColor}
+              showPrice={false}
+              size={size}
               colSpan={colSpan}
               rowSpan={rowSpan}
-              isBgRed={isBgRed} 
-              isModuloSelected={isSelected} 
-              IMPREC={IMPREC} 
-              TARJETA_LOGO={TARJETA_LOGO} 
+              isBgRed={isBgRed}
+              isModuloSelected={isSelected}
+              IMPREC={IMPREC}
+              TARJETA_LOGO={TARJETA_LOGO}
               flyer={flyer}
-              onUpdateField={(field, value) => handleUpdateField(field, value, i)} 
+              onUpdateField={(field, value) => handleUpdateField(field, value, i)}
             />
           ))}
         </Box>
       )}
 
-      <PrecioStarburst 
-        precio={modulo.precio} 
-        tipoPrecio={modulo.tipo_precio} 
-        size={size} 
+      <PrecioStarburst
+        precio={modulo.precio}
+        tipoPrecio={modulo.tipo_precio}
+        size={size}
         colSpan={colSpan}
         rowSpan={rowSpan}
-        isBgRed={isBgRed} 
-        isModuloSelected={isSelected} 
-        IMPREC={IMPREC} 
-        TARJETA_LOGO={TARJETA_LOGO} 
+        isBgRed={isBgRed}
+        isModuloSelected={isSelected}
+        IMPREC={IMPREC}
+        TARJETA_LOGO={TARJETA_LOGO}
       />
     </Box>
   );
