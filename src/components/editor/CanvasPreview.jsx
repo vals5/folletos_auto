@@ -121,7 +121,6 @@ export default function CanvasPreview({
   onDuplicate,
   onSelectAll,
 }) {
-  // 1. HOOKS DECLARADOS AL PRINCIPIO
   const navigate = useNavigate();
 
   const sensors = useSensors(
@@ -139,6 +138,7 @@ export default function CanvasPreview({
     setTitleLocal(getInitialTitle(flyer));
   }, [flyer?.nombre, flyer?.name]);
 
+  // Hook de atajos mapeado a todas las acciones posibles
   useShortcuts({
     UNDO: () => onUndo && onUndo(),
     REDO: () => onRedo && onRedo(),
@@ -148,8 +148,11 @@ export default function CanvasPreview({
     DUPLICATE: () => onDuplicate && onDuplicate(),
     SELECT_ALL: () => onSelectAll && onSelectAll(),
     DELETE: () => {
-      if (selectedModulo?.id && onDeleteModulo) {
-        onDeleteModulo(selectedModulo.id);
+      const modId =
+        selectedModulo?.id ||
+        (typeof selectedModulo === "string" || typeof selectedModulo === "number" ? selectedModulo : null);
+      if (modId && onDeleteModulo) {
+        onDeleteModulo(modId);
       }
     },
     ZOOM_IN: () => setZoom((z) => Math.min(250, z + 10)),
@@ -163,7 +166,6 @@ export default function CanvasPreview({
     },
   });
 
-  // 2. LÓGICA SECUNDARIA
   if (canvasRefs.current.length !== paginas.length) {
     canvasRefs.current = paginas.map((_, i) => canvasRefs.current[i] || { current: null });
   }
@@ -188,6 +190,9 @@ export default function CanvasPreview({
   const handleCanvasContainerClick = () => {
     if (document.activeElement && typeof document.activeElement.blur === "function") {
       document.activeElement.blur();
+    }
+    if (onSelectModulo) {
+      onSelectModulo(null);
     }
   };
 
@@ -358,7 +363,6 @@ export default function CanvasPreview({
                     modulos={modulosPorPagina[idx] || []}
                     selectedModulo={selectedModulo}
                     onSelectModulo={(mod) => {
-                      handleCanvasContainerClick();
                       if (onSelectModulo) onSelectModulo(mod);
                     }}
                     onMenuAction={onMenuAction}
