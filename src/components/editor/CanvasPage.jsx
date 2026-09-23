@@ -16,7 +16,6 @@ function DropZone({ id, index, isHighlighted, isValidDrop }) {
   const rowStart = Math.floor(index / 3) + 1;
   const colStart = (index % 3) + 1;
 
-  // Si está resaltado y es válido -> Azul. Si está resaltado pero es inválido -> Rojo.
   const bgColor = isHighlighted
     ? isValidDrop
       ? "rgba(59, 130, 246, 0.15)"
@@ -41,7 +40,7 @@ function DropZone({ id, index, isHighlighted, isValidDrop }) {
         border: borderColor,
         borderRadius: "4px",
         zIndex: 1,
-        pointerEvents: "none", // Permite clics fluidos a través del fondo
+        pointerEvents: "none",
         transition: "all 0.1s ease",
       }}
     />
@@ -78,8 +77,6 @@ export default function PaginaCanvas({
 }) {
   const [isEditingName, setIsEditingName] = useState(false);
   const [nombreLocal, setNombreLocal] = useState(pag?.nombre || `Página ${pag?.numero || pagIdx + 1}`);
-
-  // Estados para calcular posiciones multiples en vivo (Hovering)
   const [activeDragId, setActiveDragId] = useState(null);
   const [overIndex, setOverIndex] = useState(null);
 
@@ -100,12 +97,10 @@ export default function PaginaCanvas({
     }
   };
 
-  // Lógica de cálculo en tiempo real
   const activeModulo = modulos.find((m) => m.id === activeDragId);
   const cSpan = activeModulo ? activeModulo.colSpan || 1 : 1;
   const rSpan = activeModulo ? activeModulo.rowSpan || 1 : 1;
 
-  // Calculadora de celdas resaltadas
   const getHighlightCells = () => {
     if (overIndex === null || !activeDragId) return [];
     const sRow = Math.floor(overIndex / 3);
@@ -123,88 +118,133 @@ export default function PaginaCanvas({
 
   const highlightedCells = getHighlightCells();
 
-  // Validar si el lugar actual es legal (sin chocar con otros, ni desbordar la grilla)
   let isValidDrop = true;
   if (overIndex !== null && activeDragId) {
     const targetRow = Math.floor(overIndex / 3);
     const targetCol = overIndex % 3;
 
     if (targetCol + cSpan > 3 || targetRow + rSpan > 4) {
-      isValidDrop = false; // Se sale por el borde
-    } else {
-      const desiredCells = getHighlightCells();
-      const hasCollision = modulos.some((m) => {
-        if (m.id === activeDragId) return false;
-        const mCells = [];
-        const mRow = Math.floor((m.posicion || 0) / 3);
-        const mCol = (m.posicion || 0) % 3;
-        for (let r = 0; r < (m.rowSpan || 1); r++) {
-          for (let c = 0; c < (m.colSpan || 1); c++) {
-            mCells.push((mRow + r) * 3 + (mCol + c));
-          }
-        }
-        return desiredCells.some((cell) => mCells.includes(cell));
-      });
-      if (hasCollision) isValidDrop = false;
+      isValidDrop = false; // Se sale por el borde derecho o abajo
     }
   }
 
-  // Función auxiliar para reubicar módulos
+  // --- FUNCIÓN MEJORADA: Reubica de forma predictiva módulos si chocan ---
   const reubicarSiColisiona = (modulosActuales, idMovido, posDestino) => {
     const movido = modulosActuales.find((m) => m.id === idMovido);
     if (!movido) return modulosActuales;
 
-    const cSpan = movido.colSpan || 1;
-    const rSpan = movido.rowSpan || 1;
-
-    // Celdas que va a ocupar el módulo movido
+    const currentCSpan = movido.colSpan || 1;
+    const currentRSpan = movido.rowSpan || 1;
     const celdasOcupadas = new Set();
     const rStart = Math.floor(posDestino / 3);
     const cStart = posDestino % 3;
 
-    for (let r = 0; r < rSpan; r++) {
-      for (let c = 0; c < cSpan; c++) {
+    // Ocupamos el lugar del que se movió
+    for (let r = 0; r < currentRSpan; r++) {
+      for (let c = 0; c < currentCSpan; c++) {
         celdasOcupadas.add((rStart + r) * 3 + (cStart + c));
       }
     }
 
-    return modulosActuales.map((m) => {
-      if (m.id === idMovido) return { ...m, posicion: posDestino };
+    const otrosModulos = modulosActuales
+      .filter((m) => m.id !== idMovido)
+      .sort((a, b) => (a.posicion || 0) - (b.posicion || 0));
 
+    const nuevosModulos = [{ ...movido, posicion: posDestino }];
+
+    otrosModulos.forEach((m) => {
       const mPos = m.posicion || 0;
       const mCSpan = m.colSpan || 1;
       const mRSpan = m.rowSpan || 1;
-
-      // Verificar si este módulo choca con la nueva posición
       const mRow = Math.floor(mPos / 3);
       const mCol = mPos % 3;
-      let choca = false;
 
+      let choca = false;
       for (let r = 0; r < mRSpan; r++) {
         for (let c = 0; c < mCSpan; c++) {
           if (celdasOcupadas.has((mRow + r) * 3 + (mCol + c))) choca = true;
         }
       }
 
-      if (!choca) return m;
-
-      // Si choca, buscar el primer casillero libre (0 a 11)
-      for (let i = 0; i < 12; i++) {
-        const iRow = Math.floor(i / 3);
-        const iCol = i % 3;
-        if (iCol + mCSpan <= 3 && iRow + mRSpan <= 4 && !celdasOcupadas.has(i)) {
-          // Ocupar nueva celda
-          for (let r = 0; r < mRSpan; r++) {
-            for (let c = 0; c < mCSpan; c++) {
-              celdasOcupadas.add((iRow + r) * 3 + (iCol + c));
+      if (!choca) {
+        // Se queda donde estaba y ocupa las celdas
+        for (let r = 0; r < mRSpan; r++) {
+          for (let c = 0; c < mCSpan; c++) {
+            celdasOcupadas.add((mRow + r) * 3 + (mCol + c));
+          }
+        }
+        nuevosModulos.push(m);
+      } else {
+        // Lo empujamos al primer hueco libre
+        let nuevaPos = mPos;
+        for (let i = 0; i < 12; i++) {
+          const iRow = Math.floor(i / 3);
+          const iCol = i % 3;
+          if (iCol + mCSpan <= 3 && iRow + mRSpan <= 4) {
+            let libre = true;
+            for (let r = 0; r < mRSpan; r++) {
+              for (let c = 0; c < mCSpan; c++) {
+                if (celdasOcupadas.has((iRow + r) * 3 + (iCol + c))) libre = false;
+              }
+            }
+            if (libre) {
+              nuevaPos = i;
+              for (let r = 0; r < mRSpan; r++) {
+                for (let c = 0; c < mCSpan; c++) {
+                  celdasOcupadas.add((iRow + r) * 3 + (iCol + c));
+                }
+              }
+              break;
             }
           }
-          return { ...m, posicion: i };
+        }
+        nuevosModulos.push({ ...m, posicion: nuevaPos });
+      }
+    });
+
+    return nuevosModulos;
+  };
+
+  // --- AUTO-RESOLVER DE COLISIONES AL REDIMENSIONAR ---
+  useEffect(() => {
+    if (!modulos || modulos.length === 0) return;
+
+    let hasCollision = false;
+    const celdas = new Set();
+
+    for (const m of modulos) {
+      const mCSpan = m.colSpan || 1;
+      const mRSpan = m.rowSpan || 1;
+      const mRow = Math.floor((m.posicion || 0) / 3);
+      const mCol = (m.posicion || 0) % 3;
+
+      for (let r = 0; r < mRSpan; r++) {
+        for (let c = 0; c < mCSpan; c++) {
+          const cell = (mRow + r) * 3 + (mCol + c);
+          if (celdas.has(cell)) hasCollision = true;
+          celdas.add(cell);
         }
       }
-      return m;
-    });
-  };
+    }
+
+    if (hasCollision && selectedModulo) {
+      const isHere = modulos.some((m) => m.id === selectedModulo.id);
+      if (isHere) {
+        const nuevosModulos = reubicarSiColisiona(modulos, selectedModulo.id, selectedModulo.posicion || 0);
+        const cambiaron = nuevosModulos.some((nm) => {
+          const oldM = modulos.find((m) => m.id === nm.id);
+          return oldM && oldM.posicion !== nm.posicion;
+        });
+
+        if (cambiaron) {
+          onReorderModulos(pagIdx, nuevosModulos);
+          for (const mod of nuevosModulos) {
+            supabase.from("modulos").update({ posicion: mod.posicion }).eq("id", mod.id);
+          }
+        }
+      }
+    }
+  }, [modulos, selectedModulo, pagIdx, onReorderModulos]);
 
   const handleDragEnd = async (event) => {
     setActiveDragId(null);
@@ -225,16 +265,13 @@ export default function PaginaCanvas({
     const targetRow = Math.floor(targetIndex / 3);
     const targetCol = targetIndex % 3;
 
-    // Límite de bordes
     if (targetCol + currentCSpan > 3 || targetRow + currentRSpan > 4) return;
 
-    // Recalcular posiciones empujando a los que colisionan
     const nuevosModulos = reubicarSiColisiona(modulos, draggedId, targetIndex);
     const sorted = [...nuevosModulos].sort((a, b) => (a.posicion || 0) - (b.posicion || 0));
 
     onReorderModulos(pagIdx, sorted);
 
-    // Guardar en Supabase las posiciones actualizadas
     for (const mod of sorted) {
       await supabase.from("modulos").update({ posicion: mod.posicion }).eq("id", mod.id);
     }
@@ -251,7 +288,6 @@ export default function PaginaCanvas({
       onClick={handleActivarPagina}
       sx={{ display: "flex", flexDirection: "column", alignItems: "center", mb: 4, cursor: "pointer" }}
     >
-      {/* HEADER DE LA PÁGINA */}
       <Box display="flex" alignItems="center" gap={1} mb={1}>
         {isEditingName ? (
           <InputBase
@@ -327,7 +363,6 @@ export default function PaginaCanvas({
         )}
       </Box>
 
-      {/* MARCO DE LA PÁGINA */}
       <Box
         ref={canvasRef}
         style={{
@@ -350,7 +385,6 @@ export default function PaginaCanvas({
           transition: "outline 0.2s ease, box-shadow 0.2s ease",
         }}
       >
-        {/* 1. HEADER */}
         <HeaderImprecionante
           flyer={flyer}
           onFlyerUpdate={onFlyerUpdate}
@@ -358,7 +392,6 @@ export default function PaginaCanvas({
           DEFAULT_LOGOS={DEFAULT_LOGOS}
         />
 
-        {/* 2. GRILLA CENTRAL */}
         <Box sx={{ flex: 1, overflow: "hidden", px: 0.8, py: 0.5, display: "flex", flexDirection: "column" }}>
           <DndContext
             sensors={sensors}
@@ -400,7 +433,6 @@ export default function PaginaCanvas({
                 </Box>
               )}
 
-              {/* 12 DROP ZONES INVISIBLES DE FONDO CON CÁLCULO DE MULTI-ESPACIO */}
               {Array.from({ length: 12 }).map((_, i) => (
                 <DropZone
                   key={`slot-${i}`}
@@ -411,7 +443,6 @@ export default function PaginaCanvas({
                 />
               ))}
 
-              {/* LOS MÓDULOS ACTIVOS DE ESTA PÁGINA */}
               {modulos.map((modulo) => (
                 <SortableModuloCard
                   key={modulo.id}
@@ -438,7 +469,6 @@ export default function PaginaCanvas({
           </DndContext>
         </Box>
 
-        {/* 3. LEGAL */}
         {LegalEditable && (
           <Box sx={{ px: 0.8, pb: 0.5, flexShrink: 0, zIndex: 10 }}>
             <LegalEditable
