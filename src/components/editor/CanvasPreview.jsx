@@ -37,7 +37,7 @@ const IMPREC = {
   colors: { red: "#ff0000", yellow: "#fff800", black: "#000000", white: "#ffffff" },
   vigency: {
     fontFamily: "'Imprec-Vigency',sans-serif",
-    fontSize: "13pt",
+    fontSize: "10pt",
     textTransform: "uppercase",
     color: "#ff0000",
     lineHeight: 1.15,

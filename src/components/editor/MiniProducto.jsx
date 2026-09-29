@@ -113,7 +113,7 @@ export default function MiniProducto({
     >
       {esVertical2x1 && <Box sx={{ flex: "0 0 5%" }} />}
 
-      {/* IMG DRAG AND SIZE*/}
+      {/* IMG DRAG AND SIZE */}
       <MovableElement
         sx={{
           order: esHorizontal ? 2 : 1,
@@ -142,7 +142,7 @@ export default function MiniProducto({
               maxHeight: "100%",
               objectFit: "contain",
               pointerEvents: "none",
-              userSelect: "none", 
+              userSelect: "none",
             }}
           />
         ) : (
@@ -165,7 +165,7 @@ export default function MiniProducto({
         )}
       </MovableElement>
 
-      {/* TEXT DRAG - Mantiene sus propiedades exactas pasadas por sx */}
+      {/* TEXT DRAG */}
       <MovableElement
         sx={{
           order: esHorizontal ? 1 : 2,
@@ -178,9 +178,10 @@ export default function MiniProducto({
           textAlign: esVertical2x1 ? "center" : "left",
           zIndex: 10,
           pb: esVertical2x1 ? 1 : 0,
-          overflow: "hidden", // Mantiene el corte de texto si es muy largo
+          overflow: "hidden",
         }}
       >
+        {/* TÍTULO DEL PRODUCTO */}
         <Typography
           sx={{
             fontFamily: IMPREC?.productName?.fontFamily || "sans-serif",
@@ -188,21 +189,23 @@ export default function MiniProducto({
             fontSize: nameFontSize,
             fontWeight: 900,
             lineHeight: 1.1,
-            paddingTop: "2px",
+            p: 0,
+            m: 0,
+            mb: "2px",
             textTransform: "uppercase",
             width: "100%",
-            display: "-webkit-box",
-            WebkitLineClamp: esVertical2x1 ? 3 : 2,
-            WebkitBoxOrient: "vertical",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            mb: "1px",
+            display: "block",
+            whiteSpace: "nowrap", // Mantiene el texto en 1 sola línea
+            overflow: "hidden", // Evita que desborde el contenedor
             userSelect: "none",
+            textRendering: "geometricPrecision",
+            WebkitFontSmoothing: "antialiased",
           }}
         >
           {nombre || "NOMBRE PRODUCTO"}
         </Typography>
 
+        {/* DESCRIPCIÓN DEL PRODUCTO */}
         <Typography
           sx={{
             fontFamily: IMPREC?.productDesc?.fontFamily || "sans-serif",
@@ -210,29 +213,32 @@ export default function MiniProducto({
             fontSize: descFontSize,
             fontWeight: 600,
             lineHeight: 1.1,
+            p: 0,
+            m: 0,
+            mb: "4px",
             textTransform: "uppercase",
             width: "100%",
-            display: "-webkit-box",
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: "vertical",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            mb: "2px",
+            display: "block",
+            whiteSpace: "nowrap", // Mantiene el texto en 1 sola línea
+            overflow: "hidden", // Evita que desborde el contenedor
             userSelect: "none",
+            textRendering: "geometricPrecision",
+            WebkitFontSmoothing: "antialiased",
           }}
         >
           {desc || "DESCRIPCIÓN / PRESENTACIÓN"}
         </Typography>
 
+        {/* PRECIO REGULAR */}
         <Box
           sx={{
-            px: 0.2,
+            px: 0,
             py: 0.1,
             display: "flex",
             flexDirection: "column",
             gap: 0.1,
-            mt: esVertical2x1 ? 0.5 : "auto",
-            pointerEvents: "none", // Evita robar el arrastre a la caja madre
+            mt: esVertical2x1 ? 0.5 : 0,
+            pointerEvents: "none",
           }}
         >
           <Box display="flex" alignItems="center" gap={0.3}>

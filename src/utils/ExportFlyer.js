@@ -26,7 +26,7 @@ const captureAll = async (canvasRefs) => {
       const canvas = await toCanvas(targetElement, {
         pixelRatio: 2,
         backgroundColor: "#ffffff",
-        cacheBust: false, // Mantiene en caché estilos y recursos estables
+        cacheBust: true, // FORZA LA RECARGA LIMPIA DE ESTILOS Y FUENTES PARA RENDERIZADO IDÉNTICO
         imagePlaceholder: TRANSPARENT_PLACEHOLDER,
         style: {
           transform: "scale(1)",
@@ -53,7 +53,7 @@ export const exportToJPG = async (canvasRefs, flyerName) => {
     const link = document.createElement("a");
     link.download = `${flyerName || "folleto"}_p${i + 1}.jpg`;
     link.href = canvas.toDataURL("image/jpeg", 0.95);
-    
+
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -68,15 +68,15 @@ export const exportToPDF = async (canvasRefs, flyerName) => {
   }
 
   const { jsPDF } = await import("jspdf");
-  const scaleFactor = 2; 
+  const scaleFactor = 2;
   const first = canvases[0];
   const pdfW = first.width / scaleFactor;
   const pdfH = first.height / scaleFactor;
 
-  const pdf = new jsPDF({ 
-    orientation: pdfW > pdfH ? "l" : "p", 
-    unit: "px", 
-    format: [pdfW, pdfH] 
+  const pdf = new jsPDF({
+    orientation: pdfW > pdfH ? "l" : "p",
+    unit: "px",
+    format: [pdfW, pdfH],
   });
 
   canvases.forEach((canvas, i) => {
@@ -85,6 +85,6 @@ export const exportToPDF = async (canvasRefs, flyerName) => {
     if (i > 0) pdf.addPage([w, h], w > h ? "l" : "p");
     pdf.addImage(canvas.toDataURL("image/jpeg", 0.95), "JPEG", 0, 0, w, h);
   });
-  
+
   pdf.save(`${flyerName || "folleto"}.pdf`);
 };
