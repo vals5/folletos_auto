@@ -178,7 +178,7 @@ export default function MiniProducto({
           textAlign: esVertical2x1 ? "center" : "left",
           zIndex: 10,
           pb: esVertical2x1 ? 1 : 0,
-          overflow: "hidden",
+          overflow: "visible",
         }}
       >
         {/* TÍTULO DEL PRODUCTO */}
@@ -188,15 +188,15 @@ export default function MiniProducto({
             color: textColor || "#000000",
             fontSize: nameFontSize,
             fontWeight: 900,
-            lineHeight: 1.1,
+            lineHeight: 1.05,
             p: 0,
             m: 0,
             mb: "2px",
             textTransform: "uppercase",
             width: "100%",
             display: "block",
-            whiteSpace: "nowrap", // Mantiene el texto en 1 sola línea
-            overflow: "hidden", // Evita que desborde el contenedor
+            whiteSpace: "normal", // Permite multilínea
+            wordBreak: "break-word",
             userSelect: "none",
             textRendering: "geometricPrecision",
             WebkitFontSmoothing: "antialiased",
@@ -212,15 +212,15 @@ export default function MiniProducto({
             color: textColor === "#ffffff" ? "rgba(255,255,255,0.9)" : "#333333",
             fontSize: descFontSize,
             fontWeight: 600,
-            lineHeight: 1.1,
+            lineHeight: 1.05,
             p: 0,
             m: 0,
             mb: "4px",
             textTransform: "uppercase",
             width: "100%",
             display: "block",
-            whiteSpace: "nowrap", // Mantiene el texto en 1 sola línea
-            overflow: "hidden", // Evita que desborde el contenedor
+            whiteSpace: "normal", // Permite multilínea
+            wordBreak: "break-word",
             userSelect: "none",
             textRendering: "geometricPrecision",
             WebkitFontSmoothing: "antialiased",

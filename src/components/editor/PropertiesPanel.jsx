@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Box,
   Typography,
@@ -41,6 +41,9 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
   const [isEditingNombre, setIsEditingNombre] = useState(false);
   const [isEditingDescripcion, setIsEditingDescripcion] = useState(false);
 
+  // Referencia para rastrear el id del módulo activo
+  const prevModuloIdRef = useRef(null);
+
   useEffect(() => {
     if (modulo) {
       const prodNombre =
@@ -56,12 +59,18 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
       setDescripcion(prodDesc);
       setIsEditingNombre(false);
       setIsEditingDescripcion(false);
-      setPanelView("producto");
+
+      // Solo resetea la vista a "producto" si cambió de módulo (ID distinto)
+      if (modulo.id !== prevModuloIdRef.current) {
+        setPanelView("producto");
+        prevModuloIdRef.current = modulo.id;
+      }
     } else {
       setNombre("");
       setDescripcion("");
       setIsEditingNombre(false);
       setIsEditingDescripcion(false);
+      prevModuloIdRef.current = null;
     }
   }, [modulo]);
 
