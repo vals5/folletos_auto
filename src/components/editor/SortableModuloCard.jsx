@@ -24,10 +24,15 @@ export default function SortableModuloCard({
   TARJETA_LOGO,
   onFlyerUpdate,
 }) {
+  const isFreeEdit = Boolean(modulo.edicion_libre);
+
+  // Si edicion_libre está activo, deshabilitamos el arrastre general de la grilla
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: modulo.id,
     data: { modulo },
+    disabled: isFreeEdit,
   });
+
   const [hovered, setHovered] = useState(false);
 
   const colSpan = modulo.colSpan || 1;
@@ -66,14 +71,13 @@ export default function SortableModuloCard({
           display: "flex",
           flexDirection: "column",
           justifyContent: "flex-end",
-          cursor: "grab",
+          cursor: isFreeEdit ? "default" : "grab",
           border: "2px solid transparent",
           borderRadius: "4px",
         }}
-        {...attributes}
-        {...listeners}
+        {...(isFreeEdit ? {} : attributes)}
+        {...(isFreeEdit ? {} : listeners)}
         onClick={handleCardClick}
-        sx={{ "&:active": { cursor: "grabbing" } }}
       >
         <FooterUploader
           flyer={flyer}
@@ -138,19 +142,18 @@ export default function SortableModuloCard({
     ];
   }
 
-  const gridCols =
-    modulo.formato === "3_productos"
-      ? 3
-      : modulo.formato === "4_productos"
-        ? 2
-        : modulo.formato === "2_productos"
-          ? 2
-          : 1;
-
   const handleUpdateField = (field, value, index = 0) => {
     if (onUpdateModulo) {
       const keySuffix = index > 0 ? `_${index + 1}` : "";
       onUpdateModulo(modulo.id, { [`${field}${keySuffix}`]: value });
+    }
+  };
+
+  const handlePositionChange = (elementKey, newPos) => {
+    if (onUpdateModulo) {
+      onUpdateModulo(modulo.id, {
+        [elementKey]: newPos,
+      });
     }
   };
 
@@ -163,16 +166,16 @@ export default function SortableModuloCard({
         borderRadius: "4px",
         display: "flex",
         flexDirection: "column",
-        overflow: "hidden",
-        cursor: "grab",
+        overflow: isFreeEdit ? "visible" : "hidden",
+        cursor: isFreeEdit ? "default" : "grab",
         position: "relative",
+        border: isFreeEdit ? "2px dashed #22c55e" : isSelected ? "2px solid #0284c7" : borderStyle,
       }}
-      {...attributes}
-      {...listeners}
+      {...(isFreeEdit ? {} : attributes)}
+      {...(isFreeEdit ? {} : listeners)}
       onClick={handleCardClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      sx={{ "&:active": { cursor: "grabbing" }, transition: "border 0.15s ease, box-shadow 0.15s ease" }}
     >
       {!esMulti && todosLosProductos[0] && (
         <Box
@@ -202,6 +205,10 @@ export default function SortableModuloCard({
             size={size}
             isBgRed={isBgRed}
             isModuloSelected={isSelected}
+            edicionLibre={isFreeEdit}
+            posImagen={modulo.pos_imagen}
+            posTexto={modulo.pos_texto}
+            onPositionChange={handlePositionChange}
             IMPREC={IMPREC}
             TARJETA_LOGO={TARJETA_LOGO}
             flyer={flyer}
@@ -209,45 +216,6 @@ export default function SortableModuloCard({
             rowSpan={rowSpan}
             onUpdateField={(field, value) => handleUpdateField(field, value, 0)}
           />
-        </Box>
-      )}
-
-      {esMulti && (
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: `repeat(${gridCols},1fr)`,
-            flex: 1,
-            width: "100%",
-            height: "100%",
-            p: 0.3,
-            boxSizing: "border-box",
-            alignItems: "center",
-            alignContent: "center",
-          }}
-        >
-          {todosLosProductos.map((item, i) => (
-            <MiniProducto
-              key={i}
-              producto={item.producto}
-              imgOverride={item.imgOverride}
-              nombreOverride={item.nombreOverride}
-              descripcionOverride={item.descripcionOverride}
-              precioRegularOverride={item.precioRegularOverride}
-              stockOverride={item.stockOverride}
-              textColor={textColor}
-              showPrice={false}
-              size={size}
-              colSpan={colSpan}
-              rowSpan={rowSpan}
-              isBgRed={isBgRed}
-              isModuloSelected={isSelected}
-              IMPREC={IMPREC}
-              TARJETA_LOGO={TARJETA_LOGO}
-              flyer={flyer}
-              onUpdateField={(field, value) => handleUpdateField(field, value, i)}
-            />
-          ))}
         </Box>
       )}
 
@@ -259,6 +227,9 @@ export default function SortableModuloCard({
         rowSpan={rowSpan}
         isBgRed={isBgRed}
         isModuloSelected={isSelected}
+        edicionLibre={isFreeEdit}
+        posPrecio={modulo.pos_precio}
+        onPositionChange={(pos) => handlePositionChange("pos_precio", pos)}
         IMPREC={IMPREC}
         TARJETA_LOGO={TARJETA_LOGO}
       />

@@ -14,6 +14,8 @@ import {
   Paper,
   ToggleButtonGroup,
   ToggleButton,
+  Switch,
+  FormControlLabel,
 } from "@mui/material";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import ViewModuleIcon from "@mui/icons-material/ViewModule";
@@ -24,6 +26,8 @@ import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import CheckIcon from "@mui/icons-material/Check";
+import OpenWithIcon from "@mui/icons-material/OpenWith";
+import SaveIcon from "@mui/icons-material/Save";
 
 const TIPOS_PRECIO = [
   { value: "regular", label: "Precio regular" },
@@ -33,15 +37,13 @@ const TIPOS_PRECIO = [
 ];
 
 export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
-  const [panelView, setPanelView] = useState("producto");
+  const [panelView, setPanelView] = useState("modulo");
   const [nombre, setNombre] = useState("");
   const [descripcion, setDescripcion] = useState("");
 
-  // Estados para controlar el modo edición de cada campo
   const [isEditingNombre, setIsEditingNombre] = useState(false);
   const [isEditingDescripcion, setIsEditingDescripcion] = useState(false);
 
-  // Referencia para rastrear el id del módulo activo
   const prevModuloIdRef = useRef(null);
 
   useEffect(() => {
@@ -60,9 +62,7 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
       setIsEditingNombre(false);
       setIsEditingDescripcion(false);
 
-      // Solo resetea la vista a "producto" si cambió de módulo (ID distinto)
       if (modulo.id !== prevModuloIdRef.current) {
-        setPanelView("producto");
         prevModuloIdRef.current = modulo.id;
       }
     } else {
@@ -103,6 +103,15 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
     setDescripcion(origDesc);
     setIsEditingNombre(false);
     setIsEditingDescripcion(false);
+  };
+
+  const handleResetPositions = () => {
+    if (!modulo) return;
+    onUpdate(modulo.id, {
+      pos_imagen: { x: 0, y: 0 },
+      pos_texto: { x: 0, y: 0 },
+      pos_precio: { x: 0, y: 0 },
+    });
   };
 
   const handleImageUpload = (e) => {
@@ -163,8 +172,8 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
           }}
           startAdornment={
             <InputAdornment position="start">
-              {panelView === "producto" && <ShoppingCartOutlinedIcon sx={{ color: "#0284c7", fontSize: 18 }} />}
               {panelView === "modulo" && <ViewModuleIcon sx={{ color: "#0284c7", fontSize: 18 }} />}
+              {panelView === "producto" && <ShoppingCartOutlinedIcon sx={{ color: "#0284c7", fontSize: 18 }} />}
               {panelView === "pagina" && <ArticleIcon sx={{ color: "#0284c7", fontSize: 18 }} />}
             </InputAdornment>
           }
@@ -174,6 +183,151 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
           <MenuItem value="pagina">Página</MenuItem>
         </Select>
       </FormControl>
+
+      {/* VISTA MÓDULO / EDITAR MÓDULO */}
+      {panelView === "modulo" && (
+        <>
+          {!modulo ? (
+            <Box
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              height={200}
+              color="#94a3b8"
+              textAlign="center"
+            >
+              <Typography fontSize={13}>Seleccioná un producto para editar el módulo.</Typography>
+            </Box>
+          ) : (
+            <Box display="flex" flexDirection="column" gap={2}>
+              {/* SECCIÓN MODO EDICIÓN LIBRE */}
+              <Box
+                display="flex"
+                flexDirection="column"
+                gap={1.5}
+                p={2}
+                bgcolor="#f0fdf4"
+                borderRadius="14px"
+                border="1px dashed #22c55e"
+              >
+                <Box display="flex" alignItems="center" gap={1}>
+                  <OpenWithIcon sx={{ color: "#16a34a", fontSize: 20 }} />
+                  <Typography fontSize={13} fontWeight={700} color="#166534">
+                    Edición Libre de Elementos
+                  </Typography>
+                </Box>
+
+                <Typography fontSize={11} color="#15803d" lineHeight={1.3}>
+                  Activá esta opción para mover libremente la imagen, el texto y el precio dentro de este módulo.
+                  Apagalo para volver a arrastrar la tarjeta en la grilla.
+                </Typography>
+
+                <ToggleButtonGroup
+                  value={modulo.edicion_libre ? "on" : "off"}
+                  exclusive
+                  onChange={(_, val) => val !== null && handleUpdateField("edicion_libre", val === "on")}
+                  fullWidth
+                  size="small"
+                  sx={{
+                    bgcolor: "white",
+                    p: "3px",
+                    borderRadius: "20px",
+                    border: "1px solid #bbf7d0",
+                    "& .MuiToggleButton-root": {
+                      border: "none",
+                      borderRadius: "16px !important",
+                      py: 0.5,
+                      fontSize: 12,
+                      fontWeight: 600,
+                      textTransform: "none",
+                      color: "#64748b",
+                      "&.Mui-selected": {
+                        bgcolor: "#22c55e",
+                        color: "white",
+                        boxShadow: "0 2px 6px rgba(34, 197, 94, 0.3)",
+                        "&:hover": { bgcolor: "#16a34a" },
+                      },
+                    },
+                  }}
+                >
+                  <ToggleButton value="off">Bloqueado (Grilla)</ToggleButton>
+                  <ToggleButton value="on">Activar Mover</ToggleButton>
+                </ToggleButtonGroup>
+
+                {modulo.edicion_libre && (
+                  <Box display="flex" gap={1} mt={0.5}>
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      size="small"
+                      startIcon={<SaveIcon />}
+                      onClick={() => handleUpdateField("edicion_libre", false)}
+                      sx={{
+                        bgcolor: "#16a34a",
+                        "&:hover": { bgcolor: "#15803d" },
+                        fontSize: 11,
+                        textTransform: "none",
+                        borderRadius: "8px",
+                      }}
+                    >
+                      Guardar Posición
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      color="inherit"
+                      size="small"
+                      onClick={handleResetPositions}
+                      sx={{
+                        fontSize: 11,
+                        textTransform: "none",
+                        borderRadius: "8px",
+                        borderColor: "#86efac",
+                        color: "#166534",
+                      }}
+                    >
+                      Resetear
+                    </Button>
+                  </Box>
+                )}
+              </Box>
+
+              {/* TAMAÑO Y FORMATO DE GRILLA */}
+              <Box display="flex" flexDirection="column" gap={1}>
+                <Typography fontSize={13} fontWeight={700} color="#0f172a">
+                  Formato en grilla (3x4)
+                </Typography>
+
+                <FormControl size="small" fullWidth>
+                  <InputLabel sx={{ fontSize: 12 }}>Tamaño del bloque</InputLabel>
+                  <Select
+                    value={modulo.formato === "footer" ? "footer" : `${modulo.colSpan || 1}x${modulo.rowSpan || 1}`}
+                    label="Tamaño del bloque"
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === "footer") {
+                        onUpdate(modulo.id, { colSpan: 3, rowSpan: 1, formato: "footer" });
+                      } else {
+                        const [c, r] = val.split("x").map(Number);
+                        if (modulo.formato === "footer") {
+                          onUpdate(modulo.id, { colSpan: c, rowSpan: r, formato: "1_producto" });
+                        } else {
+                          onUpdate(modulo.id, { colSpan: c, rowSpan: r });
+                        }
+                      }
+                    }}
+                    sx={{ borderRadius: "10px", fontSize: 13 }}
+                  >
+                    <MenuItem value="1x1">1x1 (Normal)</MenuItem>
+                    <MenuItem value="2x1">2x1 (Horizontal)</MenuItem>
+                    <MenuItem value="1x2">1x2 (Vertical)</MenuItem>
+                    <MenuItem value="footer">3x1 (Pie de página)</MenuItem>
+                  </Select>
+                </FormControl>
+              </Box>
+            </Box>
+          )}
+        </>
+      )}
 
       {/* VISTA PRODUCTO */}
       {panelView === "producto" && (
@@ -191,7 +345,6 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
             </Box>
           ) : (
             <Box display="flex" flexDirection="column" gap={2}>
-              {/* Título de sección y acciones rápidas */}
               <Box display="flex" alignItems="center" justifyContent="space-between">
                 <Typography fontSize={14} fontWeight={800} color="#64748b">
                   DATOS DEL PRODUCTO
@@ -414,7 +567,7 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
                 )}
               </Box>
 
-              {/* TIPO DE OFERTA Y PRECIO PÚBLICO */}
+              {/* TIPO DE OFERTA Y PRECIO */}
               <Box
                 sx={{
                   bgcolor: "#f8fafc",
@@ -471,7 +624,6 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
 
               {/* BORDE Y FONDO */}
               <Box display="flex" flexDirection="column" gap={1.5} pt={0.5}>
-                {/* BORDE */}
                 <Box>
                   <Typography fontSize={11} fontWeight={700} color="#64748b" textTransform="uppercase" mb={0.5}>
                     BORDE
@@ -509,7 +661,6 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
                   </ToggleButtonGroup>
                 </Box>
 
-                {/* FONDO */}
                 <Box>
                   <Typography fontSize={11} fontWeight={700} color="#64748b" textTransform="uppercase" mb={0.5}>
                     FONDO
@@ -552,68 +703,13 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
         </>
       )}
 
-      {/* VISTA MÓDULO */}
-      {panelView === "modulo" && (
-        <>
-          {!modulo ? (
-            <Box
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-              height={200}
-              color="#94a3b8"
-              textAlign="center"
-            >
-              <Typography fontSize={13}>Seleccioná un producto para configurar su tamaño.</Typography>
-            </Box>
-          ) : (
-            <Box display="flex" flexDirection="column" gap={2}>
-              <Typography fontSize={14} fontWeight={800} color="#0f172a">
-                Formato en grilla (3x4)
-              </Typography>
-
-              <FormControl size="small" fullWidth>
-                <InputLabel sx={{ fontSize: 12 }}>Tamaño del bloque</InputLabel>
-                <Select
-                  value={modulo.formato === "footer" ? "footer" : `${modulo.colSpan || 1}x${modulo.rowSpan || 1}`}
-                  label="Tamaño del bloque"
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    if (val === "footer") {
-                      onUpdate(modulo.id, { colSpan: 3, rowSpan: 1, formato: "footer" });
-                    } else {
-                      const [c, r] = val.split("x").map(Number);
-                      if (modulo.formato === "footer") {
-                        onUpdate(modulo.id, { colSpan: c, rowSpan: r, formato: "1_producto" });
-                      } else {
-                        onUpdate(modulo.id, { colSpan: c, rowSpan: r });
-                      }
-                    }
-                  }}
-                  sx={{ borderRadius: "10px", fontSize: 13 }}
-                >
-                  <MenuItem value="1x1">1x1 (Normal)</MenuItem>
-                  <MenuItem value="2x1">2x1 (Horizontal)</MenuItem>
-                  <MenuItem value="1x2">1x2 (Vertical)</MenuItem>
-                  <MenuItem value="footer">3x1 (Pie de página)</MenuItem>
-                </Select>
-              </FormControl>
-
-              <Typography fontSize={11} color="#64748b">
-                Ajustá el formato para que este módulo ocupe más espacio horizontal o vertical.
-              </Typography>
-            </Box>
-          )}
-        </>
-      )}
-
       {/* VISTA PÁGINA */}
       {panelView === "pagina" && (
         <Box textAlign="center" py={4} color="#64748b">
           <Typography variant="subtitle2" fontWeight={700} mb={1} color="#0f172a">
             Configuración de la página
           </Typography>
-          <Typography fontSize={12}>Por ahora sin opciones adicionales.</Typography>
+          <Typography fontSize={12}>Ajustes de resolución y diseño de página.</Typography>
         </Box>
       )}
     </Paper>

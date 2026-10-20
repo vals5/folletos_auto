@@ -138,7 +138,6 @@ export default function CanvasPreview({
     setTitleLocal(getInitialTitle(flyer));
   }, [flyer?.nombre, flyer?.name]);
 
-  // Hook de atajos mapeado a todas las acciones posibles
   useShortcuts({
     UNDO: () => onUndo && onUndo(),
     REDO: () => onRedo && onRedo(),
@@ -207,7 +206,7 @@ export default function CanvasPreview({
       alignItems="center"
       overflow="hidden"
       onClick={handleCanvasContainerClick}
-      sx={{ width: "100%", height: "100%" }}
+      sx={{ width: "100%", height: "100%", boxSizing: "border-box" }}
     >
       <GlobalFonts />
 
@@ -220,7 +219,7 @@ export default function CanvasPreview({
         py={1}
         bgcolor="white"
         borderBottom="1px solid #e5e7eb"
-        sx={{ width: "100%", zIndex: 20, flexShrink: 0 }}
+        sx={{ width: "100%", zIndex: 20, flexShrink: 0, boxSizing: "border-box" }}
       >
         <Box display="flex" alignItems="center" gap={1.5}>
           <Tooltip title="Volver al dashboard">
@@ -325,11 +324,23 @@ export default function CanvasPreview({
         flexDirection="column"
         alignItems="center"
         py={3}
-        sx={{ width: "100%", overflow: "auto" }}
+        sx={{
+          width: "100%",
+          overflowY: "auto",
+          overflowX: "auto", // Se ajusta para que solo haga scroll si la página realmente excede el visor
+          boxSizing: "border-box",
+        }}
       >
         <Box
-          sx={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", overflow: "visible" }}
+          sx={{
+            width: "100%",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            overflow: "visible",
+          }}
         >
+          {/* CONTENEDOR ESCALADO: Se reemplazó width: "100%" por width: "fit-content" */}
           <Box
             sx={{
               transformOrigin: "top center",
@@ -337,7 +348,8 @@ export default function CanvasPreview({
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              width: "100%",
+              width: "fit-content", // <-- FIX: Evita el desborde multiplicativo del 100% * scale
+              maxWidth: "100%",
               height: "auto",
               transition: "transform 0.1s ease-out",
             }}

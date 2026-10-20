@@ -7,6 +7,7 @@ export default function MovableElement({
   isAbsolute = false,
   useBounds = false,
   sx = {},
+  disabled = false,
 }) {
   const [pos, setPos] = useState(defaultPosition);
   const dragging = useRef(false);
@@ -18,7 +19,8 @@ export default function MovableElement({
   }, [defaultPosition.x, defaultPosition.y]);
 
   const handlePointerDown = (e) => {
-    // ESTO ES CLAVE: Detiene la propagación para que dnd-kit no detecte el arrastre
+    if (disabled) return;
+
     e.stopPropagation();
 
     if (e.target.hasPointerCapture && e.target.hasPointerCapture(e.pointerId)) {
@@ -58,18 +60,18 @@ export default function MovableElement({
 
   return (
     <Box
-      data-no-dnd="true"
+      data-no-dnd={disabled ? "false" : "true"}
       onPointerDown={handlePointerDown}
       onClick={(e) => {
-        if (dragging.current) {
+        if (dragging.current && !disabled) {
           e.stopPropagation();
         }
       }}
       sx={{
         display: "inline-flex",
         ...styleProps,
-        cursor: "grab",
-        "&:active": { cursor: "grabbing" },
+        cursor: disabled ? "inherit" : "grab",
+        "&:active": { cursor: disabled ? "inherit" : "grabbing" },
         ...sx,
       }}
     >

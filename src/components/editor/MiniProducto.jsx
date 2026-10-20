@@ -15,6 +15,7 @@ export default function MiniProducto({
   isBgRed = false,
   textColor = "#000000",
   isModuloSelected = false,
+  edicionLibre = false, // <-- NUEVO
   IMPREC,
   TARJETA_LOGO,
   onUpdateField,
@@ -80,12 +81,7 @@ export default function MiniProducto({
           crossOrigin="anonymous"
           decoding="sync"
           alt="Promo Bancaria"
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "contain",
-            pointerEvents: "none",
-          }}
+          style={{ width: "100%", height: "100%", objectFit: "contain", pointerEvents: "none" }}
         />
       </Box>
     );
@@ -113,8 +109,9 @@ export default function MiniProducto({
     >
       {esVertical2x1 && <Box sx={{ flex: "0 0 5%" }} />}
 
-      {/* IMG DRAG AND SIZE */}
+      {/* IMG DRAG */}
       <MovableElement
+        disabled={!edicionLibre} // <-- NUEVO
         sx={{
           order: esHorizontal ? 2 : 1,
           flex: 1,
@@ -167,6 +164,7 @@ export default function MiniProducto({
 
       {/* TEXT DRAG */}
       <MovableElement
+        disabled={!edicionLibre} // <-- NUEVO
         sx={{
           order: esHorizontal ? 1 : 2,
           flex: "none",
@@ -181,7 +179,6 @@ export default function MiniProducto({
           overflow: "visible",
         }}
       >
-        {/* TÍTULO DEL PRODUCTO */}
         <Typography
           sx={{
             fontFamily: IMPREC?.productName?.fontFamily || "sans-serif",
@@ -195,17 +192,14 @@ export default function MiniProducto({
             textTransform: "uppercase",
             width: "100%",
             display: "block",
-            whiteSpace: "normal", // Permite multilínea
+            whiteSpace: "normal",
             wordBreak: "break-word",
             userSelect: "none",
-            textRendering: "geometricPrecision",
-            WebkitFontSmoothing: "antialiased",
           }}
         >
           {nombre || "NOMBRE PRODUCTO"}
         </Typography>
 
-        {/* DESCRIPCIÓN DEL PRODUCTO */}
         <Typography
           sx={{
             fontFamily: IMPREC?.productDesc?.fontFamily || "sans-serif",
@@ -219,17 +213,14 @@ export default function MiniProducto({
             textTransform: "uppercase",
             width: "100%",
             display: "block",
-            whiteSpace: "normal", // Permite multilínea
+            whiteSpace: "normal",
             wordBreak: "break-word",
             userSelect: "none",
-            textRendering: "geometricPrecision",
-            WebkitFontSmoothing: "antialiased",
           }}
         >
           {desc || "DESCRIPCIÓN / PRESENTACIÓN"}
         </Typography>
 
-        {/* PRECIO REGULAR */}
         <Box
           sx={{
             px: 0,
@@ -279,6 +270,7 @@ export default function MiniProducto({
           rowSpan={spanR}
           isBgRed={isBgRed}
           isModuloSelected={isModuloSelected}
+          edicionLibre={edicionLibre} // <-- NUEVO
           IMPREC={IMPREC}
           TARJETA_LOGO={TARJETA_LOGO}
         />

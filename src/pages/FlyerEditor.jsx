@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { Box, CircularProgress, Typography, Button } from "@mui/material";
 
-import { useFlyerEditor } from "../hooks/useFlyerEditor"; 
+import { useFlyerEditor } from "../hooks/useFlyerEditor";
 
 import ProductsSidebar from "../components/editor/ProductsSidebar";
 import CanvasPreview from "../components/editor/CanvasPreview";
@@ -38,8 +38,8 @@ export default function FlyerEditor() {
     handleReorderModulos,
     handleDuplicar,
     handleFlyerUpdate,
-    modulosPaginaActual
-  } = useFlyerEditor(id); 
+    modulosPaginaActual,
+  } = useFlyerEditor(id);
 
   if (loading) {
     return (
@@ -52,8 +52,12 @@ export default function FlyerEditor() {
   if (errorMsg) {
     return (
       <Box display="flex" height="100dvh" justifyContent="center" alignItems="center" flexDirection="column" gap={2}>
-        <Typography color="error" fontWeight={700}>{errorMsg}</Typography>
-        <Button variant="outlined" onClick={() => navigate("/dashboard")}>Volver al dashboard</Button>
+        <Typography color="error" fontWeight={700}>
+          {errorMsg}
+        </Typography>
+        <Button variant="outlined" onClick={() => navigate("/dashboard")}>
+          Volver al dashboard
+        </Button>
       </Box>
     );
   }
@@ -69,42 +73,46 @@ export default function FlyerEditor() {
       />
 
       <Box display="flex" flex={1} overflow="hidden">
-        <CanvasPreview
-          flyer={flyer}
-          plantilla={plantilla}
-          paginas={paginas}
-          modulosPorPagina={modulosPorPagina}
-          paginaActual={paginaActual}
-          setPaginaActual={setPaginaActual}
-          selectedModulo={selectedModulo}
-          onSelectModulo={setSelectedModulo}
-          onFlyerUpdate={handleFlyerUpdate}
-          onReorderModulos={handleReorderModulos}
-          onAddPagina={handleAddPagina}
-          onDeletePagina={(idx, pag) => setEliminarPagina({ idx, pag })}
-          onDeleteModulo={handleDeleteModulo}
-          onMenuAction={handleMenuAction}
-          onResize={handleResize}
-          onAddProducto={handleOnAddProducto}
-          onBack={() => navigate("/dashboard")}
-        />
-        <PropertiesPanel 
-          modulo={selectedModulo} 
-          onUpdate={handleUpdateModulo} 
-          onDuplicate={(m) => setDuplicarModulo(m)} 
+        {/* NUEVO CONTENEDOR: Fuerza al canvas a no empujar ni meterse debajo del panel derecho */}
+        <Box flex={1} display="flex" flexDirection="column" minWidth={0} position="relative">
+          <CanvasPreview
+            flyer={flyer}
+            plantilla={plantilla}
+            paginas={paginas}
+            modulosPorPagina={modulosPorPagina}
+            paginaActual={paginaActual}
+            setPaginaActual={setPaginaActual}
+            selectedModulo={selectedModulo}
+            onSelectModulo={setSelectedModulo}
+            onFlyerUpdate={handleFlyerUpdate}
+            onReorderModulos={handleReorderModulos}
+            onAddPagina={handleAddPagina}
+            onDeletePagina={(idx, pag) => setEliminarPagina({ idx, pag })}
+            onDeleteModulo={handleDeleteModulo}
+            onMenuAction={handleMenuAction}
+            onResize={handleResize}
+            onAddProducto={handleOnAddProducto}
+            onBack={() => navigate("/dashboard")}
+          />
+        </Box>
+
+        <PropertiesPanel
+          modulo={selectedModulo}
+          onUpdate={handleUpdateModulo}
+          onDuplicate={(m) => setDuplicarModulo(m)}
         />
       </Box>
 
-      <DuplicarModal 
-        open={!!duplicarModulo} 
-        modulo={duplicarModulo} 
-        onClose={() => setDuplicarModulo(null)} 
-        onDuplicate={handleDuplicar} 
+      <DuplicarModal
+        open={!!duplicarModulo}
+        modulo={duplicarModulo}
+        onClose={() => setDuplicarModulo(null)}
+        onDuplicate={handleDuplicar}
       />
-      <ConfirmarEliminarPagina 
-        open={!!eliminarPagina} 
-        onClose={() => setEliminarPagina(null)} 
-        onConfirm={handleDeletePagina} 
+      <ConfirmarEliminarPagina
+        open={!!eliminarPagina}
+        onClose={() => setEliminarPagina(null)}
+        onConfirm={handleDeletePagina}
       />
     </Box>
   );
