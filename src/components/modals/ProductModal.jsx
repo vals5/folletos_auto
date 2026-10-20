@@ -1,20 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, Typography } from "@mui/material";
 
 const EMPTY = { sku: "", nombre: "", descripcion: "", imagen_url: "" };
 
-export default function ProductoModal({ open, onClose, onSave, inicial }) {
+// El formulario se monta solo cuando el diálogo está abierto, así arranca limpio cada vez.
+function ProductoForm({ onClose, onSave, inicial }) {
   const [form, setForm] = useState(inicial || EMPTY);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    setForm(inicial || EMPTY);
-    setError("");
-  }, [inicial, open]);
-
-  const set = (field) => (e) =>
-    setForm((prev) => ({ ...prev, [field]: e.target.value }));
+  const set = (field) => (e) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
   const handleSave = async () => {
     if (!form.sku.trim() || !form.nombre.trim()) {
@@ -27,36 +22,15 @@ export default function ProductoModal({ open, onClose, onSave, inicial }) {
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
-      <DialogTitle sx={{ fontWeight: 700 }}>
-        {inicial ? "Editar producto" : "Nuevo producto"}
-      </DialogTitle>
+    <>
+      <DialogTitle sx={{ fontWeight: 700 }}>{inicial ? "Editar producto" : "Nuevo producto"}</DialogTitle>
       <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 2 }}>
-        <TextField
-          label="SKU *"
-          value={form.sku}
-          onChange={set("sku")}
-          size="small"
-          fullWidth
-        />
-        <TextField
-          label="Nombre *"
-          value={form.nombre}
-          onChange={set("nombre")}
-          size="small"
-          fullWidth
-          autoFocus
-        />
-        <TextField
-          label="Descripción"
-          value={form.descripcion}
-          onChange={set("descripcion")}
-          size="small"
-          fullWidth
-        />
+        <TextField label="SKU *" value={form.sku} onChange={set("sku")} size="small" fullWidth />
+        <TextField label="Nombre *" value={form.nombre} onChange={set("nombre")} size="small" fullWidth autoFocus />
+        <TextField label="Descripción" value={form.descripcion ?? ""} onChange={set("descripcion")} size="small" fullWidth />
         <TextField
           label="URL de imagen"
-          value={form.imagen_url}
+          value={form.imagen_url ?? ""}
           onChange={set("imagen_url")}
           size="small"
           fullWidth
@@ -81,6 +55,14 @@ export default function ProductoModal({ open, onClose, onSave, inicial }) {
           {loading ? "Guardando..." : "Guardar"}
         </Button>
       </DialogActions>
+    </>
+  );
+}
+
+export default function ProductoModal({ open, onClose, onSave, inicial }) {
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
+      {open && <ProductoForm key={inicial?.id ?? "nuevo"} onClose={onClose} onSave={onSave} inicial={inicial} />}
     </Dialog>
   );
 }

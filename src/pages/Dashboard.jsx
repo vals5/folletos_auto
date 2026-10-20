@@ -1,42 +1,32 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Box, Typography, Button, Card, CardContent, CardActions, Grid, Skeleton, Chip } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../services/supabase";
 
 import NewFlyerModal from "../components/modals/NewFlyerModal";
+import { useFlyers, useFlyerMutations } from "../hooks/useFlyers";
+import ImprecLogo from "../assets/img/Imprecionante.svg";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [flyers, setFlyers] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  useEffect(() => {
-    fetchFlyers();
-  }, []);
-
-  const fetchFlyers = async () => {
-    const { data, error } = await supabase.from("flyers").select("*").order("created_at", { ascending: false });
-    if (!error) setFlyers(data);
-    setIsLoading(false);
-  };
+  const { data: flyers = [], isLoading } = useFlyers();
+  const { create, remove } = useFlyerMutations();
 
   const handleCreate = async (payload) => {
-    const { data, error } = await supabase.from("flyers").insert([payload]).select();
-    if (!error && data) {
+    try {
+      const flyer = await create.mutateAsync(payload);
       setIsModalOpen(false);
-      navigate(`/editor/${data[0].id}`);
-    } else {
-      console.error("Error al crear folleto:", error);
+      navigate(`/editor/${flyer.id}`);
+    } catch {
+      // el error ya se muestra con notify desde el hook
     }
   };
 
-  const handleDelete = async (e, flyerId) => {
+  const handleDelete = (e, flyerId) => {
     e.stopPropagation();
     if (!window.confirm("¿Eliminar este folleto?")) return;
-    await supabase.from("flyers").delete().eq("id", flyerId);
-    setFlyers((prev) => prev.filter((f) => f.id !== flyerId));
+    remove.mutate(flyerId);
   };
 
   return (
@@ -89,7 +79,7 @@ export default function Dashboard() {
                     ) : (
                       <Box
                         component="img"
-                        src="/src/assets/img/Imprecionante.svg"
+                        src={ImprecLogo}
                         alt="logo"
                         onError={(e) => (e.target.style.display = "none")}
                         sx={{ height: 26, maxWidth: 90, objectFit: "contain", alignSelf: "flex-start" }}
@@ -100,7 +90,7 @@ export default function Dashboard() {
                   {/* Contenido (Títulos, chips, etc) */}
                   <CardContent sx={{ p: 2 }}>
                     <Typography variant="subtitle1" fontWeight={800} noWrap>
-                      {flyer.name}
+                      {flyer.nombre}
                     </Typography>
                     <Box display="flex" gap={0.5} flexWrap="wrap" mt={0.5}>
                       <Chip label={`${flyer.width}×${flyer.height}px`} size="small" sx={{ fontSize: 10 }} />

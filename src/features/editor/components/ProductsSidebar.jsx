@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { 
   Box, Typography, TextField, InputAdornment, List, ListItem, 
   ListItemText, ListItemButton, IconButton, Chip, Tooltip, 
@@ -10,30 +10,13 @@ import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import InventoryIcon from "@mui/icons-material/Inventory";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import { supabase } from "../../services/supabase";
+import { useProductos } from "../../../hooks/useProductos";
 
 export default function ProductsSidebar({ modulos = [], selectedModulo, onSelectModulo, onAddProducto, onDeleteModulo }) {
   const [collapsed, setCollapsed] = useState(false);
   const [tab, setTab] = useState(0);
-  const [productos, setProductos] = useState([]);
   const [search, setSearch] = useState("");
-  const [loadingProductos, setLoadingProductos] = useState(true);
-
-  useEffect(() => {
-    fetchProductos();
-  }, []);
-
-  const fetchProductos = async () => {
-    try {
-      const { data, error } = await supabase.from("productos").select("*").order("nombre");
-      if (error) throw error;
-      setProductos(data || []);
-    } catch (error) {
-      console.error("Error cargando productos:", error);
-    } finally {
-      setLoadingProductos(false);
-    }
-  };
+  const { data: productos = [], isLoading: loadingProductos } = useProductos();
 
   const productosFiltrados = productos.filter((p) => {
     const q = search.toLowerCase().trim();

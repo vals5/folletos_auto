@@ -1,57 +1,33 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Box, Typography } from "@mui/material";
-import PrecioStarburst from "./PrecioStarburst";
-import InlineText from "../ui/InlineText";
+import InlineText from "../../../components/ui/InlineText";
 import MovableElement from "./MovableElement";
+import { IMPREC } from "../../../config/editorTheme";
 
+// Contenido de un módulo: imagen, nombre, descripción y precio regular.
+// (El precio "starburst" lo dibuja SortableModuloCard.)
 export default function MiniProducto({
   producto,
-  showPrice = true,
-  precio = "",
-  tipoPrecio = "regular",
-  size = "S",
   colSpan = 1,
   rowSpan = 1,
-  isBgRed = false,
   textColor = "#000000",
-  isModuloSelected = false,
-  edicionLibre = false, // <-- NUEVO
-  IMPREC,
-  TARJETA_LOGO,
-  onUpdateField,
+  edicionLibre = false,
   nombreOverride,
   descripcionOverride,
   precioRegularOverride,
   imgOverride,
+  esPromo = false,
+  posImagen,
+  posTexto,
+  onPositionChange,
 }) {
-  const [imgError, setImgError] = useState(false);
+  const imgSrc = (imgOverride || producto?.imagen_url || producto?.imagen || "").trim();
+  const [errorSrc, setErrorSrc] = useState(null);
+  const imgError = errorSrc === imgSrc;
 
-  const getImageUrl = () => {
-    let url =
-      imgOverride ||
-      producto?.imagen_url ||
-      producto?.imagen ||
-      producto?.img ||
-      producto?.image ||
-      producto?.imagen_src ||
-      producto?.img_url;
-    if (typeof url === "string") return url.trim();
-    if (Array.isArray(url) && typeof url[0] === "string") return url[0];
-    if (typeof url === "object" && url !== null) return url.url || url.src || url.imagen || "";
-    return "";
-  };
-
-  const imgSrc = getImageUrl();
   const nombre = nombreOverride || producto?.nombre || "";
-  const desc =
-    descripcionOverride !== undefined && descripcionOverride !== null
-      ? descripcionOverride
-      : producto?.descripcion || "";
+  const desc = descripcionOverride ?? producto?.descripcion ?? "";
   const precioRegular = precioRegularOverride || producto?.precio_regular || "";
-
-  useEffect(() => {
-    setImgError(false);
-  }, [imgSrc]);
 
   const spanC = Number(colSpan) || 1;
   const spanR = Number(rowSpan) || 1;
@@ -61,21 +37,9 @@ export default function MiniProducto({
   const esNormal1x1 = spanC === 1 && spanR === 1;
 
   const es3x1 = spanC === 3 || producto?.formato === "footer";
-  const esPromo3x1 = es3x1 && (producto?.es_promo_3x1 || imgOverride);
-
-  if (esPromo3x1) {
+  if (es3x1 && esPromo && imgSrc) {
     return (
-      <Box
-        sx={{
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          overflow: "hidden",
-          p: 0,
-        }}
-      >
+      <Box sx={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", p: 0 }}>
         <img
           src={imgSrc}
           crossOrigin="anonymous"
@@ -90,6 +54,8 @@ export default function MiniProducto({
   const nameFontSize = spanC >= 2 ? "0.85rem" : esVertical2x1 ? "0.68rem" : "0.52rem";
   const descFontSize = spanC >= 2 ? "0.65rem" : esVertical2x1 ? "0.55rem" : "0.44rem";
   const priceFontSize = spanC >= 2 ? "0.58rem" : esVertical2x1 ? "0.50rem" : "0.42rem";
+
+  const claro = textColor === "#ffffff";
 
   return (
     <Box
@@ -109,9 +75,11 @@ export default function MiniProducto({
     >
       {esVertical2x1 && <Box sx={{ flex: "0 0 5%" }} />}
 
-      {/* IMG DRAG */}
+      {/* IMAGEN */}
       <MovableElement
-        disabled={!edicionLibre} // <-- NUEVO
+        disabled={!edicionLibre}
+        defaultPosition={posImagen || { x: 0, y: 0 }}
+        onPositionChange={(pos) => onPositionChange?.("pos_imagen", pos)}
         sx={{
           order: esHorizontal ? 2 : 1,
           flex: 1,
@@ -131,7 +99,7 @@ export default function MiniProducto({
             crossOrigin="anonymous"
             decoding="sync"
             alt={nombre || "Producto"}
-            onError={() => setImgError(true)}
+            onError={() => setErrorSrc(imgSrc)}
             style={{
               width: "100%",
               height: "100%",
@@ -162,9 +130,11 @@ export default function MiniProducto({
         )}
       </MovableElement>
 
-      {/* TEXT DRAG */}
+      {/* TEXTO */}
       <MovableElement
-        disabled={!edicionLibre} // <-- NUEVO
+        disabled={!edicionLibre}
+        defaultPosition={posTexto || { x: 0, y: 0 }}
+        onPositionChange={(pos) => onPositionChange?.("pos_texto", pos)}
         sx={{
           order: esHorizontal ? 1 : 2,
           flex: "none",
@@ -181,7 +151,7 @@ export default function MiniProducto({
       >
         <Typography
           sx={{
-            fontFamily: IMPREC?.productName?.fontFamily || "sans-serif",
+            fontFamily: IMPREC.productName.fontFamily,
             color: textColor || "#000000",
             fontSize: nameFontSize,
             fontWeight: 900,
@@ -202,8 +172,8 @@ export default function MiniProducto({
 
         <Typography
           sx={{
-            fontFamily: IMPREC?.productDesc?.fontFamily || "sans-serif",
-            color: textColor === "#ffffff" ? "rgba(255,255,255,0.9)" : "#333333",
+            fontFamily: IMPREC.productDesc.fontFamily,
+            color: claro ? "rgba(255,255,255,0.9)" : "#333333",
             fontSize: descFontSize,
             fontWeight: 600,
             lineHeight: 1.05,
@@ -221,23 +191,13 @@ export default function MiniProducto({
           {desc || "DESCRIPCIÓN / PRESENTACIÓN"}
         </Typography>
 
-        <Box
-          sx={{
-            px: 0,
-            py: 0.1,
-            display: "flex",
-            flexDirection: "column",
-            gap: 0.1,
-            mt: esVertical2x1 ? 0.5 : 0,
-            pointerEvents: "none",
-          }}
-        >
+        <Box sx={{ px: 0, py: 0.1, display: "flex", flexDirection: "column", gap: 0.1, mt: esVertical2x1 ? 0.5 : 0, pointerEvents: "none" }}>
           <Box display="flex" alignItems="center" gap={0.3}>
             <Typography
               sx={{
-                ...(IMPREC?.regPrice || {}),
+                ...IMPREC.regPrice,
                 fontSize: priceFontSize,
-                color: textColor === "#ffffff" ? "rgba(255,255,255,0.8)" : "#000000",
+                color: claro ? "rgba(255,255,255,0.8)" : "#000000",
                 whiteSpace: "nowrap",
                 lineHeight: 1,
                 userSelect: "none",
@@ -249,8 +209,8 @@ export default function MiniProducto({
               value={precioRegular ? `$ ${precioRegular}` : ""}
               placeholder="$ 0"
               style={{
-                ...(IMPREC?.regPrice || {}),
-                color: textColor === "#ffffff" ? "#ffffff" : "#000000",
+                ...IMPREC.regPrice,
+                color: claro ? "#ffffff" : "#000000",
                 fontSize: priceFontSize,
                 lineHeight: 1,
                 display: "inline-block",
@@ -259,22 +219,6 @@ export default function MiniProducto({
           </Box>
         </Box>
       </MovableElement>
-
-      {/* PRICE */}
-      {showPrice && precio && (
-        <PrecioStarburst
-          precio={precio}
-          tipoPrecio={tipoPrecio}
-          size={size}
-          colSpan={spanC}
-          rowSpan={spanR}
-          isBgRed={isBgRed}
-          isModuloSelected={isModuloSelected}
-          edicionLibre={edicionLibre} // <-- NUEVO
-          IMPREC={IMPREC}
-          TARJETA_LOGO={TARJETA_LOGO}
-        />
-      )}
     </Box>
   );
 }

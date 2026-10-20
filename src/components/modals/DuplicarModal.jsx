@@ -1,6 +1,6 @@
 import { Box, Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography } from "@mui/material";
+import { TAMANOS } from "../../config/editorTheme";
 
-const TAMANOS = ["XS", "S", "M", "L", "XL"];
 
 export default function DuplicarModal({ open, modulo, onClose, onDuplicate }) {
   return (

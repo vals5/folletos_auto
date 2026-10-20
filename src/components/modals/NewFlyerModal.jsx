@@ -1,27 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Box, Typography, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField } from "@mui/material";
-
-export const TEMPLATES = [
-  {
-    id: "imprec",
-    name: "IMPRECIONANTE",
-    bgColor: "#fff800",         
-    headerColor: "#fff800",     
-    priceColor: "#ff0000",      
-    fontFamily: "Zuume",
-    logoUrl: "https://lh3.googleusercontent.com/d/192spnajnlI5ERv3m3VHHhAqigvn2o6Wa",
-  },
-];
-
-export const SIZE_PRESETS = [
-  { label: "A4 Vertical",       width: 595,  height: 841,  cols: 3, rows: 4 },
-  { label: "Cuadrado 1080",     width: 1080, height: 1080, cols: 3, rows: 3 },
-  { label: "Historia 1080",     width: 1080, height: 1920, cols: 2, rows: 5 },
-  { label: "HD 1920",           width: 1920, height: 1080, cols: 4, rows: 2 },
-  { label: "WSP 1080×1440",     width: 1080, height: 1440, cols: 3, rows: 4 },
-  { label: "Slider 450×600",    width: 450,  height: 600,  cols: 2, rows: 3 },
-  { label: "HTML 600×313",      width: 600,  height: 313,  cols: 3, rows: 1 },
-];
+import { TEMPLATES, SIZE_PRESETS } from "../../config/templates";
 
 const PREVIEW_SCALE = 0.18;
 
@@ -62,13 +41,15 @@ function SizePreviewCard({ preset, selected, onClick }) {
 }
 
 export default function NewFlyerModal({ open, onClose, onCreate }) {
+  // `key` + montaje condicional: el formulario arranca limpio cada vez que se abre.
+  return open ? <NewFlyerDialog onClose={onClose} onCreate={onCreate} /> : null;
+}
+
+function NewFlyerDialog({ onClose, onCreate }) {
+  const open = true;
   const [name, setName] = useState("");
   const [sizeIdx, setSizeIdx] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    if (open) { setName(""); setSizeIdx(0); }
-  }, [open]);
 
   const template = TEMPLATES[0]; 
   const preset   = SIZE_PRESETS[sizeIdx];
@@ -80,13 +61,12 @@ export default function NewFlyerModal({ open, onClose, onCreate }) {
     setIsSubmitting(true);
 
     const payload = {
-      name,
+      nombre:       name.trim(),
       width:        preset.width,
       height:       preset.height,
       bg_color:     template.bgColor,
       header_color: template.headerColor,
       template_id:  template.id,
-      logo_izq_url: template.logoUrl,
     };
 
     await onCreate(payload);

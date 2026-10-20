@@ -5,7 +5,7 @@ import {
   useMediaQuery,
   useTheme,
 } from "@mui/material";
-import { supabase } from "../../services/supabase";
+import { authService } from "../../services/authService";
 import { useNavigate } from "react-router-dom";
 
 export default function Topbar() {
@@ -14,7 +14,8 @@ export default function Topbar() {
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   const logout = async () => {
-    await supabase.auth.signOut();
+    await authService.signOut();
+    localStorage.removeItem("login_timestamp");
     navigate("/login");
   };
 

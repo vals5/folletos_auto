@@ -1,38 +1,27 @@
 import { useEffect, useState } from "react";
 import { Navigate, Outlet } from "react-router-dom";
-import { supabase } from "../services/supabase";
 import { Box, CircularProgress } from "@mui/material";
+import { authService } from "../services/authService";
 
 export default function ProtectedRoute() {
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState(null);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
+    authService.getSession().then((s) => {
+      setSession(s);
       setLoading(false);
     });
-
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-      },
-    );
-
-    return () => listener.subscription.unsubscribe();
+    return authService.onChange(setSession);
   }, []);
 
-  if (loading)
+  if (loading) {
     return (
-      <Box
-        display="flex"
-        height="100vh"
-        justifyContent="center"
-        alignItems="center"
-      >
+      <Box display="flex" height="100vh" justifyContent="center" alignItems="center">
         <CircularProgress />
       </Box>
     );
+  }
 
   return session ? <Outlet /> : <Navigate to="/login" replace />;
 }

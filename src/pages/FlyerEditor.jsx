@@ -1,47 +1,21 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { Box, CircularProgress, Typography, Button } from "@mui/material";
 
-import { useFlyerEditor } from "../hooks/useFlyerEditor";
+import { useFlyerEditor } from "../features/editor/hooks/useFlyerEditor";
+import { EditorContext } from "../features/editor/context/EditorContext";
 
-import ProductsSidebar from "../components/editor/ProductsSidebar";
-import CanvasPreview from "../components/editor/CanvasPreview";
-import PropertiesPanel from "../components/editor/PropertiesPanel";
+import ProductsSidebar from "../features/editor/components/ProductsSidebar";
+import CanvasPreview from "../features/editor/components/CanvasPreview";
+import PropertiesPanel from "../features/editor/components/PropertiesPanel";
 import DuplicarModal from "../components/modals/DuplicarModal";
-import ConfirmarEliminarPagina from "../components/modals/ConfirmarBorrarModal";
+import ConfirmarEliminarPagina from "../components/modals/ConfirmarEliminarPagina";
 
 export default function FlyerEditor() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const editor = useFlyerEditor(id);
 
-  const {
-    flyer,
-    plantilla,
-    paginas,
-    modulosPorPagina,
-    paginaActual,
-    setPaginaActual,
-    selectedModulo,
-    setSelectedModulo,
-    loading,
-    errorMsg,
-    duplicarModulo,
-    setDuplicarModulo,
-    eliminarPagina,
-    setEliminarPagina,
-    handleOnAddProducto,
-    handleDeleteModulo,
-    handleUpdateModulo,
-    handleAddPagina,
-    handleDeletePagina,
-    handleMenuAction,
-    handleResize,
-    handleReorderModulos,
-    handleDuplicar,
-    handleFlyerUpdate,
-    modulosPaginaActual,
-  } = useFlyerEditor(id);
-
-  if (loading) {
+  if (editor.loading) {
     return (
       <Box display="flex" height="100dvh" justifyContent="center" alignItems="center">
         <CircularProgress />
@@ -49,11 +23,11 @@ export default function FlyerEditor() {
     );
   }
 
-  if (errorMsg) {
+  if (editor.errorMsg) {
     return (
       <Box display="flex" height="100dvh" justifyContent="center" alignItems="center" flexDirection="column" gap={2}>
         <Typography color="error" fontWeight={700}>
-          {errorMsg}
+          {editor.errorMsg}
         </Typography>
         <Button variant="outlined" onClick={() => navigate("/dashboard")}>
           Volver al dashboard
@@ -62,58 +36,68 @@ export default function FlyerEditor() {
     );
   }
 
-  return (
-    <Box display="flex" height="100dvh" overflow="hidden">
-      <ProductsSidebar
-        modulos={modulosPaginaActual}
-        selectedModulo={selectedModulo}
-        onSelectModulo={setSelectedModulo}
-        onAddProducto={handleOnAddProducto}
-        onDeleteModulo={handleDeleteModulo}
-      />
+  // Datos y acciones que usan los componentes del canvas (ver useEditor()).
+  const contexto = {
+    flyer: editor.flyer,
+    grid: editor.grid,
+    onFlyerUpdate: editor.handleFlyerUpdate,
+    onUpdateModulo: editor.handleUpdateModulo,
+    onUploadFooter: editor.handleUploadFooter,
+    onRemoveFooter: editor.handleRemoveFooter,
+    onUploadImagen: editor.handleUploadImagenModulo,
+  };
 
-      <Box display="flex" flex={1} overflow="hidden">
-        {/* NUEVO CONTENEDOR: Fuerza al canvas a no empujar ni meterse debajo del panel derecho */}
-        <Box flex={1} display="flex" flexDirection="column" minWidth={0} position="relative">
-          <CanvasPreview
-            flyer={flyer}
-            plantilla={plantilla}
-            paginas={paginas}
-            modulosPorPagina={modulosPorPagina}
-            paginaActual={paginaActual}
-            setPaginaActual={setPaginaActual}
-            selectedModulo={selectedModulo}
-            onSelectModulo={setSelectedModulo}
-            onFlyerUpdate={handleFlyerUpdate}
-            onReorderModulos={handleReorderModulos}
-            onAddPagina={handleAddPagina}
-            onDeletePagina={(idx, pag) => setEliminarPagina({ idx, pag })}
-            onDeleteModulo={handleDeleteModulo}
-            onMenuAction={handleMenuAction}
-            onResize={handleResize}
-            onAddProducto={handleOnAddProducto}
-            onBack={() => navigate("/dashboard")}
+  return (
+    <EditorContext.Provider value={contexto}>
+      <Box display="flex" height="100dvh" overflow="hidden">
+        <ProductsSidebar
+          modulos={editor.modulosPaginaActual}
+          selectedModulo={editor.selectedModulo}
+          onSelectModulo={editor.setSelectedModulo}
+          onAddProducto={editor.handleAddProducto}
+          onDeleteModulo={editor.handleDeleteModulo}
+        />
+
+        <Box display="flex" flex={1} overflow="hidden">
+          <Box flex={1} display="flex" flexDirection="column" minWidth={0} position="relative">
+            <CanvasPreview
+              flyer={editor.flyer}
+              paginas={editor.paginas}
+              modulosPorPagina={editor.modulosPorPagina}
+              paginaActual={editor.paginaActual}
+              setPaginaActual={editor.setPaginaActual}
+              selectedModulo={editor.selectedModulo}
+              onSelectModulo={editor.setSelectedModulo}
+              onFlyerUpdate={editor.handleFlyerUpdate}
+              onReorderModulos={editor.handleReorderModulos}
+              onAddPagina={editor.handleAddPagina}
+              onRenamePagina={editor.handleRenamePagina}
+              onDeletePagina={(idx, pag) => editor.setEliminarPagina({ idx, pag })}
+              onDeleteModulo={editor.handleDeleteModulo}
+              onBack={() => navigate("/dashboard")}
+            />
+          </Box>
+
+          <PropertiesPanel
+            key={editor.selectedModulo?.id ?? "sin-seleccion"}
+            modulo={editor.selectedModulo}
+            onUpdate={editor.handleUpdateModulo}
+            onDuplicate={editor.setDuplicarModulo}
           />
         </Box>
 
-        <PropertiesPanel
-          modulo={selectedModulo}
-          onUpdate={handleUpdateModulo}
-          onDuplicate={(m) => setDuplicarModulo(m)}
+        <DuplicarModal
+          open={!!editor.duplicarModulo}
+          modulo={editor.duplicarModulo}
+          onClose={() => editor.setDuplicarModulo(null)}
+          onDuplicate={editor.handleDuplicar}
+        />
+        <ConfirmarEliminarPagina
+          open={!!editor.eliminarPagina}
+          onClose={() => editor.setEliminarPagina(null)}
+          onConfirm={editor.handleDeletePagina}
         />
       </Box>
-
-      <DuplicarModal
-        open={!!duplicarModulo}
-        modulo={duplicarModulo}
-        onClose={() => setDuplicarModulo(null)}
-        onDuplicate={handleDuplicar}
-      />
-      <ConfirmarEliminarPagina
-        open={!!eliminarPagina}
-        onClose={() => setEliminarPagina(null)}
-        onConfirm={handleDeletePagina}
-      />
-    </Box>
+    </EditorContext.Provider>
   );
 }

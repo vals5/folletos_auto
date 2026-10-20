@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { supabase } from "../services/supabase";
+import { authService } from "../services/authService";
 import { Button, TextField, Box, Typography, Paper, CircularProgress, Checkbox, FormControlLabel, Link, InputAdornment, } from "@mui/material";
-import { EmailOutlined, LockOutlined } from "@mui/icons-material";
+import EmailOutlined from "@mui/icons-material/EmailOutlined";
+import LockOutlined from "@mui/icons-material/LockOutlined";
 import { useNavigate } from "react-router-dom";
 
 import Logo from "../assets/img/LOGO.jpg";
@@ -15,15 +16,15 @@ export default function Login() {
 
   useEffect(() => {
     const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      
-      if (data.session) {
+      const session = await authService.getSession();
+
+      if (session) {
         const loginTimestamp = localStorage.getItem("login_timestamp");
         const tenHours = 10 * 60 * 60 * 1000;
         const now = Date.now();
 
         if (loginTimestamp && now - parseInt(loginTimestamp) > tenHours) {
-          await supabase.auth.signOut();
+          await authService.signOut();
           localStorage.removeItem("login_timestamp");
         } else {
           navigate("/dashboard");
@@ -37,17 +38,14 @@ export default function Login() {
   const login = async () => {
     setLoading(true);
     setErrorMsg("");
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    setLoading(false);
-
-    if (error) {
+    try {
+      await authService.signIn(email, password);
+    } catch {
       setErrorMsg("Email o contraseña incorrectos");
+      setLoading(false);
       return;
     }
+    setLoading(false);
 
     localStorage.setItem("login_timestamp", Date.now().toString());
 

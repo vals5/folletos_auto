@@ -1,60 +1,46 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Box, Typography, Button, TextField, IconButton, Tooltip, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, CircularProgress, InputAdornment } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import SearchIcon from "@mui/icons-material/Search";
-import { supabase } from "../services/supabase";
+import { useProductos, useProductoMutations } from "../hooks/useProductos";
 
 import ProductoModal from "../components/modals/ProductModal";
 import ConfirmarBorrarModal from "../components/modals/ConfirmarBorrarModal";
 
 export default function Databases() {
-  const [productos, setProductos] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { data: productos = [], isLoading: loading } = useProductos();
+  const { save, remove } = useProductoMutations();
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [editando, setEditando] = useState(null);
   const [borrandoP, setBorrandoP] = useState(null);
 
-  useEffect(() => { fetchProductos(); }, []);
-
-  const fetchProductos = async () => {
-    const { data } = await supabase.from("productos").select("*").order("nombre");
-    setProductos(data || []);
-    setLoading(false);
-  };
-
   const handleSave = async (form) => {
-    if (editando) {
-      const { data, error } = await supabase
-        .from("productos").update(form).eq("id", editando.id).select().single();
-      if (!error) {
-        setProductos((prev) => prev.map((p) => (p.id === editando.id ? data : p)));
-        setEditando(null);
-        setModalOpen(false);
-      }
-    } else {
-      const { data, error } = await supabase
-        .from("productos").insert(form).select().single();
-      if (!error) {
-        setProductos((prev) => [...prev, data].sort((a, b) => a.nombre.localeCompare(b.nombre)));
-        setModalOpen(false);
-      }
+    try {
+      await save.mutateAsync({ id: editando?.id, form });
+      setEditando(null);
+      setModalOpen(false);
+    } catch {
+      // el error ya se muestra con notify desde el hook
     }
   };
 
   const handleDelete = async () => {
     if (!borrandoP) return;
-    await supabase.from("productos").delete().eq("id", borrandoP.id);
-    setProductos((prev) => prev.filter((p) => p.id !== borrandoP.id));
-    setBorrandoP(null);
+    try {
+      await remove.mutateAsync(borrandoP.id);
+      setBorrandoP(null);
+    } catch {
+      // el error ya se muestra con notify desde el hook
+    }
   };
 
   const filtrados = productos.filter(
     (p) =>
-      p.nombre.toLowerCase().includes(search.toLowerCase()) ||
-      p.sku.toLowerCase().includes(search.toLowerCase())
+      (p.nombre || "").toLowerCase().includes(search.toLowerCase()) ||
+      (p.sku || "").toLowerCase().includes(search.toLowerCase())
   );
 
   return (

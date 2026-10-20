@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import {
   Box,
   Typography,
@@ -29,50 +29,24 @@ import CheckIcon from "@mui/icons-material/Check";
 import OpenWithIcon from "@mui/icons-material/OpenWith";
 import SaveIcon from "@mui/icons-material/Save";
 
-const TIPOS_PRECIO = [
-  { value: "regular", label: "Precio regular" },
-  { value: "llevando3", label: "Llevando 2" },
-  { value: "vea_ahorro", label: "Vea Ahorro" },
-  { value: "regular_cencosud", label: "Regular Cencosud" },
-];
+import { useEditor } from "../context/EditorContext";
+import { TIPOS_PRECIO } from "../../../config/editorTheme";
 
+const textosIniciales = (modulo) => ({
+  nombre: modulo?.nombre_override ?? modulo?.productos?.nombre ?? "",
+  descripcion: modulo?.descripcion_override ?? modulo?.productos?.descripcion ?? "",
+});
+
+// El padre monta este panel con key={id del módulo}: al cambiar de módulo arranca con sus datos.
 export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
+  const { grid, onUploadImagen } = useEditor();
+  const inicial = textosIniciales(modulo);
   const [panelView, setPanelView] = useState("modulo");
-  const [nombre, setNombre] = useState("");
-  const [descripcion, setDescripcion] = useState("");
+  const [nombre, setNombre] = useState(inicial.nombre);
+  const [descripcion, setDescripcion] = useState(inicial.descripcion);
 
   const [isEditingNombre, setIsEditingNombre] = useState(false);
   const [isEditingDescripcion, setIsEditingDescripcion] = useState(false);
-
-  const prevModuloIdRef = useRef(null);
-
-  useEffect(() => {
-    if (modulo) {
-      const prodNombre =
-        modulo.nombre_override ?? modulo.productos?.nombre ?? modulo.producto?.nombre ?? modulo.nombre ?? "";
-      const prodDesc =
-        modulo.descripcion_override ??
-        modulo.productos?.descripcion ??
-        modulo.producto?.descripcion ??
-        modulo.descripcion ??
-        "";
-
-      setNombre(prodNombre);
-      setDescripcion(prodDesc);
-      setIsEditingNombre(false);
-      setIsEditingDescripcion(false);
-
-      if (modulo.id !== prevModuloIdRef.current) {
-        prevModuloIdRef.current = modulo.id;
-      }
-    } else {
-      setNombre("");
-      setDescripcion("");
-      setIsEditingNombre(false);
-      setIsEditingDescripcion(false);
-      prevModuloIdRef.current = null;
-    }
-  }, [modulo]);
 
   const handleUpdateField = (campo, valor) => {
     if (!modulo) return;
@@ -97,8 +71,8 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
       img_override: null,
       es_promo_3x1: false,
     });
-    const origNombre = modulo.productos?.nombre ?? modulo.producto?.nombre ?? "";
-    const origDesc = modulo.productos?.descripcion ?? modulo.producto?.descripcion ?? "";
+    const origNombre = modulo.productos?.nombre ?? "";
+    const origDesc = modulo.productos?.descripcion ?? "";
     setNombre(origNombre);
     setDescripcion(origDesc);
     setIsEditingNombre(false);
@@ -108,24 +82,17 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
   const handleResetPositions = () => {
     if (!modulo) return;
     onUpdate(modulo.id, {
-      pos_imagen: { x: 0, y: 0 },
-      pos_texto: { x: 0, y: 0 },
-      pos_precio: { x: 0, y: 0 },
+      pos_imagen: null,
+      pos_texto: null,
+      pos_precio: null,
     });
   };
 
   const handleImageUpload = (e) => {
     const file = e.target.files?.[0];
+    e.target.value = "";
     if (!file || !modulo) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      onUpdate(modulo.id, {
-        img_override: event.target.result,
-        es_promo_3x1: true,
-      });
-    };
-    reader.readAsDataURL(file);
+    onUploadImagen(modulo.id, file);
   };
 
   const handleRemovePromoImage = () => {
@@ -270,7 +237,7 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
                         borderRadius: "8px",
                       }}
                     >
-                      Guardar Posición
+                      Terminar edición
                     </Button>
                     <Button
                       variant="outlined"
@@ -294,7 +261,7 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
               {/* TAMAÑO Y FORMATO DE GRILLA */}
               <Box display="flex" flexDirection="column" gap={1}>
                 <Typography fontSize={13} fontWeight={700} color="#0f172a">
-                  Formato en grilla (3x4)
+                  Formato en grilla ({grid.cols}x{grid.rows})
                 </Typography>
 
                 <FormControl size="small" fullWidth>
@@ -305,7 +272,7 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
                     onChange={(e) => {
                       const val = e.target.value;
                       if (val === "footer") {
-                        onUpdate(modulo.id, { colSpan: 3, rowSpan: 1, formato: "footer" });
+                        onUpdate(modulo.id, { colSpan: grid.cols, rowSpan: 1, formato: "footer" });
                       } else {
                         const [c, r] = val.split("x").map(Number);
                         if (modulo.formato === "footer") {
@@ -318,9 +285,9 @@ export default function PropertiesPanel({ modulo, onUpdate, onDuplicate }) {
                     sx={{ borderRadius: "10px", fontSize: 13 }}
                   >
                     <MenuItem value="1x1">1x1 (Normal)</MenuItem>
-                    <MenuItem value="2x1">2x1 (Horizontal)</MenuItem>
-                    <MenuItem value="1x2">1x2 (Vertical)</MenuItem>
-                    <MenuItem value="footer">3x1 (Pie de página)</MenuItem>
+                    {grid.cols >= 2 && <MenuItem value="2x1">2x1 (Horizontal)</MenuItem>}
+                    {grid.rows >= 2 && <MenuItem value="1x2">1x2 (Vertical)</MenuItem>}
+                    <MenuItem value="footer">{grid.cols}x1 (Pie de página)</MenuItem>
                   </Select>
                 </FormControl>
               </Box>

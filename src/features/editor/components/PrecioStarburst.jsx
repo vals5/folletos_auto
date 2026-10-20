@@ -1,8 +1,14 @@
-import { useState, useEffect } from "react";
 import { Box, Typography } from "@mui/material";
 import MovableElement from "./MovableElement";
+import { IMPREC, TARJETA_LOGO } from "../../../config/editorTheme";
 
-import StarburstSvg from "../../assets/img/Cucarda-Imprec.svg";
+import StarburstSvg from "../../../assets/img/Cucarda-Imprec.svg";
+
+const formatPrecio = (valor) => {
+  const n = Number(valor) || 0;
+  const decimales = Number.isInteger(n) ? 0 : 2;
+  return `$${n.toLocaleString("es-AR", { minimumFractionDigits: decimales, maximumFractionDigits: decimales })}`;
+};
 
 export default function PrecioStarburst({
   precio,
@@ -11,16 +17,13 @@ export default function PrecioStarburst({
   colSpan = 1,
   rowSpan = 1,
   isBgRed = false,
-  isModuloSelected = false,
-  edicionLibre = false, // <-- NUEVO
-  IMPREC = { colors: { red: "#dc2626", white: "#ffffff", black: "#000000" }, price: {}, subtPrice: {} },
-  TARJETA_LOGO = {},
+  edicionLibre = false,
+  posPrecio,
+  onPositionChange,
 }) {
   const baseWidth = (size?.width || 100) * 0.5;
-  const baseHeight = (size?.height || 100) * 0.5;
 
   const visualWidth = baseWidth * (colSpan || 1);
-  const visualHeight = baseHeight * (rowSpan || 1);
 
   const starSize = baseWidth > 100 ? 46 : baseWidth > 70 ? 38 : 31;
   const priceFontSize = baseWidth > 100 ? "9.5pt" : baseWidth > 70 ? "8pt" : "6.5pt";
@@ -29,29 +32,19 @@ export default function PrecioStarburst({
   const tarjetaLogo = TARJETA_LOGO[tipoPrecio];
   const isLlevando = tipoPrecio === "llevando3";
 
-  const redColor = IMPREC?.colors?.red || "#dc2626";
-  const priceColor = isBgRed ? redColor : IMPREC?.colors?.black || "#000000";
-  const subtColor = isBgRed ? redColor : IMPREC?.colors?.white || "#ffffff";
-
-  const precioValido = Number(precio) || 0;
-  const precioDisplay = `$${precioValido.toLocaleString("es-AR", { maximumFractionDigits: 0 })}`;
+  const priceColor = isBgRed ? IMPREC.colors.red : IMPREC.colors.black;
+  const subtColor = isBgRed ? IMPREC.colors.red : IMPREC.colors.white;
 
   const esVertical = colSpan === 1 && rowSpan > 1;
-
-  const [posicionInicial, setPosicionInicial] = useState({ x: 0, y: 1 });
-
-  useEffect(() => {
-    const posicionX = esVertical ? (visualWidth - starSize) / 2 : visualWidth - starSize - 1;
-    setPosicionInicial({ x: Math.max(0, posicionX), y: 1 });
-  }, [colSpan, rowSpan, visualWidth, visualHeight, starSize, esVertical]);
+  const posicionPorDefecto = {
+    x: Math.max(0, esVertical ? (visualWidth - starSize) / 2 : visualWidth - starSize - 1),
+    y: 1,
+  };
+  // Posición guardada por el usuario (edición libre) o la posición automática.
+  const posicion = posPrecio && typeof posPrecio.x === "number" ? posPrecio : posicionPorDefecto;
 
   return (
-    <MovableElement
-      defaultPosition={posicionInicial}
-      isAbsolute={true}
-      useBounds={true}
-      disabled={!edicionLibre} // <-- NUEVO: Se bloquea si no está en modo edición libre
-    >
+    <MovableElement defaultPosition={posicion} isAbsolute disabled={!edicionLibre} onPositionChange={onPositionChange}>
       <Box
         sx={{
           width: starSize,
@@ -93,13 +86,7 @@ export default function PrecioStarburst({
             <Box
               component="img"
               src={tarjetaLogo}
-              sx={{
-                width: starSize * 0.5,
-                height: starSize * 0.2,
-                objectFit: "contain",
-                pointerEvents: "none",
-                mb: 0.1,
-              }}
+              sx={{ width: starSize * 0.5, height: starSize * 0.2, objectFit: "contain", pointerEvents: "none", mb: 0.1 }}
               onError={(e) => {
                 e.target.style.display = "none";
               }}
@@ -108,7 +95,7 @@ export default function PrecioStarburst({
 
           <Typography
             sx={{
-              ...(IMPREC?.price || {}),
+              ...IMPREC.price,
               fontSize: priceFontSize,
               fontWeight: 900,
               px: 0.1,
@@ -118,13 +105,13 @@ export default function PrecioStarburst({
               pointerEvents: "none",
             }}
           >
-            {precioDisplay}
+            {formatPrecio(precio)}
           </Typography>
 
           {isLlevando && (
             <Typography
               sx={{
-                ...(IMPREC?.subtPrice || {}),
+                ...IMPREC.subtPrice,
                 fontSize: subtFontSize,
                 fontWeight: 700,
                 letterSpacing: 0.2,

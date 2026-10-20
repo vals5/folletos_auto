@@ -8,6 +8,11 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+
+# Variables de entorno (nunca subir claves)
+.env
+.env.*
+!.env.example
 dist
 dist-ssr
 *.local
@@ -22,6 +27,3 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
-.env.*
-.env
