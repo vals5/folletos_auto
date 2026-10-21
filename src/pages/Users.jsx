@@ -1,19 +1,12 @@
-import { Box, Typography } from "@mui/material";
-import GroupIcon from "@mui/icons-material/Group";
+import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined";
+import EmptyState from "../components/ui/EmptyState";
+import PageHeader from "../components/ui/PageHeader";
 
 export default function Users() {
   return (
-    <Box
-      display="flex"
-      flexDirection="column"
-      alignItems="center"
-      justifyContent="center"
-      height="60vh"
-      color="text.secondary"
-    >
-      <GroupIcon sx={{ fontSize: 48, mb: 2 }} />
-      <Typography variant="h6">Usuarios</Typography>
-      <Typography variant="body2">Próximamente</Typography>
-    </Box>
+    <>
+      <PageHeader title="Usuarios" />
+      <EmptyState icon={GroupOutlinedIcon} title="Próximamente" description="La gestión de usuarios y permisos va a estar disponible pronto." />
+    </>
   );
 }

@@ -75,6 +75,14 @@ export default function FlyerEditor() {
               onDeletePagina={(idx, pag) => editor.setEliminarPagina({ idx, pag })}
               onDeleteModulo={editor.handleDeleteModulo}
               onBack={() => navigate("/dashboard")}
+              onUndo={editor.handleDeshacer}
+              onRedo={editor.handleRehacer}
+              canUndo={editor.puedeDeshacer}
+              canRedo={editor.puedeRehacer}
+              onCopy={editor.copiarSeleccion}
+              onPaste={editor.pegarCopiado}
+              canPaste={editor.puedePegar}
+              onDuplicate={editor.duplicarSeleccion}
             />
           </Box>
 

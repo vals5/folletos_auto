@@ -1,23 +1,23 @@
 import { Box, Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography } from "@mui/material";
 import { TAMANOS } from "../../config/editorTheme";
 
-
 export default function DuplicarModal({ open, modulo, onClose, onDuplicate }) {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
-      <DialogTitle sx={{ fontWeight: 700 }}>Duplicar módulo</DialogTitle>
+      <DialogTitle>Duplicar módulo</DialogTitle>
       <DialogContent>
-        <Typography fontSize={14} mb={2}>
+        <Typography fontSize={14} color="text.secondary" mb={2}>
           Elegí el tamaño para la copia de <strong>{modulo?.productos?.nombre}</strong>:
         </Typography>
         <Box display="flex" gap={1} flexWrap="wrap">
           {TAMANOS.map((t) => (
-            <Button 
-              key={t} 
-              size="small" 
+            <Button
+              key={t}
+              size="small"
               variant={modulo?.tamano === t ? "contained" : "outlined"}
+              color={modulo?.tamano === t ? "primary" : "inherit"}
               onClick={() => onDuplicate(t)}
-              sx={{ ...(modulo?.tamano === t && { bgcolor: "#10b981", "&:hover": { bgcolor: "#2d2d5e" } }) }}
+              sx={{ minWidth: 48 }}
             >
               {t}
             </Button>
@@ -25,7 +25,9 @@ export default function DuplicarModal({ open, modulo, onClose, onDuplicate }) {
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} color="inherit">Cancelar</Button>
+        <Button onClick={onClose} color="inherit">
+          Cancelar
+        </Button>
       </DialogActions>
     </Dialog>
   );

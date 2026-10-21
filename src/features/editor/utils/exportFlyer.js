@@ -49,6 +49,8 @@ async function captureAll(elements, flyer, quality) {
           backgroundColor: "#ffffff",
           cacheBust: true,
           imagePlaceholder: TRANSPARENT_PLACEHOLDER,
+          // Los elementos marcados con data-export-ignore (contornos de selección, textos de ayuda) no salen en el archivo.
+          filter: (node) => !(node.nodeType === 1 && node.hasAttribute("data-export-ignore")),
           style: { transform: "scale(1)", transformOrigin: "top left" },
         }),
       );

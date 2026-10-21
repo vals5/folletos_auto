@@ -13,7 +13,7 @@ function ProductoForm({ onClose, onSave, inicial }) {
 
   const handleSave = async () => {
     if (!form.sku.trim() || !form.nombre.trim()) {
-      setError("SKU y nombre son obligatorios");
+      setError("El SKU y el nombre son obligatorios.");
       return;
     }
     setLoading(true);
@@ -23,16 +23,15 @@ function ProductoForm({ onClose, onSave, inicial }) {
 
   return (
     <>
-      <DialogTitle sx={{ fontWeight: 700 }}>{inicial ? "Editar producto" : "Nuevo producto"}</DialogTitle>
-      <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 2 }}>
-        <TextField label="SKU *" value={form.sku} onChange={set("sku")} size="small" fullWidth />
-        <TextField label="Nombre *" value={form.nombre} onChange={set("nombre")} size="small" fullWidth autoFocus />
-        <TextField label="Descripción" value={form.descripcion ?? ""} onChange={set("descripcion")} size="small" fullWidth />
+      <DialogTitle>{inicial ? "Editar producto" : "Nuevo producto"}</DialogTitle>
+      <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: "8px !important" }}>
+        <TextField label="SKU" required value={form.sku} onChange={set("sku")} fullWidth />
+        <TextField label="Nombre" required value={form.nombre} onChange={set("nombre")} fullWidth autoFocus />
+        <TextField label="Descripción" value={form.descripcion ?? ""} onChange={set("descripcion")} fullWidth />
         <TextField
-          label="URL de imagen"
+          label="URL de la imagen"
           value={form.imagen_url ?? ""}
           onChange={set("imagen_url")}
-          size="small"
           fullWidth
           placeholder="https://..."
         />
@@ -42,17 +41,12 @@ function ProductoForm({ onClose, onSave, inicial }) {
           </Typography>
         )}
       </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 2 }}>
+      <DialogActions>
         <Button onClick={onClose} color="inherit">
           Cancelar
         </Button>
-        <Button
-          variant="contained"
-          onClick={handleSave}
-          disabled={loading}
-          sx={{ bgcolor: "#1a1a2e", "&:hover": { bgcolor: "#2d2d5e" } }}
-        >
-          {loading ? "Guardando..." : "Guardar"}
+        <Button variant="contained" onClick={handleSave} disabled={loading}>
+          {loading ? "Guardando…" : "Guardar"}
         </Button>
       </DialogActions>
     </>

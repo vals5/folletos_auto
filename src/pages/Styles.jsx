@@ -1,19 +1,12 @@
-import { Box, Typography } from "@mui/material";
-import PaletteIcon from "@mui/icons-material/Palette";
+import PaletteOutlinedIcon from "@mui/icons-material/PaletteOutlined";
+import EmptyState from "../components/ui/EmptyState";
+import PageHeader from "../components/ui/PageHeader";
 
 export default function Styles() {
   return (
-    <Box
-      display="flex"
-      flexDirection="column"
-      alignItems="center"
-      justifyContent="center"
-      height="60vh"
-      color="text.secondary"
-    >
-      <PaletteIcon sx={{ fontSize: 48, mb: 2 }} />
-      <Typography variant="h6">Estilos</Typography>
-      <Typography variant="body2">Próximamente</Typography>
-    </Box>
+    <>
+      <PageHeader title="Estilos" />
+      <EmptyState icon={PaletteOutlinedIcon} title="Próximamente" description="La biblioteca de estilos y plantillas va a estar disponible pronto." />
+    </>
   );
 }

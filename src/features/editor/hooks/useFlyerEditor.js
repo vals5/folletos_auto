@@ -5,10 +5,21 @@ import { moduloService } from "../../../services/moduloService";
 import { notify, errorMessage } from "../../../store/notifyStore";
 import { getGrid } from "../../../config/templates";
 import { encontrarCeldaLibre, reubicarSiColisiona } from "../utils/grid";
+import { useHistorial } from "./useHistorial";
 
 function fail(err, mensaje) {
   console.error(mensaje, err);
   notify.error(errorMessage(err, mensaje));
+}
+
+// Campos que son solo "modo de la interfaz": no se guardan en el historial de deshacer.
+const SOLO_INTERFAZ = ["edicion_libre"];
+
+// Copia del módulo sin la relación con el producto (lo que realmente es una fila de `modulos`).
+function filaModulo(modulo) {
+  const fila = { ...modulo };
+  delete fila.productos;
+  return fila;
 }
 
 export function useFlyerEditor(flyerId) {
@@ -19,9 +30,12 @@ export function useFlyerEditor(flyerId) {
   const [selectedModulo, setSelectedModulo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState(null);
+  const [copiado, setCopiado] = useState(null);
 
   const [duplicarModulo, setDuplicarModulo] = useState(null);
   const [eliminarPagina, setEliminarPagina] = useState(null);
+
+  const historial = useHistorial();
 
   // Copia siempre actualizada del estado para usarla dentro de handlers async sin datos viejos.
   const stateRef = useRef({ paginas, modulosPorPagina });
@@ -66,6 +80,65 @@ export function useFlyerEditor(flyerId) {
   // ---------- Helpers de estado ----------
   const indicePaginaDe = (paginaId) => stateRef.current.paginas.findIndex((p) => p.id === paginaId);
 
+  const buscarModulo = (moduloId) => {
+    for (const lista of Object.values(stateRef.current.modulosPorPagina)) {
+      const m = lista.find((x) => x.id === moduloId);
+      if (m) return m;
+    }
+    return null;
+  };
+
+  // Vuelve a leer los módulos del servidor (se usa después de deshacer/rehacer).
+  const recargarModulos = async () => {
+    const data = await moduloService.listByFlyer(flyerId);
+    const mapeo = {};
+    stateRef.current.paginas.forEach((pag, i) => {
+      mapeo[i] = data.filter((m) => m.pagina_id === pag.id);
+    });
+    setModulosPorPagina(mapeo);
+    setSelectedModulo((prev) => (prev ? data.find((m) => m.id === prev.id) || null : null));
+  };
+
+  // ---------- Deshacer / rehacer ----------
+  // Cada entrada del historial es: update | posiciones | crear | borrar | lote (varias juntas).
+  const aplicarEntrada = async (e, sentido) => {
+    const deshacer = sentido === "deshacer";
+    switch (e.tipo) {
+      case "update":
+        await moduloService.update(e.id, deshacer ? e.antes : e.despues);
+        break;
+      case "posiciones":
+        await moduloService.updatePosiciones(deshacer ? e.antes : e.despues);
+        break;
+      case "crear":
+        if (deshacer) await moduloService.remove(e.modulo.id);
+        else await moduloService.create(e.modulo);
+        break;
+      case "borrar":
+        if (deshacer) await moduloService.create(e.modulo);
+        else await moduloService.remove(e.modulo.id);
+        break;
+      case "lote":
+        for (const item of deshacer ? [...e.items].reverse() : e.items) await aplicarEntrada(item, sentido);
+        break;
+      default:
+        break;
+    }
+  };
+
+  const ejecutarHistorial = async (accion, mensajeError) => {
+    try {
+      const hecho = await accion(aplicarEntrada);
+      if (hecho) await recargarModulos();
+    } catch (err) {
+      fail(err, mensajeError);
+      recargarModulos().catch(() => {});
+    }
+  };
+
+  const handleDeshacer = () => ejecutarHistorial(historial.deshacer, "No se pudo deshacer");
+  const handleRehacer = () => ejecutarHistorial(historial.rehacer, "No se pudo rehacer");
+
   // ---------- Módulos ----------
   const handleAddProducto = async (producto) => {
     const idx = paginaActual;
@@ -91,12 +164,14 @@ export function useFlyerEditor(flyerId) {
         estilo_borde: "none",
       });
       setModulosPorPagina((prev) => ({ ...prev, [idx]: [...(prev[idx] || []), data] }));
+      historial.registrar({ tipo: "crear", modulo: filaModulo(data) });
     } catch (err) {
       fail(err, "No se pudo añadir el producto");
     }
   };
 
   const handleDeleteModulo = async (moduloId) => {
+    const original = buscarModulo(moduloId);
     try {
       await moduloService.remove(moduloId);
       setSelectedModulo((prev) => (prev?.id === moduloId ? null : prev));
@@ -105,27 +180,50 @@ export function useFlyerEditor(flyerId) {
         for (const [k, lista] of Object.entries(prev)) next[k] = lista.filter((m) => m.id !== moduloId);
         return next;
       });
+      if (original) historial.registrar({ tipo: "borrar", modulo: filaModulo(original) });
     } catch (err) {
       fail(err, "No se pudo eliminar el módulo");
     }
   };
 
   const handleUpdateModulo = async (moduloId, campos) => {
+    const original = buscarModulo(moduloId);
+    const antes = {};
+    Object.keys(campos).forEach((k) => {
+      antes[k] = original?.[k] ?? null;
+    });
+
     try {
       const data = await moduloService.update(moduloId, campos);
       const idx = indicePaginaDe(data.pagina_id);
       let lista = (stateRef.current.modulosPorPagina[idx] || []).map((m) => (m.id === moduloId ? data : m));
+      const entradas = [];
+
+      const cambioReal = JSON.stringify(antes) !== JSON.stringify(campos);
+      const esSoloInterfaz = Object.keys(campos).every((k) => SOLO_INTERFAZ.includes(k));
+      if (cambioReal && !esSoloInterfaz) entradas.push({ tipo: "update", id: moduloId, antes, despues: campos });
 
       // Si cambió el tamaño en la grilla, resolver choques y mantener todo dentro de la página.
       if ("colSpan" in campos || "rowSpan" in campos) {
+        const previas = new Map(lista.map((m) => [m.id, m.posicion || 0]));
         const nuevos = reubicarSiColisiona(lista, moduloId, data.posicion || 0, grid);
-        const cambiados = nuevos.filter((n) => lista.find((m) => m.id === n.id)?.posicion !== n.posicion);
+        const cambiados = nuevos.filter((n) => previas.get(n.id) !== (n.posicion || 0));
         lista = nuevos.sort((a, b) => (a.posicion || 0) - (b.posicion || 0));
-        if (cambiados.length) await moduloService.updatePosiciones(cambiados);
+        if (cambiados.length) {
+          await moduloService.updatePosiciones(cambiados);
+          entradas.push({
+            tipo: "posiciones",
+            antes: cambiados.map((c) => ({ id: c.id, posicion: previas.get(c.id) })),
+            despues: cambiados.map((c) => ({ id: c.id, posicion: c.posicion })),
+          });
+        }
       }
 
       setModulosPorPagina((prev) => ({ ...prev, [idx]: lista }));
       setSelectedModulo((prev) => (prev?.id === moduloId ? lista.find((m) => m.id === moduloId) || data : prev));
+
+      if (entradas.length === 1) historial.registrar(entradas[0]);
+      else if (entradas.length > 1) historial.registrar({ tipo: "lote", items: entradas });
     } catch (err) {
       fail(err, "No se pudo guardar el cambio");
       cargar();
@@ -134,7 +232,8 @@ export function useFlyerEditor(flyerId) {
 
   const handleReorderModulos = async (pagIdx, nuevos) => {
     const anteriores = stateRef.current.modulosPorPagina[pagIdx] || [];
-    const cambiados = nuevos.filter((n) => anteriores.find((m) => m.id === n.id)?.posicion !== n.posicion);
+    const posAnterior = new Map(anteriores.map((m) => [m.id, m.posicion || 0]));
+    const cambiados = nuevos.filter((n) => posAnterior.get(n.id) !== (n.posicion || 0));
 
     setModulosPorPagina((prev) => ({ ...prev, [pagIdx]: nuevos }));
     setSelectedModulo((prev) => (prev ? nuevos.find((m) => m.id === prev.id) || prev : prev));
@@ -142,33 +241,74 @@ export function useFlyerEditor(flyerId) {
 
     try {
       await moduloService.updatePosiciones(cambiados);
+      historial.registrar({
+        tipo: "posiciones",
+        antes: cambiados.map((c) => ({ id: c.id, posicion: posAnterior.get(c.id) })),
+        despues: cambiados.map((c) => ({ id: c.id, posicion: c.posicion })),
+      });
     } catch (err) {
       fail(err, "No se pudo guardar la nueva posición");
       setModulosPorPagina((prev) => ({ ...prev, [pagIdx]: anteriores }));
     }
   };
 
-  const handleDuplicar = async (nuevoTamano) => {
-    if (!duplicarModulo) return;
-    // Se copia todo el módulo (formato, spans, precio, imagen, posiciones libres...) salvo identidad.
-    // eslint-disable-next-line no-unused-vars
-    const { id, created_at, productos, ...copia } = duplicarModulo;
-    const idx = indicePaginaDe(duplicarModulo.pagina_id);
-    const lista = stateRef.current.modulosPorPagina[idx] || [];
-    const posicion = encontrarCeldaLibre(lista, copia.colSpan || 1, copia.rowSpan || 1, grid);
+  // Crea una copia de `origen` en la página `paginaIdx` (en la primera celda libre).
+  const crearCopia = async (origen, paginaIdx, tamano) => {
+    const pag = stateRef.current.paginas[paginaIdx];
+    if (!pag) return null;
 
+    const copia = filaModulo(origen);
+    delete copia.id;
+    delete copia.created_at;
+
+    const lista = stateRef.current.modulosPorPagina[paginaIdx] || [];
+    const posicion = encontrarCeldaLibre(lista, copia.colSpan || 1, copia.rowSpan || 1, grid);
     if (posicion === null) {
-      notify.error("No hay lugar libre en la página para duplicar este módulo.");
-      return;
+      notify.error("No hay lugar libre en la página para este módulo.");
+      return null;
     }
 
     try {
-      const data = await moduloService.create({ ...copia, tamano: nuevoTamano, posicion });
-      setModulosPorPagina((prev) => ({ ...prev, [idx]: [...(prev[idx] || []), data] }));
-      setDuplicarModulo(null);
+      const data = await moduloService.create({
+        ...copia,
+        pagina_id: pag.id,
+        tamano: tamano || copia.tamano,
+        posicion,
+      });
+      setModulosPorPagina((prev) => ({ ...prev, [paginaIdx]: [...(prev[paginaIdx] || []), data] }));
+      historial.registrar({ tipo: "crear", modulo: filaModulo(data) });
+      return data;
     } catch (err) {
       fail(err, "No se pudo duplicar el módulo");
+      return null;
     }
+  };
+
+  // Duplicar desde el modal (permite elegir el tamaño de la copia).
+  const handleDuplicar = async (nuevoTamano) => {
+    if (!duplicarModulo) return;
+    const idx = indicePaginaDe(duplicarModulo.pagina_id);
+    const data = await crearCopia(duplicarModulo, idx, nuevoTamano);
+    if (data) setDuplicarModulo(null);
+  };
+
+  // Atajos tipo Figma: Ctrl+D duplica al instante; Ctrl+C / Ctrl+V copian y pegan módulos.
+  const duplicarSeleccion = async () => {
+    if (!selectedModulo) return;
+    const data = await crearCopia(selectedModulo, indicePaginaDe(selectedModulo.pagina_id));
+    if (data) setSelectedModulo(data);
+  };
+
+  const copiarSeleccion = () => {
+    if (!selectedModulo) return;
+    setCopiado(filaModulo(selectedModulo));
+    notify.info("Módulo copiado");
+  };
+
+  const pegarCopiado = async () => {
+    if (!copiado) return;
+    const data = await crearCopia(copiado, paginaActual);
+    if (data) setSelectedModulo(data);
   };
 
   const handleMenuAction = (action, modulo) => {
@@ -229,6 +369,7 @@ export function useFlyerEditor(flyerId) {
       setPaginaActual(Math.max(0, idx - 1));
       setSelectedModulo(null);
       setEliminarPagina(null);
+      historial.limpiar(); // los módulos de la página borrada ya no existen: no se puede deshacer más atrás
 
       paginaService.renumber(nuevas).catch((err) => console.error("No se pudo renumerar las páginas:", err));
     } catch (err) {
@@ -276,10 +417,18 @@ export function useFlyerEditor(flyerId) {
     errorMsg,
     duplicarModulo,
     eliminarPagina,
+    puedeDeshacer: historial.puedeDeshacer,
+    puedeRehacer: historial.puedeRehacer,
+    puedePegar: Boolean(copiado),
     setPaginaActual,
     setSelectedModulo,
     setDuplicarModulo,
     setEliminarPagina,
+    handleDeshacer,
+    handleRehacer,
+    duplicarSeleccion,
+    copiarSeleccion,
+    pegarCopiado,
     handleAddProducto,
     handleDeleteModulo,
     handleUpdateModulo,

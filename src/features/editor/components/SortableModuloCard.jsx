@@ -93,7 +93,7 @@ export default function SortableModuloCard({ modulo, isSelected, onClick }) {
         overflow: isFreeEdit ? "visible" : "hidden",
         cursor: isFreeEdit ? "default" : "grab",
         position: "relative",
-        border: isFreeEdit ? "2px dashed #22c55e" : isSelected ? "2px solid #0284c7" : borderStyle,
+        border: borderStyle,
       }}
       {...dragProps}
       onClick={handleCardClick}
@@ -129,6 +129,24 @@ export default function SortableModuloCard({ modulo, isSelected, onClick }) {
             rowSpan={rowSpan}
           />
       </Box>
+
+      {/* Contorno de selección: es una capa aparte para no mover el contenido y no salir en la exportación */}
+      {(isSelected || isFreeEdit) && (
+        <Box
+          data-export-ignore="true"
+          aria-hidden
+          sx={{
+            position: "absolute",
+            inset: 0,
+            pointerEvents: "none",
+            zIndex: 100,
+            borderRadius: "4px",
+            border: "2px",
+            borderStyle: isFreeEdit ? "dashed" : "solid",
+            borderColor: isFreeEdit ? "success.main" : "primary.main",
+          }}
+        />
+      )}
 
       <PrecioStarburst
         precio={modulo.precio}

@@ -1,19 +1,12 @@
-import { Box, Typography } from "@mui/material";
-import SettingsIcon from "@mui/icons-material/Settings";
+import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
+import EmptyState from "../components/ui/EmptyState";
+import PageHeader from "../components/ui/PageHeader";
 
 export default function Settings() {
   return (
-    <Box
-      display="flex"
-      flexDirection="column"
-      alignItems="center"
-      justifyContent="center"
-      height="60vh"
-      color="text.secondary"
-    >
-      <SettingsIcon sx={{ fontSize: 48, mb: 2 }} />
-      <Typography variant="h6">Configuración</Typography>
-      <Typography variant="body2">Próximamente</Typography>
-    </Box>
+    <>
+      <PageHeader title="Configuración" />
+      <EmptyState icon={SettingsOutlinedIcon} title="Próximamente" description="Los ajustes de la cuenta van a estar disponibles pronto." />
+    </>
   );
 }

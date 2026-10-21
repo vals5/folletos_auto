@@ -1,16 +1,19 @@
 import { useState } from "react";
-import { 
-  Box, Typography, TextField, InputAdornment, List, ListItem, 
-  ListItemText, ListItemButton, IconButton, Chip, Tooltip, 
-  Tabs, Tab, CircularProgress 
+import {
+  Box, Typography, TextField, InputAdornment, List, ListItem, ListItemText, ListItemButton,
+  IconButton, Chip, Tooltip, Tabs, Tab, CircularProgress,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import AddIcon from "@mui/icons-material/Add";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import InventoryIcon from "@mui/icons-material/Inventory";
+import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { useProductos } from "../../../hooks/useProductos";
+import { layout, rail } from "../../../theme/tokens";
+
+const ROW_SX = { borderBottom: `1px solid ${rail.border}` };
+const ICON_BTN_SX = { color: rail.textMuted, "&:hover": { color: "#fff", bgcolor: rail.hover } };
 
 export default function ProductsSidebar({ modulos = [], selectedModulo, onSelectModulo, onAddProducto, onDeleteModulo }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -29,60 +32,60 @@ export default function ProductsSidebar({ modulos = [], selectedModulo, onSelect
   }, {});
 
   return (
-    <Box 
-      sx={{ 
-        width: collapsed ? 0 : 280, 
-        transition: "width 0.25s ease-in-out", 
-        position: "relative", 
-        bgcolor: "#025BA9", 
-        display: "flex", 
-        flexDirection: "column", 
-        borderRight: collapsed ? "none" : "1px solid rgba(255,255,255,0.12)", 
+    <Box
+      component="aside"
+      sx={{
+        width: collapsed ? 0 : layout.productsRailWidth,
+        transition: "width 0.25s ease-in-out",
+        position: "relative",
+        bgcolor: "rail.bg",
+        display: "flex",
+        flexDirection: "column",
         flexShrink: 0,
-        zIndex: 10
+        zIndex: 10,
       }}
     >
-      {/* Botón flotante centrado verticalmente en el medio de la pantalla */}
       <Tooltip title={collapsed ? "Mostrar panel" : "Ocultar panel"} placement="right">
         <IconButton
           onClick={() => setCollapsed(!collapsed)}
           size="small"
+          aria-label={collapsed ? "Mostrar panel de productos" : "Ocultar panel de productos"}
           sx={{
             position: "absolute",
             top: "50%",
             transform: "translateY(-50%)",
             right: collapsed ? -28 : -14,
             zIndex: 30,
-            bgcolor: "#025BA9",
-            color: "white",
-            border: "1px solid rgba(255,255,255,0.3)",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.25)",
+            bgcolor: "rail.bg",
+            color: "#fff",
+            border: `1px solid ${rail.border}`,
+            boxShadow: 2,
             width: 28,
             height: 28,
+            borderRadius: "50%",
             transition: "right 0.25s ease-in-out, background-color 0.2s",
-            "&:hover": { bgcolor: "#014a8b" },
+            "&:hover": { bgcolor: "primary.dark" },
           }}
         >
           {collapsed ? <ChevronRightIcon fontSize="small" /> : <ChevronLeftIcon fontSize="small" />}
         </IconButton>
       </Tooltip>
 
-      {/* Contenido visible solo si el panel no está colapsado */}
       {!collapsed && (
-        <Box display="flex" flexDirection="column" height="100%" width={280} sx={{ overflow: "hidden" }}>
-          {/* Header */}
-          <Box px={2} pt={2} pb={1} textAlign="center">
-            <Typography variant="subtitle1" fontWeight={700} color="white">Editor</Typography>
+        <Box display="flex" flexDirection="column" height="100%" width={layout.productsRailWidth} overflow="hidden">
+          <Box px={2} pt={2} pb={0.5}>
+            <Typography fontWeight={700} fontSize={16} color="#fff" mb={1}>
+              Productos
+            </Typography>
             <Tabs
               value={tab}
               onChange={(_, v) => setTab(v)}
               variant="fullWidth"
               sx={{
-                mt: 1,
-                minHeight: 32,
-                "& .MuiTab-root": { color: "rgba(255,255,255,0.7)", fontSize: 11, minWidth: 0, py: 0.5 },
-                "& .Mui-selected": { color: "white", fontWeight: 600 },
-                "& .MuiTabs-indicator": { bgcolor: "#fff800" }, 
+                minHeight: 36,
+                "& .MuiTab-root": { color: rail.textMuted, minHeight: 36, py: 0.5, fontSize: 13 },
+                "& .MuiTab-root.Mui-selected": { color: "#fff" },
+                "& .MuiTabs-indicator": { bgcolor: "accent.main", height: 3, borderRadius: "3px 3px 0 0" },
               }}
             >
               <Tab label={`En folleto (${modulos.length})`} />
@@ -90,71 +93,69 @@ export default function ProductsSidebar({ modulos = [], selectedModulo, onSelect
             </Tabs>
           </Box>
 
-          {/* Búsqueda */}
-          {tab === 1 && (
-            <Box px={2} pb={1.5}>
-              <TextField
-                size="small"
-                placeholder="Buscar por nombre o SKU..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                fullWidth
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon sx={{ color: "#6b7280", fontSize: 18 }} />
-                    </InputAdornment>
-                  ),
-                  sx: {
-                    bgcolor: "#ffffff",
-                    borderRadius: 1.5,
-                    fontSize: 13,
-                    "& fieldset": { border: "none" },
-                  },
-                }}
-                inputProps={{ style: { color: "#111827" } }}
-              />
-            </Box>
-          )}
+          <Box flex={1} overflow="auto" bgcolor={rail.well} display="flex" flexDirection="column">
+            {tab === 1 && (
+              <Box p={1.5}>
+                <TextField
+                  placeholder="Buscar por nombre o SKU…"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  fullWidth
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon sx={{ color: "neutral.400", fontSize: 18 }} />
+                      </InputAdornment>
+                    ),
+                    sx: { fontSize: 13, "& fieldset": { border: "none" } },
+                  }}
+                  inputProps={{ "aria-label": "Buscar productos" }}
+                />
+              </Box>
+            )}
 
-          {/* Lista contenedora */}
-          <Box flex={1} overflow="auto" bgcolor="#014a8b">
             {tab === 0 ? (
               modulos.length === 0 ? (
-                <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" height="80%" color="rgba(255,255,255,0.5)" px={2} textAlign="center">
-                  <InventoryIcon sx={{ fontSize: 32, mb: 1, opacity: 0.7 }} />
-                  <Typography fontSize={12}>Agregá productos desde la pestaña "Catálogo"</Typography>
+                <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" flex={1} color={rail.textFaint} px={3} textAlign="center" gap={1}>
+                  <Inventory2OutlinedIcon sx={{ fontSize: 32 }} />
+                  <Typography fontSize={13}>Todavía no agregaste productos. Elegilos desde la pestaña “Catálogo”.</Typography>
                 </Box>
               ) : (
                 <List dense disablePadding>
                   {modulos.map((modulo) => {
                     const esSeleccionado = selectedModulo?.id === modulo.id;
+                    const nombre = modulo.nombre_override ?? modulo.productos?.nombre ?? "Sin nombre";
                     return (
                       <ListItem
                         key={modulo.id}
                         disablePadding
                         secondaryAction={
-                          <IconButton size="small" onClick={() => onDeleteModulo(modulo.id)} sx={{ color: "#fca5a5", "&:hover": { color: "#ef4444" } }}>
-                            <DeleteOutlineIcon fontSize="small" />
-                          </IconButton>
+                          <Tooltip title="Quitar del folleto" placement="left">
+                            <IconButton size="small" onClick={() => onDeleteModulo(modulo.id)} aria-label={`Quitar ${nombre}`} sx={ICON_BTN_SX}>
+                              <DeleteOutlineIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
                         }
                         sx={{
-                          bgcolor: esSeleccionado ? "rgba(255,255,255,0.15)" : "transparent",
-                          borderLeft: esSeleccionado ? "4px solid #fff800" : "4px solid transparent",
-                          borderBottom: "1px solid rgba(255,255,255,0.05)"
+                          ...ROW_SX,
+                          bgcolor: esSeleccionado ? rail.active : "transparent",
+                          borderLeft: "3px solid",
+                          borderLeftColor: esSeleccionado ? "accent.main" : "transparent",
                         }}
                       >
-                        <ListItemButton onClick={() => onSelectModulo(modulo)} sx={{ pr: 5, py: 1 }}>
+                        <ListItemButton
+                          selected={esSeleccionado}
+                          onClick={() => onSelectModulo(modulo)}
+                          sx={{ pr: 6, py: 1, borderRadius: 0, "&:hover": { bgcolor: rail.hover }, "&.Mui-selected, &.Mui-selected:hover": { bgcolor: "transparent" } }}
+                        >
                           <ListItemText
                             primary={
-                              <Box display="flex" alignItems="center" gap={1} minWidth={0}>
-                                <Typography fontSize={12} fontWeight={esSeleccionado ? 600 : 400} color="white" noWrap flex={1}>
-                                  {modulo.nombre_override ?? modulo.productos?.nombre ?? "Sin nombre"}
-                                </Typography>
-                              </Box>
+                              <Typography fontSize={13} fontWeight={esSeleccionado ? 700 : 500} color="#fff" noWrap>
+                                {nombre}
+                              </Typography>
                             }
                             secondary={
-                              <Typography fontSize={11} color="rgba(255,255,255,0.6)" noWrap>
+                              <Typography fontSize={12} color={rail.textMuted} noWrap>
                                 {modulo.descripcion_override ?? modulo.productos?.descripcion ?? "Sin descripción"}
                               </Typography>
                             }
@@ -165,46 +166,56 @@ export default function ProductsSidebar({ modulos = [], selectedModulo, onSelect
                   })}
                 </List>
               )
+            ) : loadingProductos ? (
+              <Box display="flex" justifyContent="center" pt={4}>
+                <CircularProgress size={22} sx={{ color: "#fff" }} />
+              </Box>
+            ) : productosFiltrados.length === 0 ? (
+              <Box display="flex" justifyContent="center" pt={4} px={2}>
+                <Typography fontSize={13} color={rail.textFaint}>
+                  No se encontraron productos
+                </Typography>
+              </Box>
             ) : (
-              loadingProductos ? (
-                <Box display="flex" justifyContent="center" pt={4}><CircularProgress size={20} sx={{ color: "white" }} /></Box>
-              ) : productosFiltrados.length === 0 ? (
-                <Box display="flex" justifyContent="center" pt={4} px={2}><Typography fontSize={12} color="rgba(255,255,255,0.5)">No se encontraron productos</Typography></Box>
-              ) : (
-                <List dense disablePadding>
-                  {productosFiltrados.map((producto) => {
-                    const cantidad = conteoEnFlyer[producto.id] || 0;
-                    return (
-                      <ListItem
-                        key={producto.id}
-                        disablePadding
-                        secondaryAction={
-                          <Tooltip title="Agregar al folleto" placement="left">
-                            <IconButton size="small" onClick={() => onAddProducto(producto)} sx={{ color: "#4ade80", "&:hover": { color: "#22c55e" } }}>
-                              <AddCircleOutlineIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        }
-                        sx={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}
-                      >
-                        <ListItemButton sx={{ pr: 5, py: 1 }} onClick={() => onAddProducto(producto)}>
-                          <ListItemText
-                            primary={
-                              <Box display="flex" alignItems="center" gap={1}>
-                                <Typography fontSize={12} color="white" noWrap flex={1}>{producto.nombre}</Typography>
-                                {cantidad > 0 && (
-                                  <Chip label={`×${cantidad}`} size="small" sx={{ height: 16, fontSize: 10, fontWeight: 700, bgcolor: "#fff800", color: "#025BA9" }} />
-                                )}
-                              </Box>
-                            }
-                            secondary={<Typography fontSize={11} color="rgba(255,255,255,0.5)" noWrap>SKU: {producto.sku}</Typography>}
-                          />
-                        </ListItemButton>
-                      </ListItem>
-                    );
-                  })}
-                </List>
-              )
+              <List dense disablePadding>
+                {productosFiltrados.map((producto) => {
+                  const cantidad = conteoEnFlyer[producto.id] || 0;
+                  return (
+                    <ListItem
+                      key={producto.id}
+                      disablePadding
+                      secondaryAction={
+                        <Tooltip title="Agregar al folleto" placement="left">
+                          <IconButton size="small" onClick={() => onAddProducto(producto)} aria-label={`Agregar ${producto.nombre}`} sx={ICON_BTN_SX}>
+                            <AddIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      }
+                      sx={ROW_SX}
+                    >
+                      <ListItemButton sx={{ pr: 6, py: 1, borderRadius: 0, "&:hover": { bgcolor: rail.hover } }} onClick={() => onAddProducto(producto)}>
+                        <ListItemText
+                          primary={
+                            <Box display="flex" alignItems="center" gap={1}>
+                              <Typography fontSize={13} fontWeight={500} color="#fff" noWrap flex={1}>
+                                {producto.nombre}
+                              </Typography>
+                              {cantidad > 0 && (
+                                <Chip label={`×${cantidad}`} size="small" sx={{ height: 18, fontWeight: 700, bgcolor: "accent.main", color: "primary.main", "& .MuiChip-label": { fontSize: 11, px: 0.75 } }} />
+                              )}
+                            </Box>
+                          }
+                          secondary={
+                            <Typography fontSize={12} color={rail.textMuted} noWrap>
+                              SKU: {producto.sku}
+                            </Typography>
+                          }
+                        />
+                      </ListItemButton>
+                    </ListItem>
+                  );
+                })}
+              </List>
             )}
           </Box>
         </Box>

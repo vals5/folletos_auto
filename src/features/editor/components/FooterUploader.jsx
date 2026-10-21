@@ -39,6 +39,7 @@ export default function FooterUploader() {
         />
         <Box
           className="rem"
+          data-export-ignore="true"
           onClick={onRemoveFooter}
           sx={{
             position: "absolute",
@@ -66,6 +67,7 @@ export default function FooterUploader() {
     <>
       <input ref={inputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleUpload} />
       <Box
+        data-export-ignore="true"
         onClick={() => inputRef.current?.click()}
         sx={{
           border: "2px dashed rgba(0,0,0,0.15)",

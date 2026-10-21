@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Box, Typography, Tooltip, InputBase } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
+import { Box, Typography, Tooltip, InputBase, IconButton } from "@mui/material";
+import { alpha } from "@mui/material/styles";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import EditIcon from "@mui/icons-material/Edit";
 import { DndContext, closestCenter, useDroppable } from "@dnd-kit/core";
 import HeaderImprecionante from "./HeaderImprecionante";
@@ -16,9 +17,7 @@ function DropZone({ id, index, cols, isHighlighted, isValidDrop }) {
   const { setNodeRef } = useDroppable({ id, data: { index } });
   const rowStart = Math.floor(index / cols) + 1;
   const colStart = (index % cols) + 1;
-
-  const color = isValidDrop ? "59, 130, 246" : "239, 68, 68";
-  const hex = isValidDrop ? "#3b82f6" : "#ef4444";
+  const tone = isValidDrop ? "primary" : "error";
 
   return (
     <Box
@@ -28,8 +27,9 @@ function DropZone({ id, index, cols, isHighlighted, isValidDrop }) {
         gridRow: `${rowStart} / span 1`,
         width: "100%",
         height: "100%",
-        bgcolor: isHighlighted ? `rgba(${color}, 0.15)` : "transparent",
-        border: isHighlighted ? `2px dashed ${hex}` : "1px dashed transparent",
+        bgcolor: isHighlighted ? (t) => alpha(t.palette[tone].main, 0.15) : "transparent",
+        border: "2px dashed",
+        borderColor: isHighlighted ? `${tone}.main` : "transparent",
         borderRadius: "4px",
         zIndex: 1,
         pointerEvents: "none",
@@ -115,7 +115,7 @@ export default function PaginaCanvas({
       onClick={() => onSelectPagina?.(pagIdx)}
       sx={{ display: "flex", flexDirection: "column", alignItems: "center", mb: 4, cursor: "pointer" }}
     >
-      <Box display="flex" alignItems="center" gap={1} mb={1}>
+      <Box display="flex" alignItems="center" gap={0.5} mb={1}>
         {isEditingName ? (
           <InputBase
             value={draftNombre}
@@ -124,55 +124,51 @@ export default function PaginaCanvas({
             onKeyDown={(e) => e.key === "Enter" && handleSaveNombre()}
             autoFocus
             onClick={(e) => e.stopPropagation()}
-            sx={{ color: "#4b5563", fontSize: 13, fontWeight: 600, px: 1, py: 0.2, input: { textAlign: "center" } }}
+            inputProps={{ "aria-label": "Nombre de la página" }}
+            sx={{ fontSize: 11, fontWeight: 700, px: 0.75, py: 0, borderRadius: "6px", border: "1.5px solid", borderColor: "primary.main", bgcolor: "background.paper", input: { textAlign: "center", p: "1px 0" } }}
           />
         ) : (
           <Tooltip title="Cambiar el nombre de esta página">
             <Box
+              component="button"
+              type="button"
               onClick={startEditingName}
               sx={{
                 display: "inline-flex",
                 alignItems: "center",
-                gap: 0.6,
+                gap: 0.5,
+                font: "inherit",
+                fontSize: 11,
+                fontWeight: 700,
+                border: 0,
+                bgcolor: "transparent",
                 cursor: "pointer",
-                color: "#4b5563",
-                fontWeight: 600,
-                fontSize: 13,
-                px: 1,
-                py: 0.3,
-                borderRadius: "4px",
-                transition: "all 0.2s",
-                "&:hover": { bgcolor: "#e5e7eb", color: "#1f2937" },
+                color: isPaginaActiva ? "primary.main" : "text.secondary",
+                px: 0.75,
+                py: 0.25,
+                borderRadius: "6px",
+                "&:hover": { bgcolor: (t) => alpha(t.palette.neutral[900], 0.06), color: "text.primary" },
               }}
             >
               <span>{nombre}</span>
-              <EditIcon sx={{ fontSize: 14, color: "#6b7280" }} />
+              <EditIcon sx={{ fontSize: 11, opacity: 0.7 }} />
             </Box>
           </Tooltip>
         )}
 
         {totalPaginas > 1 && (
           <Tooltip title="Eliminar página">
-            <Box
+            <IconButton
+              size="small"
+              aria-label={`Eliminar ${nombre}`}
               onClick={(e) => {
                 e.stopPropagation();
                 onDeletePagina(pagIdx, pag);
               }}
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-                bgcolor: "#ef4444",
-                color: "white",
-                borderRadius: "20px",
-                px: 1,
-                height: 22,
-                "&:hover": { bgcolor: "#dc2626" },
-              }}
+              sx={{ p: 0.25, color: "text.secondary", "&:hover": { color: "error.main", bgcolor: "error.light" } }}
             >
-              <CloseIcon sx={{ fontSize: 13 }} />
-            </Box>
+              <DeleteOutlineIcon sx={{ fontSize: 14 }} />
+            </IconButton>
           </Tooltip>
         )}
       </Box>
@@ -189,7 +185,8 @@ export default function PaginaCanvas({
           width: (flyer?.width || 595) * 0.5,
           height: (flyer?.height || 841) * 0.5,
           borderRadius: "6px",
-          outline: isPaginaActiva ? "2px solid #2563eb" : "none",
+          outline: isPaginaActiva ? "2px solid" : "none",
+          outlineColor: (t) => t.palette.primary.main,
           outlineOffset: "2px",
           boxShadow: "0 8px 32px rgba(0,0,0,0.20)",
           display: "flex",
@@ -236,7 +233,7 @@ export default function PaginaCanvas({
                     zIndex: 0,
                   }}
                 >
-                  <Typography fontSize={13} color="#92400e" textAlign="center" fontWeight={600}>
+                  <Typography fontSize={13} color="warning.dark" textAlign="center" fontWeight={600}>
                     Hacé clic en esta página para seleccionar productos desde el panel izquierdo
                   </Typography>
                 </Box>

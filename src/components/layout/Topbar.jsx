@@ -1,12 +1,8 @@
-import {
-  Box,
-  Button,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from "@mui/material";
-import { authService } from "../../services/authService";
+import { Box, Button, Typography, useMediaQuery, useTheme } from "@mui/material";
+import LogoutIcon from "@mui/icons-material/LogoutOutlined";
 import { useNavigate } from "react-router-dom";
+import { authService } from "../../services/authService";
+import { layout } from "../../theme/tokens";
 
 export default function Topbar() {
   const navigate = useNavigate();
@@ -21,34 +17,24 @@ export default function Topbar() {
 
   return (
     <Box
+      component="header"
       sx={{
-        height: 60,
-        minHeight: 60,
-        bgcolor: "white",
-        borderBottom: "1px solid #e5e7eb",
+        height: layout.toolbarHeight,
+        minHeight: layout.toolbarHeight,
+        bgcolor: "background.paper",
+        borderBottom: "1px solid",
+        borderColor: "divider",
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        px: { xs: 7, md: 3 },
+        px: { xs: 8, md: 4 },
         flexShrink: 0,
       }}
     >
-      <Typography
-        fontWeight={600}
-        color="#025BA9"
-        fontSize={{ xs: 14, md: 16 }}
-      >
+      <Typography fontWeight={600} color="text.secondary" fontSize={14}>
         Panel de administración
       </Typography>
-      <Button
-        size="small"
-        onClick={logout}
-        sx={{
-          borderRadius: 5,
-          color: "#ff0000",
-          fontWeight: "bold",
-        }}
-      >
+      <Button size="small" color="inherit" onClick={logout} startIcon={<LogoutIcon fontSize="small" />}>
         {isMobile ? "Salir" : "Cerrar sesión"}
       </Button>
     </Box>

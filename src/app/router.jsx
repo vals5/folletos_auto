@@ -1,7 +1,6 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import Login from "../pages/Login";
 import Dashboard from "../pages/Dashboard";
-import Flyers from "../pages/Flyers";
 import Styles from "../pages/Styles";
 import Databases from "../pages/Databases";
 import Users from "../pages/Users";
@@ -32,7 +31,7 @@ export const router = createBrowserRouter([
         element: <DashboardLayout />,
         children: [
           { path: "/dashboard", element: <Dashboard /> },
-          { path: "/flyers", element: <Flyers /> },
+          { path: "/flyers", element: <Navigate to="/dashboard" replace /> },
           { path: "/styles", element: <Styles /> },
           { path: "/databases", element: <Databases /> },
           { path: "/users", element: <Users /> },

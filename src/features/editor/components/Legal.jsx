@@ -59,7 +59,7 @@ export default function LegalEditable() {
             "&:hover": { opacity: 0.7 },
           }}
         >
-          {legal || <em style={{ fontStyle: "italic", opacity: 0.35 }}>Editar legal</em>}
+          {legal || <em data-export-ignore="true" style={{ fontStyle: "italic", opacity: 0.35 }}>Editar legal</em>}
         </Typography>
       )}
     </Box>

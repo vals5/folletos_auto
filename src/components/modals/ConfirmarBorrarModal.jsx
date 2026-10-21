@@ -1,22 +1,9 @@
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography } from "@mui/material";
+import ConfirmDialog from "../ui/ConfirmDialog";
 
 export default function ConfirmarBorrarModal({ open, producto, onClose, onConfirm }) {
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
-      <DialogTitle sx={{ fontWeight: 700 }}>Borrar producto</DialogTitle>
-      <DialogContent>
-        <Typography>
-          ¿Seguro que querés borrar <strong>{producto?.nombre}</strong>?
-        </Typography>
-      </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={onClose} color="inherit">
-          Cancelar
-        </Button>
-        <Button variant="contained" color="error" onClick={onConfirm}>
-          Borrar
-        </Button>
-      </DialogActions>
-    </Dialog>
+    <ConfirmDialog open={open} title="Borrar producto" confirmLabel="Borrar" destructive onClose={onClose} onConfirm={onConfirm}>
+      ¿Seguro que querés borrar <strong>{producto?.nombre}</strong>? Esta acción no se puede deshacer.
+    </ConfirmDialog>
   );
 }

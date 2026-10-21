@@ -14,6 +14,13 @@ function getAction(e) {
   if (e.key === "Escape") return "DESELECT";
 
   const cmdOrCtrl = IS_MAC ? e.metaKey : e.ctrlKey;
+
+  // Como en Figma: Shift+0 = zoom 100%, Shift+1 = ajustar a la pantalla.
+  if (e.shiftKey && !cmdOrCtrl && !e.altKey) {
+    if (e.code === "Digit0") return "ZOOM_RESET";
+    if (e.code === "Digit1") return "ZOOM_TO_FIT";
+  }
+
   if (!cmdOrCtrl) return null;
 
   switch (key) {

@@ -1,22 +1,19 @@
 import { useState } from "react";
 import {
-  Box, Button, Tooltip, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions,
-  Checkbox, FormControlLabel, FormGroup, Alert, RadioGroup, Radio, Typography, Divider,
+  Box, Button, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions, Checkbox,
+  FormControlLabel, FormGroup, Alert, RadioGroup, Radio, Typography, Divider, Menu, MenuItem, ListItemIcon, ListItemText,
 } from "@mui/material";
-import ImageIcon from "@mui/icons-material/Image";
-import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
+import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import ImageOutlinedIcon from "@mui/icons-material/ImageOutlined";
+import PictureAsPdfOutlinedIcon from "@mui/icons-material/PictureAsPdfOutlined";
+import FieldLabel from "../../../components/ui/FieldLabel";
 import { exportToJPG, exportToPDF, EXPORT_QUALITIES } from "../utils/exportFlyer";
 
-const BTN_SX = {
-  borderRadius: "20px",
-  bgcolor: "#0284c7",
-  color: "white",
-  textTransform: "none",
-  px: 2,
-  "&:hover": { bgcolor: "#0369a1" },
-};
+const nextFrame = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
 
-export default function ExportButtons({ getCanvasElements, flyer, paginas = [] }) {
+export default function ExportButtons({ getCanvasElements, flyer, paginas = [], onBeforeExport }) {
+  const [menuAnchor, setMenuAnchor] = useState(null);
   const [exporting, setExporting] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [exportType, setExportType] = useState(null);
@@ -28,6 +25,7 @@ export default function ExportButtons({ getCanvasElements, flyer, paginas = [] }
   const allIndices = Array.from({ length: total }, (_, i) => i);
 
   const handleOpenModal = (type) => {
+    setMenuAnchor(null);
     setExportType(type);
     setQuality(type === "pdf" ? "print" : "standard");
     setErrorMsg(null);
@@ -44,6 +42,10 @@ export default function ExportButtons({ getCanvasElements, flyer, paginas = [] }
     setErrorMsg(null);
 
     try {
+      // Se quita la selección para que el contorno azul no salga en el archivo.
+      onBeforeExport?.();
+      await nextFrame();
+
       const elementos = getCanvasElements();
       const seleccion = selectedIndices.map((i) => elementos[i]);
       if (exportType === "jpg") await exportToJPG(seleccion, flyer, { quality });
@@ -59,115 +61,84 @@ export default function ExportButtons({ getCanvasElements, flyer, paginas = [] }
 
   return (
     <>
-      <Box display="flex" gap={1}>
-        <Tooltip title="Exportar JPG">
-          <Button
-            size="small"
-            variant="contained"
-            startIcon={<ImageIcon />}
-            onClick={() => handleOpenModal("jpg")}
-            disabled={exporting}
-            sx={BTN_SX}
-          >
-            JPG
-          </Button>
-        </Tooltip>
-
-        <Tooltip title="Exportar PDF">
-          <Button
-            size="small"
-            variant="contained"
-            startIcon={<PictureAsPdfIcon />}
-            onClick={() => handleOpenModal("pdf")}
-            disabled={exporting}
-            sx={BTN_SX}
-          >
-            PDF
-          </Button>
-        </Tooltip>
-      </Box>
-
-      <Dialog
-        open={openModal}
-        onClose={() => !exporting && setOpenModal(false)}
-        maxWidth="xs"
-        fullWidth
-        PaperProps={{
-          sx: { borderRadius: "20px", p: 1, boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)" },
-        }}
+      <Button
+        variant="contained"
+        size="small"
+        startIcon={<FileDownloadOutlinedIcon />}
+        endIcon={<KeyboardArrowDownIcon />}
+        onClick={(e) => setMenuAnchor(e.currentTarget)}
+        disabled={exporting}
+        aria-haspopup="menu"
+        sx={{ py: 0.75 }}
       >
-        <DialogTitle sx={{ fontWeight: 700, fontSize: 17, pt: 2, pb: 1 }}>
-          Exportar {exportType?.toUpperCase()}
-        </DialogTitle>
+        Exportar
+      </Button>
 
-        <DialogContent dividers sx={{ borderColor: "#f3f4f6", py: 1.5 }}>
+      <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={() => setMenuAnchor(null)} anchorOrigin={{ vertical: "bottom", horizontal: "right" }} transformOrigin={{ vertical: "top", horizontal: "right" }}>
+        <MenuItem onClick={() => handleOpenModal("jpg")}>
+          <ListItemIcon>
+            <ImageOutlinedIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText primary="Imagen JPG" secondary="Para redes y web" />
+        </MenuItem>
+        <MenuItem onClick={() => handleOpenModal("pdf")}>
+          <ListItemIcon>
+            <PictureAsPdfOutlinedIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText primary="Documento PDF" secondary="Para imprimir" />
+        </MenuItem>
+      </Menu>
+
+      <Dialog open={openModal} onClose={() => !exporting && setOpenModal(false)} maxWidth="xs" fullWidth>
+        <DialogTitle>Exportar {exportType === "pdf" ? "PDF" : "JPG"}</DialogTitle>
+
+        <DialogContent>
           {errorMsg && (
-            <Alert severity="error" sx={{ mb: 2, borderRadius: "12px" }}>
+            <Alert severity="error" sx={{ mb: 2 }}>
               {errorMsg}
             </Alert>
           )}
 
-          <Typography fontSize={12} fontWeight={700} color="#64748b" mb={0.5}>
-            CALIDAD
-          </Typography>
+          <FieldLabel>Calidad</FieldLabel>
           <RadioGroup value={quality} onChange={(e) => setQuality(e.target.value)}>
             {Object.entries(EXPORT_QUALITIES).map(([value, { label }]) => (
-              <FormControlLabel
-                key={value}
-                value={value}
-                control={<Radio size="small" />}
-                label={<span style={{ fontSize: 13 }}>{label}</span>}
-              />
+              <FormControlLabel key={value} value={value} control={<Radio size="small" />} label={<span style={{ fontSize: 14 }}>{label}</span>} />
             ))}
           </RadioGroup>
 
-          <Divider sx={{ my: 1.5 }} />
+          <Divider sx={{ my: 2 }} />
 
-          <Typography fontSize={12} fontWeight={700} color="#64748b" mb={0.5}>
-            PÁGINAS
-          </Typography>
+          <FieldLabel>Páginas</FieldLabel>
           <FormControlLabel
             control={
               <Checkbox
                 checked={selectedIndices.length === total}
                 indeterminate={selectedIndices.length > 0 && selectedIndices.length < total}
                 onChange={(e) => setSelectedIndices(e.target.checked ? allIndices : [])}
-                sx={{ "&.Mui-checked": { color: "#0284c7" } }}
               />
             }
             label={<span style={{ fontWeight: 600, fontSize: 14 }}>Todas las páginas ({total})</span>}
           />
 
-          <FormGroup sx={{ ml: 1.5, mt: 0.5 }}>
+          <FormGroup sx={{ ml: 3 }}>
             {paginas.map((pag, idx) => (
               <FormControlLabel
                 key={pag.id}
-                control={
-                  <Checkbox
-                    checked={selectedIndices.includes(idx)}
-                    onChange={() => handleTogglePage(idx)}
-                    size="small"
-                    sx={{ "&.Mui-checked": { color: "#0284c7" } }}
-                  />
-                }
-                label={<span style={{ fontSize: 13, color: "#374151" }}>{pag.nombre || `Página ${idx + 1}`}</span>}
+                control={<Checkbox checked={selectedIndices.includes(idx)} onChange={() => handleTogglePage(idx)} size="small" />}
+                label={<span style={{ fontSize: 14 }}>{pag.nombre || `Página ${idx + 1}`}</span>}
               />
             ))}
           </FormGroup>
 
           {exportType === "jpg" && selectedIndices.length > 1 && (
-            <Typography fontSize={11} color="#64748b" mt={1}>
+            <Typography fontSize={12} color="text.secondary" mt={1.5}>
               Con varias páginas se descarga un único archivo .zip.
             </Typography>
           )}
         </DialogContent>
 
-        <DialogActions sx={{ p: 2, gap: 1 }}>
-          <Button
-            onClick={() => setOpenModal(false)}
-            disabled={exporting}
-            sx={{ borderRadius: "20px", textTransform: "none", color: "#4b5563", px: 2 }}
-          >
+        <DialogActions>
+          <Button onClick={() => setOpenModal(false)} disabled={exporting} color="inherit">
             Cancelar
           </Button>
           <Button
@@ -175,9 +146,8 @@ export default function ExportButtons({ getCanvasElements, flyer, paginas = [] }
             variant="contained"
             disabled={selectedIndices.length === 0 || exporting}
             startIcon={exporting && <CircularProgress size={14} color="inherit" />}
-            sx={{ borderRadius: "20px", bgcolor: "#0284c7", textTransform: "none", fontWeight: 700, px: 3, "&:hover": { bgcolor: "#0369a1" } }}
           >
-            {exporting ? "Generando..." : "Descargar"}
+            {exporting ? "Generando…" : "Descargar"}
           </Button>
         </DialogActions>
       </Dialog>

@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
 import { authService } from "../services/authService";
-import { Button, TextField, Box, Typography, Paper, CircularProgress, Checkbox, FormControlLabel, Link, InputAdornment, } from "@mui/material";
+import { Button, TextField, Box, Typography, CircularProgress, InputAdornment, IconButton, Alert } from "@mui/material";
 import EmailOutlined from "@mui/icons-material/EmailOutlined";
 import LockOutlined from "@mui/icons-material/LockOutlined";
+import VisibilityOutlined from "@mui/icons-material/VisibilityOutlined";
+import VisibilityOffOutlined from "@mui/icons-material/VisibilityOffOutlined";
 import { useNavigate } from "react-router-dom";
 
 import Logo from "../assets/img/LOGO.jpg";
+
+const LABEL_SX = { color: "#fff", fontSize: 13, fontWeight: 600 };
 
 export default function Login() {
   const navigate = useNavigate();
@@ -13,6 +17,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     const checkSession = async () => {
@@ -35,7 +40,9 @@ export default function Login() {
     checkSession();
   }, [navigate]);
 
-  const login = async () => {
+  const login = async (e) => {
+    e?.preventDefault();
+    if (loading) return;
     setLoading(true);
     setErrorMsg("");
     try {
@@ -52,138 +59,118 @@ export default function Login() {
     navigate("/dashboard");
   };
 
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter") login();
-  };
-
   return (
-    <Box
-      display="flex"
-      height="100vh"
-      justifyContent="center"
-      alignItems="center"
-      bgcolor="#000"
-    >
-      {/* MAIN CONTAINER */}
+    <Box display="flex" minHeight="100dvh" justifyContent="center" alignItems="center" bgcolor="neutral.900" p={2}>
       <Box
-        display="flex"
         sx={{
-          width: { xs: "90%", md: "1000px" },
-          height: { xs: "auto", md: "600px" },
-          borderRadius: 10,
+          display: "flex",
+          width: { xs: "100%", md: 920 },
+          maxWidth: "100%",
+          borderRadius: "16px",
           overflow: "hidden",
-          bgcolor: "#fff",
+          bgcolor: "background.paper",
           flexDirection: { xs: "column", md: "row" },
+          boxShadow: "0 24px 64px rgba(0,0,0,0.4)",
         }}
       >
-        {/*LEFT SECTION */}
-        <Box
-          flex={1}
-          sx={{
-            background: "#ffff",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            alignItems: "center",
-            p: 4,
-            position: "relative",
-          }}
-        >
-          {/* LOGO */}
-          <Box
-            component="img"
-            src={Logo}
-            alt="Logo"
-            sx={{
-              width: "70%",
-              maxWidth: "280px",
-              height: "auto",
-              mb: 2,
-            }}
-          />
+        {/* Marca */}
+        <Box flex={1} sx={{ display: "flex", alignItems: "center", justifyContent: "center", p: 5, minHeight: { xs: 180, md: 560 } }}>
+          <Box component="img" src={Logo} alt="Brokers Ads" sx={{ width: "70%", maxWidth: 260, height: "auto" }} />
         </Box>
-        {/* RIGHT SECTION */}
+
+        {/* Formulario */}
         <Box
+          component="form"
+          onSubmit={login}
+          noValidate
           flex={1}
-          sx={{
-            background: "#025BA9",
-            p: { xs: 4, md: 8 },
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-          }}
+          sx={{ bgcolor: "primary.main", p: { xs: 4, md: 7 }, display: "flex", flexDirection: "column", justifyContent: "center" }}
         >
-          <Typography
-            variant="h4"
-            fontWeight={700}
-            color="#ffff"
-            mb={4}
-            textAlign="center"
-          >
+          <Typography variant="h4" fontWeight={700} color="#fff" textAlign="center" mb={0.5}>
             Brokers Ads
           </Typography>
+          <Typography fontSize={14} color="rgba(255,255,255,0.75)" textAlign="center" mb={4}>
+            Ingresá con tu cuenta para continuar
+          </Typography>
 
-          <Box display="flex" flexDirection="column" gap={2.5}>
+          <Box display="flex" flexDirection="column" gap={0.75}>
+            <Box component="label" htmlFor="login-email" sx={LABEL_SX}>
+              Correo electrónico
+            </Box>
             <TextField
-              placeholder="E-MAIL"
-              variant="outlined"
+              id="login-email"
+              type="email"
+              size="medium"
+              placeholder="nombre@empresa.com"
+              autoComplete="email"
+              autoFocus
               fullWidth
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              onKeyDown={handleKeyDown}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <EmailOutlined sx={{ color: "#434343" }} />
+                    <EmailOutlined sx={{ color: "neutral.400" }} />
                   </InputAdornment>
                 ),
-                sx: { borderRadius: 10, bgcolor: "#f4f7ff" },
               }}
             />
 
+            <Box component="label" htmlFor="login-password" sx={{ ...LABEL_SX, mt: 1 }}>
+              Contraseña
+            </Box>
             <TextField
-              placeholder="CONTRASEÑA"
-              type="password"
-              variant="outlined"
+              id="login-password"
+              placeholder="Tu contraseña"
+              type={showPassword ? "text" : "password"}
+              size="medium"
+              autoComplete="current-password"
               fullWidth
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              onKeyDown={handleKeyDown}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <LockOutlined sx={{ color: "#434343" }} />
+                    <LockOutlined sx={{ color: "neutral.400" }} />
                   </InputAdornment>
                 ),
-                sx: { borderRadius: 10, bgcolor: "#f4f7ff" },
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      size="small"
+                      onClick={() => setShowPassword((v) => !v)}
+                      aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                      edge="end"
+                    >
+                      {showPassword ? <VisibilityOffOutlined fontSize="small" /> : <VisibilityOutlined fontSize="small" />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
               }}
             />
 
             {errorMsg && (
-              <Typography color="error" fontSize={13} textAlign="center">
+              <Alert severity="error" variant="filled" role="alert">
                 {errorMsg}
-              </Typography>
+              </Alert>
             )}
 
             <Button
+              type="submit"
               variant="contained"
-              onClick={login}
-              disabled={loading}
+              size="large"
+              disabled={loading || !email || !password}
               fullWidth
               sx={{
-                bgcolor: "#368FC7",
-                "&:hover": { bgcolor: "#434343" },
-                borderRadius: 10,
-                py: 1.5,
-                fontWeight: "bold",
-                mt: 2,
+                mt: 2.5,
+                bgcolor: "#fff",
+                color: "primary.main",
+                fontWeight: 700,
+                "&:hover": { bgcolor: "primary.light", color: "#fff" },
+                "&.Mui-disabled": { bgcolor: "rgba(255,255,255,0.35)", color: "rgba(255,255,255,0.8)" },
               }}
             >
-              {loading ? (
-                <CircularProgress size={24} color="inherit" />
-              ) : (
-                "LOGIN"
-              )}
+              {loading ? <CircularProgress size={24} color="inherit" /> : "Iniciar sesión"}
             </Button>
           </Box>
         </Box>

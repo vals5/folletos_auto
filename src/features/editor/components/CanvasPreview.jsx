@@ -1,18 +1,20 @@
 import { useState, useRef, useEffect } from "react";
-import { Box, Typography, Chip, Tooltip, IconButton, Slider, Button, InputBase } from "@mui/material";
+import { Box, Typography, Tooltip, IconButton, Slider, Button, InputBase, Divider } from "@mui/material";
 import ZoomInIcon from "@mui/icons-material/ZoomIn";
 import ZoomOutIcon from "@mui/icons-material/ZoomOut";
 import AddIcon from "@mui/icons-material/Add";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import EditIcon from "@mui/icons-material/Edit";
+import UndoIcon from "@mui/icons-material/Undo";
+import RedoIcon from "@mui/icons-material/Redo";
 import { useSensors, useSensor, PointerSensor, TouchSensor, MouseSensor } from "@dnd-kit/core";
 
 import PaginaCanvas from "./CanvasPage";
 import ExportButtons from "./ExportButtons";
 import { useShortcuts } from "../hooks/useShortcuts";
+import { layout } from "../../../theme/tokens";
 
 const CAMPO_EDITABLE = "input, textarea, [contenteditable='true']";
-const BTN_ROUND = { borderRadius: "20px", textTransform: "none", fontSize: 12 };
 const ZOOM_MIN = 50;
 const ZOOM_MAX = 250;
 
@@ -31,6 +33,14 @@ export default function CanvasPreview({
   onDeletePagina,
   onDeleteModulo,
   onBack,
+  onUndo,
+  onRedo,
+  canUndo = false,
+  canRedo = false,
+  onCopy,
+  onPaste,
+  canPaste = false,
+  onDuplicate,
 }) {
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
@@ -65,6 +75,11 @@ export default function CanvasPreview({
         }
       : undefined,
     DESELECT: () => onSelectModulo(null),
+    UNDO: onUndo,
+    REDO: onRedo,
+    COPY: selectedModulo ? onCopy : undefined,
+    PASTE: canPaste ? onPaste : undefined,
+    DUPLICATE: selectedModulo ? onDuplicate : undefined,
     ZOOM_IN: zoomIn,
     ZOOM_OUT: zoomOut,
     ZOOM_RESET: () => setZoom(100),
@@ -99,7 +114,7 @@ export default function CanvasPreview({
   return (
     <Box
       flex={1}
-      bgcolor="#e5e7eb"
+      bgcolor="workspace"
       display="flex"
       flexDirection="column"
       alignItems="center"
@@ -109,21 +124,33 @@ export default function CanvasPreview({
     >
       {/* BARRA SUPERIOR */}
       <Box
-        display="flex"
-        alignItems="center"
-        justifyContent="space-between"
-        px={2.5}
-        py={1}
-        bgcolor="white"
-        borderBottom="1px solid #e5e7eb"
-        sx={{ width: "100%", zIndex: 20, flexShrink: 0, boxSizing: "border-box" }}
+        component="header"
+        onClick={(e) => e.stopPropagation()} // los botones de la barra no deben deseleccionar el módulo
+        sx={{
+          width: "100%",
+          height: layout.toolbarHeight,
+          minHeight: layout.toolbarHeight,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 2,
+          px: 2,
+          bgcolor: "background.paper",
+          borderBottom: "1px solid",
+          borderColor: "divider",
+          zIndex: 20,
+          flexShrink: 0,
+          boxSizing: "border-box",
+        }}
       >
-        <Box display="flex" alignItems="center" gap={1.5}>
-          <Tooltip title="Volver al dashboard">
-            <IconButton size="small" onClick={onBack} sx={{ color: "#0284c7", p: 0.5 }}>
+        <Box display="flex" alignItems="center" gap={0.5} minWidth={0}>
+          <Tooltip title="Volver a folletos">
+            <IconButton size="small" onClick={onBack} aria-label="Volver a folletos">
               <ArrowBackIcon fontSize="small" />
             </IconButton>
           </Tooltip>
+
+          <Divider orientation="vertical" flexItem sx={{ mx: 1, my: 1.5 }} />
 
           {isEditingTitle ? (
             <InputBase
@@ -133,49 +160,56 @@ export default function CanvasPreview({
               onKeyDown={(e) => e.key === "Enter" && handleSaveTitle()}
               autoFocus
               onClick={(e) => e.stopPropagation()}
+              inputProps={{ "aria-label": "Nombre del folleto" }}
               sx={{
-                bgcolor: "#0284c7",
-                color: "white",
-                borderRadius: "20px",
-                px: 1.5,
-                py: 0.1,
-                fontSize: 13,
+                fontSize: 15,
                 fontWeight: 700,
-                input: { textAlign: "center", color: "white" },
+                px: 1,
+                borderRadius: "8px",
+                border: "1.5px solid",
+                borderColor: "primary.main",
+                minWidth: 220,
               }}
             />
           ) : (
-            <Tooltip title="Haz clic para editar el nombre del folleto">
-              <Chip
-                label={
-                  <Box display="flex" alignItems="center" gap={0.6}>
-                    <span>{nombreFolleto}</span>
-                    <EditIcon sx={{ fontSize: "13px !important", color: "white !important" }} />
-                  </Box>
-                }
+            <Tooltip title="Cambiar el nombre del folleto">
+              <Button
+                color="inherit"
                 size="small"
                 onClick={startEditingTitle}
-                sx={{
-                  borderRadius: "20px",
-                  fontWeight: 700,
-                  fontSize: 13,
-                  bgcolor: "#0284c7",
-                  color: "white",
-                  px: 0.8,
-                  cursor: "pointer",
-                  transition: "all 0.2s",
-                  "&:hover": { bgcolor: "#0369a1" },
-                }}
-              />
+                endIcon={<EditIcon sx={{ fontSize: "14px !important", color: "text.secondary" }} />}
+                sx={{ fontWeight: 700, fontSize: 15, color: "text.primary", maxWidth: 320, justifyContent: "flex-start" }}
+              >
+                <Box component="span" sx={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {nombreFolleto}
+                </Box>
+              </Button>
             </Tooltip>
           )}
+
+          <Box display="flex" alignItems="center" ml={0.5}>
+            <Tooltip title="Deshacer (Ctrl+Z)">
+              <span>
+                <IconButton size="small" onClick={onUndo} disabled={!canUndo} aria-label="Deshacer">
+                  <UndoIcon fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+            <Tooltip title="Rehacer (Ctrl+Shift+Z)">
+              <span>
+                <IconButton size="small" onClick={onRedo} disabled={!canRedo} aria-label="Rehacer">
+                  <RedoIcon fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+          </Box>
         </Box>
 
         {/* ZOOM Y EXPORTAR */}
-        <Box display="flex" alignItems="center" gap={2}>
-          <Box display="flex" alignItems="center" gap={1} bgcolor="#0284c7" borderRadius="20px" px={1.5} py={0.5} sx={{ minWidth: 180 }}>
+        <Box display="flex" alignItems="center" gap={1.5}>
+          <Box display="flex" alignItems="center" gap={0.5} bgcolor="neutral.100" borderRadius="8px" px={0.5} py={0.25}>
             <Tooltip title="Alejar (Ctrl -)">
-              <IconButton size="small" onClick={zoomOut}>
+              <IconButton size="small" onClick={zoomOut} aria-label="Alejar">
                 <ZoomOutIcon fontSize="small" />
               </IconButton>
             </Tooltip>
@@ -186,19 +220,22 @@ export default function CanvasPreview({
               step={5}
               onChange={(_, v) => setZoom(v)}
               size="small"
-              sx={{ flex: 1, color: "white", "& .MuiSlider-thumb": { width: 14, height: 14 } }}
+              aria-label="Zoom"
+              sx={{ width: 110, mx: 0.5, "& .MuiSlider-thumb": { width: 14, height: 14 } }}
             />
             <Tooltip title="Acercar (Ctrl +)">
-              <IconButton size="small" onClick={zoomIn}>
+              <IconButton size="small" onClick={zoomIn} aria-label="Acercar">
                 <ZoomInIcon fontSize="small" />
               </IconButton>
             </Tooltip>
-            <Typography fontSize={11} color="white" sx={{ minWidth: 32, textAlign: "right" }}>
-              {zoom}%
-            </Typography>
+            <Tooltip title="Zoom 100% (Shift+0)">
+              <Button size="small" color="inherit" onClick={() => setZoom(100)} sx={{ minWidth: 52, px: 0.5, fontSize: 12, fontWeight: 700, color: "text.secondary" }}>
+                {zoom}%
+              </Button>
+            </Tooltip>
           </Box>
 
-          <ExportButtons flyer={flyer} paginas={paginas} getCanvasElements={() => canvasEls.current} />
+          <ExportButtons flyer={flyer} paginas={paginas} getCanvasElements={() => canvasEls.current} onBeforeExport={() => onSelectModulo(null)} />
         </Box>
       </Box>
 
@@ -226,7 +263,7 @@ export default function CanvasPreview({
           >
             {paginas.length === 0 ? (
               <Box bgcolor="white" p={4} borderRadius="8px" textAlign="center" boxShadow="0 2px 10px rgba(0,0,0,0.05)">
-                <Typography color="textSecondary" fontSize={14}>
+                <Typography color="text.secondary" fontSize={14}>
                   No hay páginas en este folleto.
                 </Typography>
               </Box>
@@ -258,14 +295,7 @@ export default function CanvasPreview({
                 variant="outlined"
                 startIcon={<AddIcon />}
                 onClick={onAddPagina}
-                sx={{
-                  ...BTN_ROUND,
-                  borderColor: "#9ca3af",
-                  color: "#374151",
-                  bgcolor: "white",
-                  "&:hover": { bgcolor: "#f9fafb" },
-                  px: 3,
-                }}
+                sx={{ bgcolor: "background.paper", px: 3 }}
               >
                 Agregar página
               </Button>
